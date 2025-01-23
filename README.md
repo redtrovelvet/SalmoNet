@@ -1,4 +1,4 @@
-Team Name: Salmon
+Team Name: Salmon /n
 Team Members: Ethan Chung
               Ryan Edwards
               Harshita Handa
