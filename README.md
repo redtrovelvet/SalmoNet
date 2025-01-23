@@ -1,9 +1,12 @@
-Team Members:
+# Team Name: Salmon
+
+## Team Members:
 - Carlin Boyles
 - Ethan Chung
 - Ryan Edwards
 - Gitanjali Ghugare
 - Harshita Handa
+- Jesugbenga Omoniwa
 
               
 
