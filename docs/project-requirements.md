@@ -42,6 +42,14 @@
 * post_id (foreign key)
 * date
 
+### Comment_Likes Class
+
+* comment_likes_id (primary key)
+* username (foreign key)
+* comment_id (foreign key)
+* count
+* date
+
 ### Stream Class
 
 * post_id (foreign key) (can be unlisted/followers-only/public)
