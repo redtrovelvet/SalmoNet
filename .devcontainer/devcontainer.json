@@ -1,0 +1,38 @@
+{
+    "name": "Salmon Project",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": "../"
+    },
+    "portsAttributes": {
+        "8000": {
+            "label": "Django",
+            "onAutoForward": "notify"
+        }
+    },
+    "remoteUser": "dev",
+    "updateRemoteUserUID": true,
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "fish",
+                "terminal.integrated.profiles.linux": {
+                    "fish": {
+                        "path": "/usr/bin/fish"
+                    }
+                },
+                "files.eol": "\n",
+                "python.analysis.typeCheckingMode": "standard"
+            },
+            "extensions": [
+                "ms-python.python"
+            ]
+        }
+    },
+    "postAttachCommand": "sudo chown -Rv dev:dev /workspace",
+    "postCreateCommand": "pip install -r src/salmon_project/requirements.txt",
+    "containerEnv": {
+        "DJANGO_SETTINGS_MODULE": "salmon_project.settings",
+        "PYTHONPATH": "/workspace/src"
+    }
+}
