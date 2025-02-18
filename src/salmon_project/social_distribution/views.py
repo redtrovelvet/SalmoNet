@@ -45,7 +45,7 @@ def logout(request):
 @api_view(["GET"])
 def get_authors(request):
     '''
-    returns all authors in local node
+    API: returns all authors in local node
     '''
     local_authors = Author.objects.filter(host=settings.BASE_URL)
     serializer = AuthorSerializer(local_authors, many=True)
@@ -54,16 +54,28 @@ def get_authors(request):
 @api_view(["GET"])
 def get_author(request, author_id):
     '''
-    returns specific author profiile
+    API: returns specific author profiile
     '''
     author = get_object_or_404(Author, id=author_id)
     serializer = AuthorSerializer(author)
     return Response(serializer.data)
 
+
+@api_view(["POST"])
+def create_author(request, author_id):
+    '''
+    API: creates a new author 
+    '''
+    serializer = AuthorSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=201)
+    return Response(status=400, data=serializer.errors)
+
 @api_view(["POST"])
 def update_author(request, author_id):
     '''
-    updates an author's profile
+    API: updates an author's profile
     ''' 
     author = get_object_or_404(Author, id=author_id)
     serializer = AuthorSerializer(author, data=request.data, partial=True)
@@ -71,3 +83,6 @@ def update_author(request, author_id):
         serializer.save()
         return Response(serializer.data)
     return Response(status=400, data=serializer.errors)
+
+
+
