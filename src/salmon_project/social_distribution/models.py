@@ -1,11 +1,19 @@
 from django.db import models
+import uuid
+from django.conf import settings
 
 class Author(models.Model):
     """
     An author who can create posts and comments and follow other authors
     """
-    username = models.CharField(max_length=100)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    username = models.CharField(max_length=100, unique=True)
     following = models.ManyToManyField('self', symmetrical=False)
+    display_name = models.CharField(max_length=100, unique=True, default="Display Name")
+    github = models.URLField(null=True, blank=True)
+    profile_image = models.URLField(null=True, blank=True)
+    page = models.URLField(null=True, blank=True)
+    host = models.URLField(default=settings.BASE_URL)
 
     def __str__(self):
         return self.username
