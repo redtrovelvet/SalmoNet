@@ -11,7 +11,7 @@ class Author(models.Model):
     following = models.ManyToManyField('self', symmetrical=False)
     display_name = models.CharField(max_length=100, unique=True, default="Display Name")
     github = models.URLField(null=True, blank=True)
-    profile_image = models.URLField(null=True, blank=True)
+    profile_image = models.ImageField(upload_to='images/', null=True, blank=True)
     page = models.URLField(null=True, blank=True)
     host = models.URLField(default=settings.BASE_URL)
 
