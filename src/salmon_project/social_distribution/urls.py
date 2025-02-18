@@ -6,4 +6,7 @@ urlpatterns = [
     path("api/authors/", views.get_authors, name="get_authors"),
     path("api/authors/<uuid:author_id>/", views.get_author, name="get_author"),
     path("api/authors/<uuid:author_id>/update/", views.update_author, name="update_author"),
+    path("authors/<uuid:author_id>/", views.profile, name="profile"),
+    path("authors/<uuid:author_id>/edit/", views.edit_profile, name="edit_profile"),
+    path("logout/", views.logout, name="logout"),
 ]

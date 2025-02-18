@@ -1,17 +1,23 @@
+#references:
+#https://stackoverflow.com/questions/26298821/django-testing-model-with-imagefield#26307916
+
 from django.test import TestCase
 from django.urls import reverse
 from .models import Author
 import uuid
+from django.core.files.uploadedfile import SimpleUploadedFile
+
 
 # Create your tests here.
 class AuthorTests(TestCase):
 
     def setUp(self):
+        self.image = SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg")
         self.author = Author.objects.create(
             username = "testuser",
             display_name = "Test User",
             github = "https://github.com/testuser",
-            profile_image = "https://example.com/profile_image.jpg",
+            profile_image = self.image,
         )
     
     def test_get_author(self):

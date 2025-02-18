@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import Author, Post
@@ -18,6 +18,29 @@ def profile(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     posts = Post.objects.filter(author=author, visibility="PUBLIC").order_by("-created_at")
     return render(request, "social_distribution/profile.html", {"author": author, "posts": posts})
+
+def edit_profile(request, author_id):
+    '''
+    To allow authors to edit their profile information like display name, github, and profile image
+    '''
+    author = get_object_or_404(Author, id=author_id)
+    if request.method == "POST":
+        author.display_name = request.POST.get("display_name", author.display_name)
+        author.github = request.POST.get("github", author.github)
+
+        if "profile_image" in request.FILES:
+            author.profile_image = request.FILES["profile_image"]
+        
+        author.save()
+        return redirect("profile", author_id=author.id)
+    return render(request, "social_distribution/edit_profile.html", {"author": author})
+
+def logout(request):
+    '''
+    Logs the author out and returns to homepage (index.html)
+    '''
+    logout(request)
+    return redirect("index")
 
 @api_view(["GET"])
 def get_authors(request):
