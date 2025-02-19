@@ -9,7 +9,7 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/create/", views.create_author, name="create_author"),
     path("authors/<uuid:author_id>/", views.profile, name="profile"),
     path("authors/<uuid:author_id>/edit/", views.edit_profile, name="edit_profile"),
-    path("logout/", views.logout_view, name="logout_view"),
+    path("logout/", views.logout_view, name="logout"),
     path("register/", views.register, name="register"),
     path("login/", views.login_view, name="login")
 ]

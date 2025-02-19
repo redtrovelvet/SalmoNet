@@ -62,7 +62,9 @@ def register(request):
     To handle registration of new users and will create an Auther profile
     '''
     if request.method == "POST":
+        #<BEGIN GENERATED model='gpt-4' date=2025-02-17 promt: i want to create registration form in django user UserCreationForm, but i dont want to create a new class to do so, can you help me create the registration form in my register method in views.py?>
         form = UserCreationForm(request.POST)
+         #<END GENERATED></END>
         if form.is_valid():
             user = form.save()
             Author.objects.create(username=user.username)
