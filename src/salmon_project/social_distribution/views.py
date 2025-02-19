@@ -1,3 +1,6 @@
+#references:
+#https://www.pythontutorial.net/django-tutorial/django-registration/
+
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -5,11 +8,25 @@ from .models import Author, Post
 from .serializers import AuthorSerializer
 from django.conf import settings
 from django.http import HttpResponse
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.models import User
 
 
 # Create your views here.
 def index(request):
-    return render(request, "social_distribution/index.html")
+    if request.user.is_authenticated:
+        author = get_object_or_404(Author, username=request.user.username)
+        followed_authors = author.following.all()
+
+        posts = Post.objects.filter(author__in=followed_authors, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).exclude(visibility="DELETED").order_by("-created_at")
+
+        public_posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
+        posts = (posts | public_posts).distinct().order_by("-created_at")
+    else:
+        posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
+
+    return render(request, "social_distribution/index.html", {"posts": posts})
 
 def profile(request, author_id):
     '''
@@ -35,7 +52,36 @@ def edit_profile(request, author_id):
         return redirect("profile", author_id=author.id)
     return render(request, "social_distribution/edit_profile.html", {"author": author})
 
-def logout(request):
+def register(request):
+    '''
+    To handle registration of new users and will create an Auther profile
+    '''
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            Author.objects.create(username=user.username)
+            login(request, user)
+            return redirect("index")
+    else:
+        form = UserCreationForm()
+    return render(request, "social_distribution/register.html", {"form": form})
+
+def login_view(request):
+    '''
+    To handle user login
+    '''
+    if request.method == "POST":
+        form = AuthenticationForm(data=request.data)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect("index")
+    else:
+        form = AuthenticationForm()
+    return render(request, "social_distribution/login.html", {"form": form})
+
+def logout_view(request):
     '''
     Logs the author out and returns to homepage (index.html)
     '''

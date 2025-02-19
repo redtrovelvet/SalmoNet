@@ -1,0 +1,17 @@
+<!--References
+https://dev.to/balt1794/registration-page-using-usercreationform-django-part-1-21j7
+-->
+
+{% extends 'social_distribution/base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+    <h1>Register</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="{% url 'login' %}">Log in here</a></p>
+{% endblock %}
