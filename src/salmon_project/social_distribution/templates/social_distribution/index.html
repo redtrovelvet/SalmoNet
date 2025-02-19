@@ -1,0 +1,20 @@
+{% extends 'social_distribution/base.html' %}
+
+{% block title %}SocialDistribution--Homepage{% endblock %}
+
+{% block content%}
+<h1>SocialDistribution</h1>
+
+<h2>Your Stream</h2>
+
+<div class="post">
+    <p>{{ post.author.display_name }}</p>>
+    {% if post.text %}
+        <p>{{ post.text }}</p>
+    {% endif %}
+    {% if post.image %}
+        <img src="{{ post.image.url }}" alt="Post Image" width="300">
+    {% endif %}
+    <p>Posted on {{ post.created_at }}</p>
+</div>
+{% endblock %}

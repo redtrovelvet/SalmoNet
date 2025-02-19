@@ -1,0 +1,30 @@
+{% extends 'social_distribution/base.html' %}
+
+{% blocktitle %}{{ author.username }}{% endblock %}
+
+{% block content %}
+{% if author.profile_image %}
+        <img src="{{ author.profile_image.url }}" alt="Profile Picture" width="150">
+{% endif %}
+<h1>{{ author.display_name }}</h1>
+
+{% if author.github %}
+    <p>GitHub:<a href="{{ author.github }}" target="_blank">{{ author.github }}</a></p>
+{% endif %}
+
+{% if user.is_authenticated and user.author.id == author.id %}
+    <a href="{% url 'edit_profile' author.id %}">Edit Profile</a>
+{% endif %}
+
+<h2>Posts</h2>
+
+<div class="post">
+    {% if post.text %}
+        <p>{{ post.text }}</p>
+    {% endif %}
+    {% if post.image %}
+        <img src="{{ post.image.url }}" alt="Post Image" width="300">
+    {% endif %}
+    <p>Posted on {{ post.created_at }}</p>
+</div>
+{% endblock %}
