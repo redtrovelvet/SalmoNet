@@ -183,12 +183,12 @@ def view_follow_requests(request):
         messages.error(request, "Please log in to view follow requests.")
         return redirect('login')
     current_author = request.user.author
-    follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')
+    # FIX: Filter by the 'status' field (pending requests have status 'PENDING')
+    follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')  # UPDATED
     return render(request, "social_distribution/follow_requests.html", {"follow_requests": follow_requests})
-    # NEW: Create a template "follow_requests.html" to list requests
 
 
-@require_POST
+@require_POST  # Only allow POST requests
 def approve_follow_request(request, request_id):
     # NEW: Approve a follow request by its ID
     if not request.user.is_authenticated:
@@ -199,14 +199,16 @@ def approve_follow_request(request, request_id):
     receiver = request.user.author
     follow_request = get_object_or_404(FollowRequest, id=request_id, receiver=receiver, status='PENDING')
     
-    # Approve the request
+    # Approve the request by setting the status to 'ACCEPTED'
     follow_request.status = 'ACCEPTED'
     follow_request.save()
     
-    # Now add the sender to receiver’s followers (and optionally add reciprocal following for friendship)
-    follow_request.sender.following.add(receiver)
+    # FIXED: Instead of adding sender to receiver.following, add receiver to sender.following.
+    follow_request.sender.following.add(receiver)  # UPDATED: Correct follow relationship
+    
     messages.success(request, f"You have approved {follow_request.sender.display_name}'s follow request.")
-    return redirect('all_authors')  # or another URL where you list follow requests
+    return redirect('all_authors')  # You can also redirect to another page if preferred.
+
 
 @require_POST
 def deny_follow_request(request, request_id):

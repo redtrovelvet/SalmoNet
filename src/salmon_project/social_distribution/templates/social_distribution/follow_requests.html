@@ -1,4 +1,3 @@
-{# src/salmon_project/social_distribution/templates/social_distribution/follow_requests.html #}
 {% extends 'social_distribution/base.html' %}
 
 {% block title %}Follow Requests{% endblock %}
@@ -10,12 +9,14 @@
             {% for req in follow_requests %}
                 <li>
                     {{ req.sender.display_name }} wants to follow you.
+                    <!-- Approve form -->
                     <form method="post" action="{% url 'approve_follow_request' req.id %}" style="display:inline;">
-                        {% csrf_token %}  {# NEW: CSRF token for POST #}
+                        {% csrf_token %}
                         <button type="submit">Approve</button>
                     </form>
+                    <!-- Deny form -->
                     <form method="post" action="{% url 'deny_follow_request' req.id %}" style="display:inline;">
-                        {% csrf_token %}  {# NEW: CSRF token for POST #}
+                        {% csrf_token %}
                         <button type="submit">Deny</button>
                     </form>
                 </li>
