@@ -67,10 +67,17 @@ def register(request):
         # https://www.pythontutorial.net/django-tutorial/django-registration/
         if form.is_valid():
             user = form.save()
-            Author.objects.create(user=user, username=user.username)  # create author and link it to user
+            #<BEGIN GENERATED model='gpt-4' date=2025-02-17 promt: when i create a new author using api request, then a user is not linked to it so i have to register the user in order for the user to be able to login, but when i register, i get an error how do i fix?>
+            existing_authors = Author.objects.filter(username=user.username, user__isnull=True)
+            if existing_authors.exists():
+                author = existing_authors.first()
+                author.user = user  # type: ignore
+                author.save() # type: ignore
+                #<END GENERATED></END>
+            else:
+                Author.objects.create(user=user, username=user.username)
             login(request, user)
             return redirect("index")
-
     else:
         form = UserCreationForm()
     return render(request, "social_distribution/register.html", {"form": form})
