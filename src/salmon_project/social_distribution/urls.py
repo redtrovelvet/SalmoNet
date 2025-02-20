@@ -15,5 +15,8 @@ urlpatterns = [
     path("login/", views.login_view, name="login"),
     path("authors/", views.all_authors, name="all_authors"),
     path("authors/<uuid:author_id>/follow/", views.send_follow_request, name="send_follow_request"),
+    path("follow_request/<int:request_id>/approve/", views.approve_follow_request, name="approve_follow_request"),  
+    path("follow_request/<int:request_id>/deny/", views.deny_follow_request, name="deny_follow_request"),  
+    path("follow_requests/", views.view_follow_requests, name="view_follow_requests"), 
 ]
 

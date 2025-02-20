@@ -177,13 +177,13 @@ def all_authors(request):
 
 def view_follow_requests(request):
     """
-    NEW: View incoming follow requests for the logged-in user.
+    View incoming follow requests for the logged-in user.
     """
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to view follow requests.")
         return redirect('login')
     current_author = request.user.author
-    follow_requests = FollowRequest.objects.filter(receiver=current_author, accepted__isnull=True)
+    follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')
     return render(request, "social_distribution/follow_requests.html", {"follow_requests": follow_requests})
     # NEW: Create a template "follow_requests.html" to list requests
 
@@ -204,7 +204,7 @@ def approve_follow_request(request, request_id):
     follow_request.save()
     
     # Now add the sender to receiver’s followers (and optionally add reciprocal following for friendship)
-    receiver.following.add(follow_request.sender)
+    follow_request.sender.following.add(receiver)
     messages.success(request, f"You have approved {follow_request.sender.display_name}'s follow request.")
     return redirect('all_authors')  # or another URL where you list follow requests
 
