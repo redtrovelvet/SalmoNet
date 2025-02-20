@@ -11,7 +11,7 @@ class Author(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=100, unique=True)
     following = models.ManyToManyField('self', symmetrical=False)
-    display_name = models.CharField(max_length=100, unique=True, default="Display Name")
+    display_name = models.CharField(max_length=100, default="Display Name")
     github = models.URLField(null=True, blank=True)
     profile_image = models.ImageField(upload_to='images/', null=True, blank=True)
     page = models.URLField(null=True, blank=True)
