@@ -28,5 +28,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("social_distribution/", include("social_distribution.urls")), 
     path('', include("social_distribution.urls")),
+#<BEGIN GENERATED model='gpt-4' date=2025-02-17 prompt: here are my models (screenshot of models.py) what do i need to do in order for the images to actually be accessed by my code properly?>
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+#<END GENERATED></END>
 

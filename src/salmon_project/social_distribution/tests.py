@@ -1,5 +1,3 @@
-#references:
-#https://stackoverflow.com/questions/26298821/django-testing-model-with-imagefield#26307916
 #Consulted OpenAI ChatGPT-4 on chat.openai.com using the chat function.
 #Link: https://chat.openai.com/
 #Executed on a MacBook Air M1 8 cores (4p4e) 8GB RAM.
@@ -17,6 +15,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 class AuthorTests(TestCase):
 
     def setUp(self):
+        # https://stackoverflow.com/questions/26298821/django-testing-model-with-imagefield#26307916
         #<BEGIN GENERATED model='gpt-4' date=2025-02-17 prompt: i want to write test code for my views.py functions but i need to set up an author first, here is a screenshot of my author model (screenshot of class Author from models.py), how do i upload an image for testing purposes?>
         self.image = SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg")
         #<END GENERATED></END>

@@ -1,5 +1,3 @@
-#references:
-#https://www.pythontutorial.net/django-tutorial/django-registration/
 #Consulted OpenAI ChatGPT-4 on chat.openai.com using the chat function.
 #Link: https://chat.openai.com/
 #Executed on a MacBook Air M1 8 cores (4p4e) 8GB RAM.
@@ -14,6 +12,7 @@ from .serializers import AuthorSerializer
 from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
+# https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 
@@ -65,6 +64,7 @@ def register(request):
         #<BEGIN GENERATED model='gpt-4' date=2025-02-17 promt: i want to create registration form in django user UserCreationForm, but i dont want to create a new class to do so, can you help me create the registration form in my register method in views.py?>
         form = UserCreationForm(request.POST)
          #<END GENERATED></END>
+        # https://www.pythontutorial.net/django-tutorial/django-registration/
         if form.is_valid():
             user = form.save()
             # Create an Author and link it to the newly created user
