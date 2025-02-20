@@ -81,7 +81,7 @@ def login_view(request):
     To handle user login
     '''
     if request.method == "POST":
-        form = AuthenticationForm(data=request.data)
+        form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
             login(request, user)

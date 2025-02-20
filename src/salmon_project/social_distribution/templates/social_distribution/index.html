@@ -11,10 +11,11 @@
     <p>{{ post.author.display_name }}</p>>
     {% if post.text %}
         <p>{{ post.text }}</p>
+        <p>Posted on {{ post.created_at }}</p>
     {% endif %}
     {% if post.image %}
         <img src="{{ post.image.url }}" alt="Post Image" width="300">
+        <p>Posted on {{ post.created_at }}</p>
     {% endif %}
-    <p>Posted on {{ post.created_at }}</p>
 </div>
 {% endblock %}
