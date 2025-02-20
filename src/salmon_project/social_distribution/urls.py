@@ -11,5 +11,8 @@ urlpatterns = [
     path("authors/<uuid:author_id>/edit/", views.edit_profile, name="edit_profile"),
     path("logout/", views.logout_view, name="logout"),
     path("register/", views.register, name="register"),
-    path("login/", views.login_view, name="login")
+    path("login/", views.login_view, name="login"),
+    path("authors/<uuid:author_id>/follow/", views.follow_author, name="follow_author"), 
+    path("authors/<uuid:author_id>/unfollow/", views.unfollow_author, name="unfollow_author"),  
+    path("authors/", views.all_authors, name="all_authors"),
 ]

@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from django.contrib import messages  
 
 
 # Create your views here.
@@ -139,5 +140,42 @@ def update_author(request, author_id):
         return Response(serializer.data)
     return Response(status=400, data=serializer.errors)
 
+def follow_author(request, author_id):
+    # View to allow the current user to follow another author
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to follow authors.")
+        return redirect('login')
+    
+    current_author = request.user.author  # Get the current user’s Author profile
+    target_author = get_object_or_404(Author, id=author_id)
+    
+    # Prevent users from following themselves
+    if current_author == target_author:
+        messages.error(request, "You cannot follow yourself.")
+        return redirect('profile', author_id=target_author.id)
+    
+    # Add the target author to the current author’s "following" set
+    current_author.following.add(target_author)
+    messages.success(request, f"You are now following {target_author.display_name}.")
+    return redirect('profile', author_id=target_author.id)
+
+def unfollow_author(request, author_id):
+    # NEW: View to allow the current user to unfollow another author
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to unfollow authors.")
+        return redirect('login')
+    
+    current_author = request.user.author  # Get the current user’s Author profile
+    target_author = get_object_or_404(Author, id=author_id)
+    
+    # Remove the target author from the current author's following set
+    current_author.following.remove(target_author)
+    messages.success(request, f"You have unfollowed {target_author.display_name}.")
+    return redirect('profile', author_id=target_author.id)
+
+def all_authors(request):
+    # Retrieve all authors from the database
+    authors = Author.objects.all()
+    return render(request, "social_distribution/all_authors.html", {"authors": authors})
 
 

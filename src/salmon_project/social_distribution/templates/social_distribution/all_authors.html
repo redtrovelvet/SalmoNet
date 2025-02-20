@@ -1,0 +1,17 @@
+{% extends 'social_distribution/base.html' %}
+
+{% block title %}All Authors{% endblock %}
+
+{% block content %}
+  <h1>All Authors</h1>
+  <ul>
+    {% for author in authors %}
+      <li>
+        <!-- Link to each author's profile -->
+        <a href="{% url 'profile' author.id %}">{{ author.display_name }}</a>
+      </li>
+    {% empty %}
+      <li>No authors available.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
