@@ -67,8 +67,7 @@ def register(request):
         # https://www.pythontutorial.net/django-tutorial/django-registration/
         if form.is_valid():
             user = form.save()
-            # Create an Author and link it to the newly created user
-            Author.objects.create(user=user, username=user.username)  
+            Author.objects.create(user=user, username=user.username)  # create author and link it to user
             login(request, user)
             return redirect("index")
 
