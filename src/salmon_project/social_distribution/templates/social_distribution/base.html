@@ -15,12 +15,17 @@
                 <ul>
                     <li><a href = "{% url 'index' %}">Home</a></li>
                     {% if user.is_authenticated %}
-                        <li><a href="{% url 'profile' user.author.id %}">Profile</a></li>
+                        {% if user.author %}
+                            <li><a href="{% url 'profile' user.author.id %}">Profile</a></li>
+                        {% else %}
+                            <!-- You might want to show a link to create a profile, or simply hide the link -->
+                        {% endif %}
                         <li><a href="{% url 'logout' %}">Logout</a></li>
                     {% else %}
                         <li><a href="{% url 'login' %}">Login</a></li>
                         <li><a href="{% url 'register' %}">Register</a></li>
                     {% endif %}
+
                 </ul>
             </nav>
         </header>

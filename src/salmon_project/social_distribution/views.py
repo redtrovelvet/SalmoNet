@@ -67,9 +67,11 @@ def register(request):
          #<END GENERATED></END>
         if form.is_valid():
             user = form.save()
-            Author.objects.create(username=user.username)
+            # Create an Author and link it to the newly created user
+            Author.objects.create(user=user, username=user.username)  
             login(request, user)
             return redirect("index")
+
     else:
         form = UserCreationForm()
     return render(request, "social_distribution/register.html", {"form": form})

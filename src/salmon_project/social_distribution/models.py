@@ -1,11 +1,14 @@
 from django.db import models
 import uuid
 from django.conf import settings
+from django.contrib.auth.models import User  
 
 class Author(models.Model):
     """
     An author who can create posts and comments and follow other authors
     """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="author", null=True, blank=True)
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=100, unique=True)
     following = models.ManyToManyField('self', symmetrical=False)
