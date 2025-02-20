@@ -9,10 +9,11 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/create/", views.create_author, name="create_author"),
     path("authors/<uuid:author_id>/", views.profile, name="profile"),
     path("authors/<uuid:author_id>/edit/", views.edit_profile, name="edit_profile"),
+    path("authors/<uuid:author_id>/unfollow/", views.unfollow_author, name="unfollow_author"),
     path("logout/", views.logout_view, name="logout"),
     path("register/", views.register, name="register"),
     path("login/", views.login_view, name="login"),
-    path("authors/<uuid:author_id>/follow/", views.follow_author, name="follow_author"), 
-    path("authors/<uuid:author_id>/unfollow/", views.unfollow_author, name="unfollow_author"),  
     path("authors/", views.all_authors, name="all_authors"),
+    path("authors/<uuid:author_id>/follow/", views.send_follow_request, name="send_follow_request"),
 ]
+

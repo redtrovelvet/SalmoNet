@@ -9,14 +9,16 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import Author, Post
+from .models import Author, Post, FollowRequest
 from .serializers import AuthorSerializer
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib import messages  
+from django.views.decorators.http import require_POST
+
 
 
 # Create your views here.
@@ -140,42 +142,98 @@ def update_author(request, author_id):
         return Response(serializer.data)
     return Response(status=400, data=serializer.errors)
 
-def follow_author(request, author_id):
-    # View to allow the current user to follow another author
+
+@require_POST  # Only allow POST requests
+def send_follow_request(request, author_id):
+    # NEW: View to send a follow request from current user to the target author
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to follow authors.")
         return redirect('login')
-    
-    current_author = request.user.author  # Get the current user’s Author profile
+
+    current_author = request.user.author  # Current user's Author profile
     target_author = get_object_or_404(Author, id=author_id)
-    
-    # Prevent users from following themselves
+
     if current_author == target_author:
         messages.error(request, "You cannot follow yourself.")
         return redirect('profile', author_id=target_author.id)
-    
-    # Add the target author to the current author’s "following" set
-    current_author.following.add(target_author)
-    messages.success(request, f"You are now following {target_author.display_name}.")
+
+    # Check if a follow request already exists (optional)
+    if current_author.sent_requests.filter(receiver=target_author, status='PENDING').exists():
+        messages.info(request, "You already sent a follow request to this author.")
+        return redirect('profile', author_id=target_author.id)
+
+    # Create a new follow request
+    FollowRequest.objects.create(sender=current_author, receiver=target_author)
+    messages.success(request, f"Follow request sent to {target_author.display_name}.")
     return redirect('profile', author_id=target_author.id)
 
+
+def all_authors(request):
+    """
+    Retrieve and display all authors.
+    """
+    authors = Author.objects.all()
+    return render(request, "social_distribution/all_authors.html", {"authors": authors})
+
+def view_follow_requests(request):
+    """
+    NEW: View incoming follow requests for the logged-in user.
+    """
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to view follow requests.")
+        return redirect('login')
+    current_author = request.user.author
+    follow_requests = FollowRequest.objects.filter(receiver=current_author, accepted__isnull=True)
+    return render(request, "social_distribution/follow_requests.html", {"follow_requests": follow_requests})
+    # NEW: Create a template "follow_requests.html" to list requests
+
+
+@require_POST
+def approve_follow_request(request, request_id):
+    # NEW: Approve a follow request by its ID
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to manage follow requests.")
+        return redirect('login')
+    
+    # The receiver is the logged-in user’s Author profile
+    receiver = request.user.author
+    follow_request = get_object_or_404(FollowRequest, id=request_id, receiver=receiver, status='PENDING')
+    
+    # Approve the request
+    follow_request.status = 'ACCEPTED'
+    follow_request.save()
+    
+    # Now add the sender to receiver’s followers (and optionally add reciprocal following for friendship)
+    receiver.following.add(follow_request.sender)
+    messages.success(request, f"You have approved {follow_request.sender.display_name}'s follow request.")
+    return redirect('all_authors')  # or another URL where you list follow requests
+
+@require_POST
+def deny_follow_request(request, request_id):
+    # NEW: Deny a follow request by its ID
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to manage follow requests.")
+        return redirect('login')
+    
+    receiver = request.user.author
+    follow_request = get_object_or_404(FollowRequest, id=request_id, receiver=receiver, status='PENDING')
+    
+    follow_request.status = 'DENIED'
+    follow_request.save()
+    messages.info(request, f"You have denied {follow_request.sender.display_name}'s follow request.")
+    return redirect('all_authors')
+
+# NEW: Unfollow view – allows a logged-in user to unfollow another author.
 def unfollow_author(request, author_id):
-    # NEW: View to allow the current user to unfollow another author
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to unfollow authors.")
         return redirect('login')
     
-    current_author = request.user.author  # Get the current user’s Author profile
-    target_author = get_object_or_404(Author, id=author_id)
-    
-    # Remove the target author from the current author's following set
+    current_author = request.user.author  # Get current user's Author profile
+    target_author = get_object_or_404(Author, id=author_id)  # Get the target author
+
+    # Remove the target from current user's following set
     current_author.following.remove(target_author)
     messages.success(request, f"You have unfollowed {target_author.display_name}.")
     return redirect('profile', author_id=target_author.id)
-
-def all_authors(request):
-    # Retrieve all authors from the database
-    authors = Author.objects.all()
-    return render(request, "social_distribution/all_authors.html", {"authors": authors})
-
 

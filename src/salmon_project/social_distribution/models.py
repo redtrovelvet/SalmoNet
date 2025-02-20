@@ -72,3 +72,19 @@ class CommentLike(models.Model):
     # https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
     class Meta:
         unique_together = ['comment', 'author']
+
+
+# NEW: FollowRequest model
+class FollowRequest(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('ACCEPTED', 'Accepted'),
+        ('DENIED', 'Denied'),
+    ]
+    sender = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="sent_requests")  # The user who sends the follow request
+    receiver = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="received_requests")  # The user receiving the request
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')  # NEW field for request status
+    created_at = models.DateTimeField(auto_now_add=True)  # NEW field for when the request was sent
+
+    def __str__(self):
+        return f"{self.sender.username} -> {self.receiver.username} ({self.status})"

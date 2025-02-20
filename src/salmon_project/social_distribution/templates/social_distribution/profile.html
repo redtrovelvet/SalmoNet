@@ -3,45 +3,39 @@
 {% block title %}{{ author.username }}{% endblock %}
 
 {% block content %}
-    <!-- Display the profile image if available -->
+    {# Display the profile image if available #}
     {% if author.profile_image %}
         <img src="{{ author.profile_image.url }}" alt="Profile Picture" width="150">
     {% endif %}
 
     <h1>{{ author.display_name }}</h1>
 
-    <!-- Display GitHub link if available -->
+    {# Display GitHub link if available #}
     {% if author.github %}
         <p>GitHub: <a href="{{ author.github }}" target="_blank">{{ author.github }}</a></p>
     {% endif %}
 
-    <!-- NEW: Follow/Unfollow buttons -->
-    {% if user.is_authenticated %}
-        {% if user.author.id == author.id %}
-            <!-- If the user is viewing their own profile, show the Edit Profile link -->
-            <a href="{% url 'edit_profile' author.id %}">Edit Profile</a>
-        {% else %}
-            <!-- If viewing someone else's profile, show follow/unfollow option -->
-            {% if author in user.author.following.all %}
-                <a href="{% url 'unfollow_author' author.id %}">Unfollow</a>  {# Unfollow button #}
-            {% else %}
-                <a href="{% url 'follow_author' author.id %}">Follow</a>  {# Follow button #}
-            {% endif %}
-        {% endif %}
+    {# If the logged-in user is viewing their own profile, show the edit link #}
+    {% if user.is_authenticated and user.author.id == author.id %}
+        <a href="{% url 'edit_profile' author.id %}">Edit Profile</a>
     {% endif %}
 
     <h2>Posts</h2>
 
-    <!-- Loop through the posts for this author -->
-    {% for post in posts %}
-        <div class="post">
-            {% if post.text %}
-                <p>{{ post.text }}</p>
-            {% endif %}
-            {% if post.image %}
-                <img src="{{ post.image.url }}" alt="Post Image" width="300">
-            {% endif %}
-            <p>Posted on {{ post.created_at }}</p>
-        </div>
-    {% endfor %}
+    {# Loop over posts; if there are none, show a fallback message #}
+    {% if posts %}
+        {% for post in posts %}
+            <div class="post">
+                {% if post.text %}
+                    <p>{{ post.text }}</p>
+                {% endif %}
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="Post Image" width="300">
+                {% endif %}
+                <p>Posted on {{ post.created_at }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No posts available.</p>
+    {% endif %}
 {% endblock %}
