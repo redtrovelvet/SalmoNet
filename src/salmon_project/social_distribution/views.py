@@ -116,7 +116,7 @@ def get_author(request, author_id):
 
 
 @api_view(["POST"])
-def create_author(request, author_id):
+def create_author(request):
     '''
     API: creates a new author 
     '''
