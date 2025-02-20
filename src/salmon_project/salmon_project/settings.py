@@ -128,6 +128,7 @@ STATIC_URL = 'static/'
 #<BEGIN GENERATED model='gpt-4' date=2025-02-17 prompt: here are my models (screenshot of models.py) what do i need to do in order for the images to actually be accessed by my code properly?>
 MEDIA_URL = '/media/'  
 MEDIA_ROOT = BASE_DIR / 'media'
+STATIC_ROOT = BASE_DIR / 'static'
 #<END GENERATED></END>
 
 # Default primary key field type
