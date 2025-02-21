@@ -1,0 +1,152 @@
+# API documentation requirements for SocialDistribution
+
+## Identity:
+
+### 1.Get all Authors:
+
+**Endpoint:** 'GET /api/authors/'
+
+#### When the API endpoint should be used:
+Use this endpoint when you want to retrieve a list of all authors in the local node.
+
+#### How the API endpoint should be used:
+Send a GET request to '/api/authors/'.
+
+#### Why the API endpoint should or should not be used:
+- use it to display all available authors
+- Maybe don't use if database is really large because API might time-out, use pagnation instead, but not implemented yet.
+
+#### 1st Example:
+Request: GET http://127.0.0.1:8000/api/authors/
+Response: A JSON array of author objects is returned
+[
+    {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c",
+        "username": "example",
+        "display_name": "Example",
+        "github": "https://www.google.com/",
+        "profile_image": "images/pexels-pixabay-158063_8FOC3DL.jpg",
+        "host": "http://127.0.0.1:8000"
+    },
+    {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/api/authors/22460264-0965-4950-84b9-2a86a4205c0a",
+        "username": "anotherexample",
+        "display_name": "Another Example",
+        "github": "http://www.github.com",
+        "profile_image": "images/pexels-pixabay-158063.jpg",
+        "host": "http://127.0.0.1:8000"
+    }
+]
+
+#### 2nd Example:
+Request: GET http://127.0.0.1:8000/api/authors/
+Response: A JSON array of author objects is returned
+[
+    {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c",
+        "username": "example",
+        "display_name": "Example",
+        "github": "https://www.google.com/",
+        "profile_image": "images/pexels-pixabay-158063_8FOC3DL.jpg",
+        "host": "http://127.0.0.1:8000"
+    },
+    {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/api/authors/22460264-0965-4950-84b9-2a86a4205c0a",
+        "username": "anotherexample",
+        "display_name": "Another Example",
+        "github": "http://www.github.com",
+        "profile_image": "images/pexels-pixabay-158063.jpg",
+        "host": "http://127.0.0.1:8000"
+    },
+    {
+        "type": "author",
+        "id": "http://127.0.0.1:8000/api/authors/72a7003a-b440-457d-99ac-17469b9f3076",
+        "username": "examplethree",
+        "display_name": "Example Three",
+        "github": "http://www.github.com/example_three",
+        "profile_image": "",
+        "host": "http://127.0.0.1:8000"
+    }
+]
+
+#### Explantion of JSON Field:
+type (string): always set to author because this object represents an author.
+id (string, URL): the unique identifier of the author.
+username (string): the author's unique username.
+display_name (string): the display name of the author.
+github (string, URL): author's github link.
+profile_mage (string, URL): a link to the author's profile image.
+host (string, URL): url of the node where the author is.
+
+
+### 2.Get Specific Author:
+
+**Endpoint:** 'GET /api/authors/{author_id}/'
+
+#### When the API endpoint should be used:
+Use this endpoint when you want to retrieve details about a specific author using their unique identifier.
+
+#### How the API endpoint should be used:
+Send a GET request to '/api/authors/{author_id}'.
+Replace {author_id} with the actual UUID of the author. 
+
+#### Why the API endpoint should or should not be used:
+- use it to display author details for a specific author.
+- Don't use if you don't know the author id.
+
+#### 1st Example:
+Request: GET http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/
+Response: A JSON object representing the author's details:
+{
+    "type": "author",
+    "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c",
+    "username": "example",
+    "display_name": "Example",
+    "github": "https://www.google.com/",
+    "profile_image": "images/pexels-pixabay-158063_8FOC3DL.jpg",
+    "host": "http://127.0.0.1:8000"
+}
+
+#### 2nd Example:
+Request: GET http://127.0.0.1:8000/api/authors/22460264-0965-4950-84b9-2a86a4205c0a/
+Response: A JSON object representing the author's details:
+{
+    "type": "author",
+    "id": "http://127.0.0.1:8000/api/authors/22460264-0965-4950-84b9-2a86a4205c0a",
+    "username": "anotherexample",
+    "display_name": "Another Example",
+    "github": "http://www.github.com",
+    "profile_image": "images/pexels-pixabay-158063.jpg",
+    "host": "http://127.0.0.1:8000"
+}
+
+#### Explantion of JSON Field:
+type (string): always set to author because this object represents an author.
+id (string, URL): the unique identifier of the author.
+username (string): the author's unique username.
+display_name (string): the display name of the author.
+github (string, URL): author's github link.
+profile_mage (string, URL): a link to the author's profile image.
+host (string, URL): url of the node where the author is.
+
+
+### 3.Create Author:
+
+**Endpoint:** 'POST /api/authors/create/'
+
+#### When the API endpoint should be used:
+Use this endpoint when you want to create a new author.
+
+#### How the API endpoint should be used:
+Send a POST request to '/api/authors/create' with the required fields. 
+
+#### Why the API endpoint should or should not be used:
+- use it to create a new author.
+- Don't use if you want to update existing author.
+
+#### 1st Example:
+

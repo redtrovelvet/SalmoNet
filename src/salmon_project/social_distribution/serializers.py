@@ -6,7 +6,7 @@ class AuthorSerializer(serializers.Serializer):
     type = serializers.CharField(default="author")
     id = serializers.SerializerMethodField()
     username = serializers.CharField(max_length=100)
-    display_name = serializers.CharField(max_length=100, allow_null=True, required=False)
+    display_name = serializers.CharField(max_length=100, allow_null=True, required=False, default="Display Name")
     github = serializers.URLField(allow_null=True, required=False)
     profile_image = serializers.URLField(allow_null=True, required=False)
     host = serializers.URLField()
