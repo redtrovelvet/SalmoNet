@@ -57,19 +57,22 @@
     {% for post in posts %}
         {% if post.text %}
             <p>{{ post.text }}</p>
-            <p>Posted on {{ post.created_at }}</p>
         {% endif %}
         {% if post.image %}
             <img src="{{ post.image.url }}" alt="Post Image" width="300">
-            <p>Posted on {{ post.created_at }}</p>
         {% endif %}
         {% if post.video %}
-        <video width="300" controls>
-            <source src="{{ post.video.url }}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>        
-            <p>Posted on {{ post.created_at }}</p>
+            <video width="300" controls>
+                <source src="{{ post.video.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>        
         {% endif %}
+        <p>Posted on {{ post.created_at }}</p>
+        <a href="{% url 'edit_post' post.id %}" class="btn btn-primary">Edit</a>
+        <form action="{% url 'delete_post' post.id %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
     {% endfor %}
 </div>
 {% endblock %}

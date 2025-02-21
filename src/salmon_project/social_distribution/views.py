@@ -174,7 +174,7 @@ def delete_post(request, author_id, post_id):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def update_post(request, author_id, post_id):
+def edit_post(request, author_id, post_id):
     """
     PUT [local] update a post
     must be authenticated locally as the author
