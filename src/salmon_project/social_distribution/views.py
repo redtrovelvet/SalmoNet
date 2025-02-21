@@ -145,5 +145,59 @@ def update_author(request, author_id):
         return Response(serializer.data)
     return Response(status=400, data=serializer.errors)
 
+@api_view(["POST"])
+def inbox(request, author_id):
+    '''
+    TODO: implement then inbox to handle a variety of API calls
+    '''
+    pass
 
+@api_view(["GET"])
+def get_comments(request, post_id, author_id=None):
+    '''
+    API: returns all comments for a post in the form of a "comments" object
 
+    '''
+    pass
+
+@api_view(["GET"])
+def commented(request, author_id):
+    '''
+    API: returns all comments made by an author
+    '''
+    pass
+
+@api_view(["GET"])
+def get_comment(request, comment_id, author_id=None):
+    '''
+    API: returns a specific comment
+    '''
+    pass
+
+@api_view(["GET"])
+def get_post_likes(request, post_id, author_id=None):
+    '''
+    API: returns all likes for a post
+    '''
+    pass
+
+@api_view(["GET"])
+def get_comment_likes(request, like_id, comment_id):
+    '''
+    API: returns a specific like
+    '''
+    pass
+
+@api_view(["GET"])
+def get_author_liked(request, author_id):
+    '''
+    API: returns all likes made by an author
+    '''
+    pass
+
+@api_view(["GET"])
+def get_like(request, like_id, author_id=None):
+    '''
+    API: returns a specific like
+    '''
+    pass
