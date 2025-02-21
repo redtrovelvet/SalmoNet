@@ -30,6 +30,10 @@
             <input type="file" name="image" id="image">
         </div>
         <div>
+            <label for="video">Video:</label>
+            <input type="file" name="video" id="video">
+        </div>
+        <div>
             <label for="visibility">Visibility:</label>
             <select name="visibility" id="visibility">
                 <option value="PUBLIC">Public</option>
@@ -57,6 +61,13 @@
         {% endif %}
         {% if post.image %}
             <img src="{{ post.image.url }}" alt="Post Image" width="300">
+            <p>Posted on {{ post.created_at }}</p>
+        {% endif %}
+        {% if post.video %}
+        <video width="300" controls>
+            <source src="{{ post.video.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>        
             <p>Posted on {{ post.created_at }}</p>
         {% endif %}
     {% endfor %}
