@@ -39,6 +39,12 @@
         </div>
         <button type="submit">Create Post</button>
     </form>
+    {% if serializer.errors %}
+        <p style="color: red;">Please correct the errors below:</p>
+        {% for field, errors in serializer.errors.items %}
+            <p>{{ field }}: {{ errors }}</p>
+        {% endfor %}
+    {% endif %}
 {% endif %}
 
 <!-- Display Posts -->

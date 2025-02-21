@@ -234,11 +234,11 @@ def create_post(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     if author.user != request.user:
         return Response(status=403)
-    serializer = PostSerializer(data=request.data)
+    serializer = PostSerializer(data=request.data, context={'author': author})
     if serializer.is_valid():
         serializer.save(author=author)
-        return Response(serializer.data, status=201)
-    return Response(serializer.errors, status=400)
+        return redirect("profile", author_id=author.id)
+    return render(request, "social_distribution/profile.html")
 
 @api_view(['GET'])
 def get_post_image(request, author_id, post_id):
