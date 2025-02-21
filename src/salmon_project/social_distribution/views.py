@@ -16,7 +16,7 @@ from django.contrib.auth import login, logout, authenticate
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-
+import commonmark
 
 # Create your views here.
 def index(request):
@@ -31,7 +31,21 @@ def index(request):
     else:
         posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
 
-    return render(request, "social_distribution/index.html", {"posts": posts})
+    # Convert posts to a new list with rendered text if needed
+    rendered_posts = []
+    for p in posts:
+        html_text = render_markdown_if_needed(p.text, p.content_type)
+        rendered_posts.append({
+            "id": p.id,
+            "author": p.author,
+            "text": html_text,
+            "image": p.image,
+            "video": p.video,
+            "visibility": p.visibility,
+            "created_at": p.created_at,
+        })
+
+    return render(request, "social_distribution/index.html", {"posts": rendered_posts})
 
 def profile(request, author_id):
     '''
@@ -39,7 +53,23 @@ def profile(request, author_id):
     '''
     author = get_object_or_404(Author, id=author_id)
     posts = Post.objects.filter(author=author, visibility="PUBLIC").order_by("-created_at")
-    return render(request, "social_distribution/profile.html", {"author": author, "posts": posts})
+    rendered_posts = []
+    for p in posts:
+        html_text = render_markdown_if_needed(p.text, p.content_type)
+        rendered_posts.append({
+            "id": p.id,
+            "author": p.author,
+            "text": html_text,
+            "image": p.image,
+            "video": p.video,
+            "visibility": p.visibility,
+            "created_at": p.created_at,
+        })
+
+    return render(request, "social_distribution/profile.html", {
+        "author": author,
+        "posts": rendered_posts
+    })
 
 def edit_profile(request, author_id):
     '''
@@ -252,3 +282,12 @@ def get_post_image(request, author_id, post_id):
     if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
         return Response(status=403)
     return Response(post.image.read(), content_type=post.content_type)
+
+def render_markdown_if_needed(text, content_type):
+    """
+    If content_type is 'text/markdown', convert 'text' to HTML using commonmark.
+    Otherwise, return the text as-is (plain text).
+    """
+    if content_type == "text/markdown":
+        return commonmark.commonmark(text or "")
+    return text or ""
