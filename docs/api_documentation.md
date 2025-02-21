@@ -149,4 +149,98 @@ Send a POST request to '/api/authors/create' with the required fields.
 - Don't use if you want to update existing author.
 
 #### 1st Example:
+Request: POST http://127.0.0.1:8000/api/authors/create/
+{
+    "username": "new_user",
+    "host": "http://127.0.0.1:8000"
+}
+Response: A JSON object representing the created author's details:
+{
+    "type": "author",
+    "id": "http://127.0.0.1:8000/api/authors/4f3f038c-f87e-4f54-bc53-f4a213be97d0",
+    "username": "new_user",
+    "display_name": "Display Name",
+    "github": null,
+    "profile_image": "",
+    "host": "http://127.0.0.1:8000"
+}
 
+#### 2nd Example: 
+Request: POST http://127.0.0.1:8000/api/authors/create/
+{
+    "username": "another_new_user",
+    "host": "http://127.0.0.1:8000"
+}
+Response: A JSON object representing the created author's details:
+{
+    "type": "author",
+    "id": "http://127.0.0.1:8000/api/authors/c3f33e5b-c9af-49a1-a2eb-995c00e209d7",
+    "username": "another_new_user",
+    "display_name": "Display Name",
+    "github": null,
+    "profile_image": "",
+    "host": "http://127.0.0.1:8000"
+}
+
+#### Explantion of JSON Field:
+type (string): always set to author because this object represents an author.
+id (string, URL): the unique identifier of the author.
+username (string): the author's unique username.
+display_name (string): the display name of the author.
+github (string, URL): author's github link.
+profile_mage (string, URL): a link to the author's profile image.
+host (string, URL): url of the node where the author is.
+
+### 4.Update a Specific Author:
+
+**Endpoint:** 'POST /api/authors/{author_id}/update/'
+
+#### When the API endpoint should be used:
+Use this endpoint when you want to update an author's profile.
+
+#### How the API endpoint should be used:
+Send a POST request to '/api/authors/{author_id}/update/'.
+Replace {author_id} with the actual UUID of the author. 
+
+#### Why the API endpoint should or should not be used:
+- use it to change an exisitng author's details.
+- Don't use if you don't know the author id or author does not exist.
+
+#### 1st Example:
+Request: POST http://127.0.0.1:8000/api/authors/4f3f038c-f87e-4f54-bc53-f4a213be97d0/update/
+{
+    "display_name": "Updated User"
+}
+Response:  A JSON object representing the updated author's details:
+{
+    "id": "http://127.0.0.1:8000/api/authors/4f3f038c-f87e-4f54-bc53-f4a213be97d0",
+    "username": "new_user",
+    "display_name": "Updated User",
+    "github": null,
+    "profile_image": "",
+    "host": "http://127.0.0.1:8000"
+}
+
+#### 2nd Example:
+Request: POST http://127.0.0.1:8000/api/authors/c3f33e5b-c9af-49a1-a2eb-995c00e209d7/update/
+{
+    "github": "http://www.github.com/updated_user/",
+}
+Response:  A JSON object representing the updated author's details:
+{
+    "id": "http://127.0.0.1:8000/api/authors/c3f33e5b-c9af-49a1-a2eb-995c00e209d7",
+    "username": "another_new_user",
+    "display_name": "Display Name",
+    "github": "http://www.github.com/updated_user/",
+    "profile_image": "",
+    "host": "http://127.0.0.1:8000"
+}
+
+#### Explantion of JSON Field:
+type (string): always set to author because this object represents an author.
+id (string, URL): the unique identifier of the author.
+username (string): the author's unique username.
+display_name (string): the display name of the author.
+github (string, URL): author's github link.
+profile_mage (string, URL): a link to the author's profile image.
+host (string, URL): url of the node where the author is.
