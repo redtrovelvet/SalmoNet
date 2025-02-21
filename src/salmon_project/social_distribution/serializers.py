@@ -42,7 +42,7 @@ class AuthorSerializer(serializers.Serializer):
 class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
-        fields = ['id', 'author', 'title', 'text', 'image', 'video', 'content_type', 'visibility', 'created_at', 'updated_at']
+        fields = ['id', 'author', 'text', 'image', 'video', 'content_type', 'visibility', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def validate(self, data):
