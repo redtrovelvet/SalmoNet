@@ -4,30 +4,55 @@
 
 {% block content %}
 {% if author.profile_image %}
-        <img src="{{ author.profile_image.url }}" alt="Profile Picture" width="150">
+    <img src="{{ author.profile_image.url }}" alt="Profile Picture" width="150">
 {% endif %}
 <h1>{{ author.display_name }}</h1>
 
 {% if author.github %}
-    <p>GitHub:<a href="{{ author.github }}" target="_blank">{{ author.github }}</a></p>
+    <p>GitHub: <a href="{{ author.github }}" target="_blank">{{ author.github }}</a></p>
 {% endif %}
 
 {% if user.is_authenticated and user.author.id == author.id %}
     <a href="{% url 'edit_profile' author.id %}">Edit Profile</a>
 {% endif %}
 
-<h2>Posts</h2>
+<!-- Post Creation Form -->
+{% if user.is_authenticated and user.author.id == author.id %}
+    <h2>Create a New Post</h2>
+    <form method="post" enctype="multipart/form-data" action="{% url 'create_post' author.id %}">
+        {% csrf_token %}
+        <div>
+            <label for="text">Text:</label>
+            <textarea name="text" id="text" rows="4" cols="50"></textarea>
+        </div>
+        <div>
+            <label for="image">Image:</label>
+            <input type="file" name="image" id="image">
+        </div>
+        <div>
+            <label for="visibility">Visibility:</label>
+            <select name="visibility" id="visibility">
+                <option value="PUBLIC">Public</option>
+                <option value="UNLISTED">Unlisted</option>
+                <option value="FRIENDS">Friends</option>
+            </select>
+        </div>
+        <button type="submit">Create Post</button>
+    </form>
+{% endif %}
 
+<!-- Display Posts -->
+<h2>Posts</h2>
 <div class="post">
     {% for post in posts %}
-    {% if post.text %}
-        <p>{{ post.text }}</p>
-        <p>Posted on {{ post.created_at }}</p>
-    {% endif %}
-    {% if post.image %}
-        <img src="{{ post.image.url }}" alt="Post Image" width="300">
-        <p>Posted on {{ post.created_at }}</p>
-    {% endif %}
+        {% if post.text %}
+            <p>{{ post.text }}</p>
+            <p>Posted on {{ post.created_at }}</p>
+        {% endif %}
+        {% if post.image %}
+            <img src="{{ post.image.url }}" alt="Post Image" width="300">
+            <p>Posted on {{ post.created_at }}</p>
+        {% endif %}
     {% endfor %}
 </div>
 {% endblock %}

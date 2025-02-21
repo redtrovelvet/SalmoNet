@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.conf import settings
-from .models import Author
+from .models import Author, Post
 
 class AuthorSerializer(serializers.Serializer):
     type = serializers.CharField(default="author")
@@ -38,3 +38,14 @@ class AuthorSerializer(serializers.Serializer):
         instance.profile_image = validated_data.get("profile_image", instance.profile_image)
         instance.save()
         return instance
+    
+class PostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = ['id', 'author', 'title', 'text', 'image', 'video', 'content_type', 'visibility', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate(self, data):
+        if 'text' not in data and 'image' not in data and 'video' not in data:
+            raise serializers.ValidationError("A post must contain text, image, or video.")
+        return data

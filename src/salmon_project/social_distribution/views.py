@@ -6,9 +6,10 @@
 
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from .models import Author, Post
-from .serializers import AuthorSerializer
+from .serializers import AuthorSerializer, PostSerializer
 from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
@@ -146,4 +147,108 @@ def update_author(request, author_id):
     return Response(status=400, data=serializer.errors)
 
 
+@api_view(['GET'])
+def get_post(request, author_serial, post_serial):
+    """
+    GET [local, remote] get the public post whose serial is POST_SERIAL
+    friends-only posts: must be authenticated
+    """
+    post = get_object_or_404(Post, id=post_serial, author_id=author_serial)
+    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
+        return Response(status=403)
+    serializer = PostSerializer(post)
+    return Response(serializer.data)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_post(request, author_serial, post_serial):
+    """
+    DELETE [local] remove a local post
+    must be authenticated locally as the author
+    """
+    post = get_object_or_404(Post, id=post_serial, author_id=author_serial)
+    if post.author.user != request.user:
+        return Response(status=403)
+    post.delete()
+    return Response(status=204)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_post(request, author_serial, post_serial):
+    """
+    PUT [local] update a post
+    must be authenticated locally as the author
+    """
+    post = get_object_or_404(Post, id=post_serial, author_id=author_serial)
+    if post.author.user != request.user:
+        return Response(status=403)
+    serializer = PostSerializer(post, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)
+
+@api_view(['GET'])
+def get_post_by_fqid(request, post_fqid):
+    """
+    GET [local] get the public post whose URL is POST_FQID
+    friends-only posts: must be authenticated
+    """
+    post = get_object_or_404(Post, id=post_fqid)
+    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
+        return Response(status=403)
+    serializer = PostSerializer(post)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def get_author_posts(request, author_serial):
+    """
+    GET [local, remote] get the recent posts from author AUTHOR_SERIAL (paginated)
+    Not authenticated: only public posts.
+    Authenticated locally as author: all posts.
+    Authenticated locally as follower of author: public + unlisted posts.
+    Authenticated locally as friend of author: all posts.
+    """
+    author = get_object_or_404(Author, id=author_serial)
+    posts = Post.objects.filter(author=author)
+
+    if not request.user.is_authenticated:
+        posts = posts.filter(visibility='PUBLIC')
+    elif request.user.author == author:
+        pass  # Show all posts
+    elif request.user.author in author.following.all():
+        posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED'])
+    else:
+        posts = posts.filter(visibility='PUBLIC')
+
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_post(request, author_id):
+    """
+    POST [local] create a new post but generate a new ID
+    Authenticated locally as author
+    """
+    author = get_object_or_404(Author, id=author_id)
+    if author.user != request.user:
+        return Response(status=403)
+    serializer = PostSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(author=author)
+        return Response(serializer.data, status=201)
+    return Response(serializer.errors, status=400)
+
+@api_view(['GET'])
+def get_post_image(request, author_serial, post_id):
+    """
+    GET [local, remote] get the public post converted to binary as an image
+    return 404 if not an image
+    """
+    post = get_object_or_404(Post, id=post_id, author_id=author_serial)
+    if post.content_type not in ['image/png', 'image/jpeg']:
+        return Response(status=404)
+    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
+        return Response(status=403)
+    return Response(post.image.read(), content_type=post.content_type)

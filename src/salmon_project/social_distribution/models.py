@@ -32,11 +32,23 @@ class Post(models.Model):
     """
     A post by an author with text and/or an image
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     text = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='images/', null=True, blank=True)
+    video = models.FileField(upload_to='videos/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
+    CONTENT_TYPE_CHOICES = [
+        ('text/plain', 'Plain Text'),
+        ('text/markdown', 'CommonMark'),
+        ('image/png', 'PNG Image'),
+        ('image/jpeg', 'JPEG Image'),
+        ('video/mp4', 'MP4 Video'),
+    ]
+    content_type = models.CharField(choices=CONTENT_TYPE_CHOICES, default='text/plain', max_length=100)
+    
     # Visibility options for a post
     VISIBILITY_CHOICES = [
         ('PUBLIC', 'Public'),
@@ -45,6 +57,9 @@ class Post(models.Model):
         ('DELETED', 'Deleted'),
     ]
     visibility = models.CharField(choices=VISIBILITY_CHOICES, default='PUBLIC', max_length=100)
+    
+    def __str__(self):
+        return f"Post by {self.author.username} at {self.created_at}"
 
 class PostLike(models.Model):
     """
