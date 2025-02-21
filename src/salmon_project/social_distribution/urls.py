@@ -20,5 +20,9 @@ urlpatterns = [
     path("follow_requests/", views.view_follow_requests, name="view_follow_requests"), 
     path("follow_requests/<int:request_id>/approve/", views.approve_follow_request, name="approve_follow_request"),
     path("follow_requests/<int:request_id>/deny/", views.deny_follow_request, name="deny_follow_request"),
+    path("profile/followers/", views.view_followers, name="view_followers"),
+    path("profile/following/", views.view_following, name="view_following"),
+    path("profile/friends/", views.view_friends, name="view_friends"),
+
 ]
 

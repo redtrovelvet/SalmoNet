@@ -1,41 +1,39 @@
 {% extends 'social_distribution/base.html' %}
 
-{% block title %}{{ author.username }}{% endblock %}
+{% block title %}{{ author.username }}'s Profile{% endblock %}
 
 {% block content %}
     {# Display the profile image if available #}
     {% if author.profile_image %}
         <img src="{{ author.profile_image.url }}" alt="Profile Picture" width="150">
     {% endif %}
-
+    
     <h1>{{ author.display_name }}</h1>
-
+    
     {# Display GitHub link if available #}
     {% if author.github %}
         <p>GitHub: <a href="{{ author.github }}" target="_blank">{{ author.github }}</a></p>
     {% endif %}
-
-    {# If the logged-in user is viewing their own profile, show the edit link #}
+    
+    {# Only show edit and follow-related links if the profile belongs to the logged-in user #}
     {% if user.is_authenticated and user.author.id == author.id %}
-        <a href="{% url 'edit_profile' author.id %}">Edit Profile</a>
+        <p><a href="{% url 'edit_profile' author.id %}">Edit Profile</a></p>
+        <p><a href="{% url 'view_followers' %}">View Followers</a></p>  {# NEW: Only visible for your own profile #}
+        <p><a href="{% url 'view_following' %}">View Following</a></p>   {# NEW: Only visible for your own profile #}
+        <p><a href="{% url 'view_friends' %}">View Friends</a></p>        {# NEW: Only visible for your own profile #}
     {% endif %}
-
+    
     <h2>Posts</h2>
-
-    {# Loop over posts; if there are none, show a fallback message #}
-    {% if posts %}
+    <div class="post">
         {% for post in posts %}
-            <div class="post">
-                {% if post.text %}
-                    <p>{{ post.text }}</p>
-                {% endif %}
-                {% if post.image %}
-                    <img src="{{ post.image.url }}" alt="Post Image" width="300">
-                {% endif %}
+            {% if post.text %}
+                <p>{{ post.text }}</p>
                 <p>Posted on {{ post.created_at }}</p>
-            </div>
+            {% endif %}
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="Post Image" width="300">
+                <p>Posted on {{ post.created_at }}</p>
+            {% endif %}
         {% endfor %}
-    {% else %}
-        <p>No posts available.</p>
-    {% endif %}
+    </div>
 {% endblock %}

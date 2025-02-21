@@ -183,28 +183,28 @@ def view_follow_requests(request):
         messages.error(request, "Please log in to view follow requests.")
         return redirect('login')
     current_author = request.user.author
-    # FIX: Filter by the 'status' field (pending requests have status 'PENDING')
+    
     follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')  # UPDATED
     return render(request, "social_distribution/follow_requests.html", {"follow_requests": follow_requests})
 
 
-@require_POST  # Only allow POST requests
+@require_POST  
 def approve_follow_request(request, request_id):
-    # NEW: Approve a follow request by its ID
+  
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to manage follow requests.")
         return redirect('login')
     
-    # The receiver is the logged-in user’s Author profile
+    
     receiver = request.user.author
     follow_request = get_object_or_404(FollowRequest, id=request_id, receiver=receiver, status='PENDING')
     
-    # Approve the request by setting the status to 'ACCEPTED'
+
     follow_request.status = 'ACCEPTED'
     follow_request.save()
     
-    # FIXED: Instead of adding sender to receiver.following, add receiver to sender.following.
-    follow_request.sender.following.add(receiver)  # UPDATED: Correct follow relationship
+   
+    follow_request.sender.following.add(receiver)  
     
     messages.success(request, f"You have approved {follow_request.sender.display_name}'s follow request.")
     return redirect('all_authors')  # You can also redirect to another page if preferred.
@@ -212,7 +212,6 @@ def approve_follow_request(request, request_id):
 
 @require_POST
 def deny_follow_request(request, request_id):
-    # NEW: Deny a follow request by its ID
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to manage follow requests.")
         return redirect('login')
@@ -225,7 +224,7 @@ def deny_follow_request(request, request_id):
     messages.info(request, f"You have denied {follow_request.sender.display_name}'s follow request.")
     return redirect('all_authors')
 
-# NEW: Unfollow view – allows a logged-in user to unfollow another author.
+
 def unfollow_author(request, author_id):
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to unfollow authors.")
@@ -239,3 +238,33 @@ def unfollow_author(request, author_id):
     messages.success(request, f"You have unfollowed {target_author.display_name}.")
     return redirect('profile', author_id=target_author.id)
 
+def view_followers(request):
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to view your followers.")
+        return redirect('login')
+    current_author = request.user.author  
+    
+    followers = Author.objects.filter(following=current_author)
+    return render(request, "social_distribution/followers.html", {"followers": followers})
+  
+
+# View to display authors that the current user follows
+def view_following(request):
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to view who you're following.")
+        return redirect('login')
+    current_author = request.user.author  # Current user’s Author profile
+    following = current_author.following.all()
+    return render(request, "social_distribution/following.html", {"following": following})
+    # ^^^ RENDER following.html with the list of following
+
+def view_friends(request):
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to view your friends.")
+        return redirect('login')
+    current_author = request.user.author
+    following = set(current_author.following.all())
+    followers = set(Author.objects.filter(following=current_author))
+    friends = following.intersection(followers)
+    return render(request, "social_distribution/friends.html", {"friends": friends})
+    
