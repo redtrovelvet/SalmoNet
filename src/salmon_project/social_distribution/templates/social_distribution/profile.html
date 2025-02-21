@@ -21,6 +21,16 @@
     <h2>Create a New Post</h2>
     <form method="post" enctype="multipart/form-data" action="{% url 'create_post' author.id %}">
         {% csrf_token %}
+
+        <!-- Content type choice: plain vs. markdown -->
+        <div>
+            <label for="content_type">Content Type:</label>
+            <select name="content_type" id="content_type">
+                <option value="text/plain">Plain Text</option>
+                <option value="text/markdown">CommonMark (Markdown)</option>
+            </select>
+        </div>
+
         <div>
             <label for="text">Text:</label>
             <textarea name="text" id="text" rows="4" cols="50"></textarea>
@@ -43,6 +53,7 @@
         </div>
         <button type="submit">Create Post</button>
     </form>
+
     {% if serializer.errors %}
         <p style="color: red;">Please correct the errors below:</p>
         {% for field, errors in serializer.errors.items %}
@@ -56,16 +67,21 @@
 <div class="post">
     {% for post in posts %}
         {% if post.text %}
-            <p>{{ post.text }}</p>
+            <!-- If 'content_type' was text/markdown, post.text is HTML -->
+            <div>{{ post.text|safe }}</div>
+            <p>Posted on {{ post.created_at }}</p>
         {% endif %}
+
         {% if post.image %}
             <img src="{{ post.image.url }}" alt="Post Image" width="300">
         {% endif %}
+
         {% if post.video %}
             <video width="300" controls>
                 <source src="{{ post.video.url }}" type="video/mp4">
                 Your browser does not support the video tag.
-            </video>        
+            </video>
+            <p>Posted on {{ post.created_at }}</p>
         {% endif %}
         <p>Posted on {{ post.created_at }}</p>
         <a href="{% url 'edit_post' post.id %}" class="btn btn-primary">Edit</a>
