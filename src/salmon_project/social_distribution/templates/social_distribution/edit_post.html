@@ -1,0 +1,48 @@
+{% extends "social_distribution/base.html" %}
+
+{% block content %}
+<h2>Edit Post</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div>
+        <label for="content_type">Content Type:</label>
+        <select name="content_type" id="content_type">
+            <option value="text/plain" {% if post.content_type == 'text/plain' %}selected{% endif %}>Plain Text</option>
+            <option value="text/markdown" {% if post.content_type == 'text/markdown' %}selected{% endif %}>CommonMark</option>
+            <option value="image/png" {% if post.content_type == 'image/png' %}selected{% endif %}>PNG Image</option>
+            <option value="image/jpeg" {% if post.content_type == 'image/jpeg' %}selected{% endif %}>JPEG Image</option>
+            <option value="video/mp4" {% if post.content_type == 'video/mp4' %}selected{% endif %}>MP4 Video</option>
+        </select>
+    </div>
+    <div>
+        <label for="text">Text:</label>
+        <textarea name="text" id="text" rows="5" cols="40">{{ post.text }}</textarea>
+    </div>
+    <div>
+        <label for="image">Image:</label>
+        <input type="file" name="image" id="image">
+        {% if post.image %}
+            <p>Current Image: <img src="{{ post.image.url }}" alt="Current Image" width="100"></p>
+        {% endif %}
+    </div>
+    <div>
+        <label for="video">Video:</label>
+        <input type="file" name="video" id="video">
+        {% if post.video %}
+            <p>Current Video: <video width="100" controls>
+                <source src="{{ post.video.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video></p>
+        {% endif %}
+    </div>
+    <div>
+        <label for="visibility">Visibility:</label>
+        <select name="visibility" id="visibility">
+            <option value="PUBLIC" {% if post.visibility == 'PUBLIC' %}selected{% endif %}>Public</option>
+            <option value="UNLISTED" {% if post.visibility == 'UNLISTED' %}selected{% endif %}>Unlisted</option>
+            <option value="FRIENDS" {% if post.visibility == 'FRIENDS' %}selected{% endif %}>Friends</option>
+        </select>
+    </div>
+    <button type="submit">Save Changes</button>
+</form>
+{% endblock %}

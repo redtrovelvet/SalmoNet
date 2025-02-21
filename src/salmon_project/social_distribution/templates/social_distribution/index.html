@@ -1,20 +1,31 @@
 {% extends 'social_distribution/base.html' %}
 
-{% block title %}SocialDistribution--Homepage{% endblock %}
+{% block title %}SocialDistribution - Homepage{% endblock %}
 
-{% block content%}
-
+{% block content %}
 <h2>Your Stream</h2>
 
-<div class="post">
-    <p>{{ post.author.display_name }}</p>>
+{% for post in posts %}
+  <div class="post">
+    <!-- Display the author's name in bold, for instance -->
+    <p><strong>{{ post.author.display_name }}</strong></p>
+
     {% if post.text %}
-        <p>{{ post.text }}</p>
-        <p>Posted on {{ post.created_at }}</p>
+      <!-- Use |safe so markdown posts are shown as HTML -->
+      <div>{{ post.text|safe }}</div>
     {% endif %}
+
     {% if post.image %}
-        <img src="{{ post.image.url }}" alt="Post Image" width="300">
-        <p>Posted on {{ post.created_at }}</p>
+      <img src="{{ post.image.url }}" alt="Post Image" width="300">
     {% endif %}
-</div>
+
+    {% if post.video %}
+      <video width="300" controls>
+        <source src="{{ post.video.url }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    {% endif %}
+    <p>Posted on {{ post.created_at }}</p>
+  </div>
+{% endfor %}
 {% endblock %}
