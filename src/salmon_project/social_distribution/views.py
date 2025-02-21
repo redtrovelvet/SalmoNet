@@ -156,21 +156,36 @@ def inbox(request, author_id):
 def get_comments(request, post_id, author_id=None):
     '''
     API: returns all comments for a post in the form of a "comments" object
-
+    GET [local, remote]: the comments on the post {AUTHOR_SERIAL} {POST_SERIAL}
+    GET [local, remote]: the comments on the post (that our server knows about) {POST_FQID}
+    Body is a "comments" object
     '''
     pass
 
-@api_view(["GET"])
+@api_view(["GET", "POST"])
 def commented(request, author_id):
     '''
-    API: returns all comments made by an author
+    API: returns all comments made by an author, or allows an author to post a comment
+    GET [local, remote] get the list of comments author has made on: {AUTHOR_SERIAL}
+        [local] any post
+        [remote] public and unlisted posts
+        paginated
+    POST [local] if you post an object of "type":"comment", it will add your comment to the post whose ID is in the post field
+        Then the node you posted it to is responsible for forwarding it to the correct inbox
+
+    GET [local] get the list of comments author has made on any post (that local node knows about) {AUTHOR_FQID}
+    body is list of "comment" objects
     '''
     pass
 
 @api_view(["GET"])
-def get_comment(request, comment_id, author_id=None):
+def get_comment(request, comment_id, author_id=None, post_id=None):
     '''
     API: returns a specific comment
+    GET [local, remote] get the comment {AUTHOR_SERIAL} {POST_SERIAL} {REMOTE_COMMENT_FQID}
+    GET [local, remote] get this comment {AUTHOR_SERIAL} {COMMENT_SERIAL}
+    GET [local] get this comment {COMMENT_FQID}
+    body is a "comment" object
     '''
     pass
 
@@ -178,13 +193,18 @@ def get_comment(request, comment_id, author_id=None):
 def get_post_likes(request, post_id, author_id=None):
     '''
     API: returns all likes for a post
+    GET [local, remote] a list of likes from other authors on AUTHOR_SERIAL's post POST_SERIAL {AUTHOR_SERIAL} {POST_SERIAL}
+    GET [local] a list of likes from other authors on AUTHOR_SERIAL's post POST_SERIAL {POST_FQID}
+    body is a "likes" object
     '''
     pass
 
 @api_view(["GET"])
 def get_comment_likes(request, like_id, comment_id):
     '''
-    API: returns a specific like
+    API: returns all likes for a comment
+    GET [local, remote] a list of likes from other authors on AUTHOR_SERIAL's post POST_SERIAL comment COMMENT_FQID
+    body is a "likes" object
     '''
     pass
 
@@ -192,6 +212,9 @@ def get_comment_likes(request, like_id, comment_id):
 def get_author_liked(request, author_id):
     '''
     API: returns all likes made by an author
+    GET [local, remote] a list of likes by AUTHOR_SERIAL {AUTHOR_SERIAL}
+    GET [local] a list of likes by AUTHOR_FQID {AUTHOR_FQID}
+    body is a "likes" object
     '''
     pass
 
@@ -199,5 +222,8 @@ def get_author_liked(request, author_id):
 def get_like(request, like_id, author_id=None):
     '''
     API: returns a specific like
+    GET [local, remote] a single like {AUTHOR_SERIAL} {LIKE_SERIAL}
+    GET [local] a single like {LIKE_FQID}
+    body is a "like" object
     '''
     pass
