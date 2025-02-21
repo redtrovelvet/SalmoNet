@@ -45,7 +45,7 @@ class PostSerializer(serializers.ModelSerializer):
         fields = ['id', 'author', 'text', 'image', 'video', 'content_type', 'visibility', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-    def validate(self, data):
-        if 'text' not in data and 'image' not in data and 'video' not in data:
+    def validate(self, attrs):
+        if 'text' not in attrs and 'image' not in attrs and 'video' not in attrs:
             raise serializers.ValidationError("A post must contain text, image, or video.")
-        return data
+        return attrs
