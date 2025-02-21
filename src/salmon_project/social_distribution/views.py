@@ -52,7 +52,7 @@ def profile(request, author_id):
     renders the profile page for an author
     '''
     author = get_object_or_404(Author, id=author_id)
-    posts = Post.objects.filter(author=author, visibility="PUBLIC").order_by("-created_at")
+    posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
     rendered_posts = []
     for p in posts:
         html_text = render_markdown_if_needed(p.text, p.content_type)
@@ -133,6 +133,10 @@ def logout_view(request):
     '''
     logout(request)
     return redirect("index")
+
+def view_post(request, author_id, post_id):
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    return render(request, "social_distribution/view_post.html", {"post": post})
 
 @api_view(["GET"])
 def get_authors(request):

@@ -1,6 +1,5 @@
 {% load static %}
 
-
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -8,6 +7,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>{% block title %}SocialDitribution{% endblock %}</title>
         <link rel="stylesheet" href="{% static 'css/basic_style.css' %}">
+
+        <!-- Copy post link script -->
+        <script src="{% static 'js/copy-post-link.js' %}" defer></script>
     </head>
     <body>
         <header>
