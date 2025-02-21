@@ -69,7 +69,6 @@
         {% if post.text %}
             <!-- If 'content_type' was text/markdown, post.text is HTML -->
             <div>{{ post.text|safe }}</div>
-            <p>Posted on {{ post.created_at }}</p>
         {% endif %}
 
         {% if post.image %}
@@ -81,7 +80,6 @@
                 <source src="{{ post.video.url }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
-            <p>Posted on {{ post.created_at }}</p>
         {% endif %}
         <p>Posted on {{ post.created_at }}</p>
         <a href="{% url 'edit_post' author.id post.id %}" class="btn btn-primary">Edit</a>
