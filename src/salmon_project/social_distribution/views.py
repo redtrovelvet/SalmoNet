@@ -12,7 +12,7 @@ from .models import Author, Post, FollowRequest
 from .serializers import AuthorSerializer, PostSerializer
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, get_user
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
@@ -139,6 +139,23 @@ def logout_view(request):
 
 def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    post_author = get_object_or_404(Author, id=author_id)
+
+    # Attempt to get author object from current user
+    try:
+        current_user = request.user.author
+
+    # If current user is not signed in
+    except AttributeError:
+        current_user = request.user
+        if post.visibility == "FRIENDS":
+            return HttpResponse(status=403)
+
+    # If current user is signed in, check access
+    else:
+        if post.visibility == "FRIENDS" and not (current_user == post_author or post_author in current_user.following.all()):
+            return HttpResponse(status=403)
+        
     return render(request, "social_distribution/view_post.html", {"post": post})
 
 @api_view(["GET"])
