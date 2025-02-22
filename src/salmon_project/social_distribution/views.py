@@ -11,14 +11,13 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Author, Post, FollowRequest
 from .serializers import AuthorSerializer, PostSerializer
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib.auth import login, logout, authenticate
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib import messages  
-from django.views.decorators.http import require_POST
-
+from django.views.decorators.http import require_POST, require_http_methods
 import commonmark
 
 # Create your views here.
@@ -137,6 +136,81 @@ def logout_view(request):
     logout(request)
     return redirect("index")
 
+def render_markdown_if_needed(text, content_type):
+    """
+    If content_type is 'text/markdown', convert 'text' to HTML using commonmark.
+    Otherwise, return the text as-is (plain text).
+    """
+    if content_type == "text/markdown":
+        return commonmark.commonmark(text or "")
+    return text or "" 
+
+@require_http_methods(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def edit_post(request, author_id, post_id):
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    if post.author.user != request.user:
+        return HttpResponseForbidden("You are not allowed to edit this post.")
+
+    if request.method == "GET":
+        return render(request, "social_distribution/edit_post.html", {"post": post})
+    
+    data = request.POST.copy()
+
+    # If user checked "Remove Image", ensure data contains image as None.
+    if "remove_image" in data:
+        data["image"] = None
+    else:
+        # Only remove the key if no new file is uploaded.
+        image_val = data.get("image", "")
+        if image_val is None or (isinstance(image_val, str) and not image_val.strip()):
+            # Only pop if the remove checkbox was NOT checked.
+            data.pop("image", None)
+
+    # Similarly for video.
+    if "remove_video" in data:
+        data["video"] = None
+    else:
+        video_val = data.get("video", "")
+        if video_val is None or (isinstance(video_val, str) and not video_val.strip()):
+            data.pop("video", None)
+
+    serializer = PostSerializer(post, data=data, partial=True)
+    if serializer.is_valid():
+        # If new files are uploaded, attach them.
+        if "image" in request.FILES:
+            serializer.validated_data["image"] = request.FILES["image"]
+        if "video" in request.FILES:
+            serializer.validated_data["video"] = request.FILES["video"]
+        serializer.save()
+        return redirect("profile", author_id=author_id)
+    else:
+        return render(request, "social_distribution/edit_post.html", {"post": post, "serializer": serializer})
+
+@require_http_methods(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def delete_post_local(request, author_id, post_id):
+    """
+    Local view to delete a post via an HTML confirmation page.
+    GET: Render delete_post.html to confirm deletion, passing rendered_text.
+    POST: Delete the post and redirect to the profile page.
+    """
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    if post.author.user != request.user:
+        return HttpResponseForbidden("You are not allowed to delete this post.")
+
+    if request.method == "GET":
+        rendered_text = render_markdown_if_needed(post.text, post.content_type)
+        return render(request, "social_distribution/delete_post.html", {"post": post,"rendered_text": rendered_text,"author": post.author})
+    
+    # On POST, delete the post and redirect.
+    post.delete()
+    return redirect("profile", author_id=author_id)
+
+
+
+# --- API Endpoints ---
+
 @api_view(["GET"])
 def get_authors(request):
     '''
@@ -167,7 +241,7 @@ def create_author(request):
         return Response(serializer.data, status=201)
     return Response(status=400, data=serializer.errors)
 
-@api_view(["POST"])
+@api_view(["PUT"])
 def update_author(request, author_id):
     '''
     API: updates an author's profile
@@ -304,6 +378,7 @@ def view_friends(request):
     followers = set(Author.objects.filter(following=current_author))
     friends = following.intersection(followers)
     return render(request, "social_distribution/friends.html", {"friends": friends})
+
 def get_post(request, author_id, post_id):
     """
     GET [local, remote] get the public post whose serial is POST_ID
@@ -330,7 +405,7 @@ def delete_post(request, author_id, post_id):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def edit_post(request, author_id, post_id):
+def update_post(request, author_id, post_id):
     """
     PUT [local] update a post
     must be authenticated locally as the author
@@ -409,11 +484,4 @@ def get_post_image(request, author_id, post_id):
         return Response(status=403)
     return Response(post.image.read(), content_type=post.content_type)
 
-def render_markdown_if_needed(text, content_type):
-    """
-    If content_type is 'text/markdown', convert 'text' to HTML using commonmark.
-    Otherwise, return the text as-is (plain text).
-    """
-    if content_type == "text/markdown":
-        return commonmark.commonmark(text or "")
-    return text or ""    
+  

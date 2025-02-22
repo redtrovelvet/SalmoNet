@@ -5,13 +5,16 @@
 {% block content %}
 <h2>Your Stream</h2>
 
-{% for post in posts %}
-  <div class="post">
-    <!-- Display the author's name in bold, for instance -->
+<!-- Container for all posts -->
+<div>
+  {% for post in posts %}
+  <!-- Each post in its own block with margin, border, and padding -->
+  <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;">
+    
     <p><strong>{{ post.author.display_name }}</strong></p>
 
     {% if post.text %}
-      <!-- Use |safe so markdown posts are shown as HTML -->
+      <!-- If 'content_type' was text/markdown, post.text is HTML -->
       <div>{{ post.text|safe }}</div>
     {% endif %}
 
@@ -25,8 +28,11 @@
         Your browser does not support the video tag.
       </video>
     {% endif %}
-    <p>Posted on {{ post.created_at }}</p>
-  </div>
-{% endfor %}
-{% endblock %}
 
+    <p>Posted on {{ post.created_at }}</p>
+
+  </div> <!-- end single post container -->
+  {% endfor %}
+</div> <!-- end all-posts container -->
+
+{% endblock %}

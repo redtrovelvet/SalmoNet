@@ -62,13 +62,13 @@ class AuthorTests(TestCase):
 
     def test_update_author(self):
         '''
-        test for POST /api/authors/{AUTHOR_ID}/update/ to update an author
+        test for PUT /api/authors/{AUTHOR_ID}/update/ to update an author
         '''
         data = {
             "display_name":"Updated User",
             "github": "https://github.com/updateduser"
         }
-        response = self.client.post(f"/api/authors/{self.author.id}/update/", data, format="json")
+        response = self.client.put(f"/api/authors/{self.author.id}/update/", data, format="json")
         self.assertEqual(response.status_code, 200)
         self.author.refresh_from_db()
         self.assertEqual(self.author.display_name, "Updated User")
