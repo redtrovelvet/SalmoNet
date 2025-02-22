@@ -1,0 +1,18 @@
+{% extends 'social_distribution/base.html' %}
+
+{% block title %}Following{% endblock %}
+
+{% block content %}
+    <h1>Who You Follow</h1>
+    {% if following %}
+        <ul>
+            {% for follow in following %}
+                <li>
+                    <a href="{% url 'profile' follow.id %}">{{ follow.display_name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You are not following anyone.</p>
+    {% endif %}
+{% endblock %}

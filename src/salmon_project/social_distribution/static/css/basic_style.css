@@ -5,3 +5,29 @@ html, body {
     background-color: white;
     color: black;
 }
+
+/* NEW: Styles for Django messages */
+ul.messages {
+    list-style-type: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+ul.messages li {
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 3px;
+}
+
+/* Style based on the message tag */
+ul.messages li.success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+ul.messages li.error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+

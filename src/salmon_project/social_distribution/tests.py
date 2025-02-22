@@ -6,7 +6,8 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from .models import Author
+from rest_framework.test import APIClient
+from .models import Author, Post
 import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -19,23 +20,120 @@ class AuthorTests(TestCase):
         #<BEGIN GENERATED model='gpt-4' date=2025-02-17 prompt: i want to write test code for my views.py functions but i need to set up an author first, here is a screenshot of my author model (screenshot of class Author from models.py), how do i upload an image for testing purposes?>
         self.image = SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg")
         #<END GENERATED></END>
+        self.client = APIClient()
         self.author = Author.objects.create(
+            id=uuid.uuid4(),
             username = "testuser",
             display_name = "Test User",
             github = "https://github.com/testuser",
             profile_image = self.image,
+            host="http://127.0.0.1:8000"
         )
     
+    def test_get_authors(self):
+        '''
+        test for GET /api/authors/ to get all authors
+        '''
+        response = self.client.get("/api/authors/")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json(), "The response should not be empty")
+
     def test_get_author(self):
-        response = self.client.get(reverse('get_author', args=[self.author.id]))
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/ to get specific author
+        '''
+        response = self.client.get(f"/api/authors/{self.author.id}/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['username'], "testuser")
 
+    def test_create_author(self):
+        '''
+        test for POST /api/authors/create/ to create an author
+        '''
+        data = {
+            "username": "newuser",
+            "display_name": "New User",
+            "github": "https://github.com/newuser/",
+            "host": "http://127.0.0.1:8000"
+        }
+        response = self.client.post("/api/authors/create/", data, format="json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()['username'], "newuser")
+
     def test_update_author(self):
-        response = self.client.post(reverse('update_author', args=[self.author.id]) , {
+        '''
+        test for POST /api/authors/{AUTHOR_ID}/update/ to update an author
+        '''
+        data = {
             "display_name":"Updated User",
             "github": "https://github.com/updateduser"
-        }, content_type="application/json")
+        }
+        response = self.client.post(f"/api/authors/{self.author.id}/update/", data, format="json")
         self.assertEqual(response.status_code, 200)
         self.author.refresh_from_db()
         self.assertEqual(self.author.display_name, "Updated User")
+
+    def test_invalid_author(self):
+        '''
+        test for GET /api/authors/{INVALID_ID} to return 404
+        '''
+        response = self.client.get("/api/authors/000000000000/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_consistent_identity(self):
+        '''
+        testing user story: As an author, I want a consistent identity per node, so 
+        that URLs to me/my posts are predictable and don't stop working.
+        '''
+        response = self.client.get(f"/api/authors/{self.author.id}/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["id"], f"http://127.0.0.1:8000/api/authors/{self.author.id}")
+    
+    def test_multiple_authors_on_node(self):
+        '''
+        testing user story: As a node admin, I want to host multiple authors on my node, 
+        so I can have a friendly online community.
+        '''
+        another_author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="anotheruser",
+            display_name="Another User",
+            github="https://github.com/anotheruser",
+            host="http://127.0.0.1:8000"
+        )
+        response = self.client.get("/api/authors/")  # gets all authors
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(len(response.json()), 2)  # checks if two authors are there to confirm multiple authors are on the node
+
+    def test_public_page(self):
+        '''
+        testing user story: As an author, I want a public page with my profile information, so that I can link people to it.
+        '''
+        response = self.client.get(reverse("profile", args=[self.author.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.author.display_name)
+
+    def test_profile_page_public_posts(self):
+        '''
+        Testing user story: As an author, I want my profile page to show my public posts (most recent first), 
+        so they can decide if they want to follow me.
+        '''
+        Post.objects.create(author=self.author, text="Test Post", visibility="PUBLIC")
+        response = self.client.get(reverse("profile", args=[self.author.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Test Post")
+
+    def test_manage_profile_web_browser(self):
+        '''
+        Testing user story: As an author, I want to be able to use my web browser to manage my profile, 
+        so I don't have to use a clunky API.
+        '''
+        data = {
+            "display_name": "Updated Again",
+            "github": "https://github.com/updatedagain"
+        }
+        response = self.client.post(f"/authors/{self.author.id}/edit/", data)
+        self.assertEqual(response.status_code, 302)
+        self.author.refresh_from_db()
+        self.assertEqual(self.author.display_name, "Updated Again")
+
