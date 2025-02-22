@@ -62,4 +62,7 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/liked/", views.get_author_liked, name="get_author_liked"), # single url for {AUTHOR_SERIAL} and {AUTHOR_FQID}
     path("api/authors/<uuid:author_id>/liked/<uuid:like_id>}/", views.get_like, name="get_author_like"),
     path("api/liked/<uuid:like_id>/", views.get_like, name="get_like"),
+    # Extra APIs to like posts and comments (not in the spec)
+    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/liked/", views.like_post, name="like_post"),
+    path("api/authors/<uuid:author_id>/comments/<uuid:comment_id>/liked/", views.like_comment, name="like_comment"),
 ]
