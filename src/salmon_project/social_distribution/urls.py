@@ -41,7 +41,7 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/post/<uuid:post_id>/comments/<uuid:comment_id>/", views.get_comment, name="get_remote_comment"), # discrepency on whether it should be comment or comments in the specifcation, {REMOTE_COMMENT_FQID}
 
     # Commented API
-    path("api/authors/<uuid:author_id>/commented/", views.commented, name="get_commented"), # single url for {AUTHOR_SERIAL} and {AUTHOR_FQID}
+    path("api/authors/<uuid:author_id>/commented/", views.commented, name="commented"), # single url for {AUTHOR_SERIAL} and {AUTHOR_FQID}
     path("api/authors/<uuid:author_id>/commented/<uuid:comment_id>/", views.get_comment, name="get_author_comment"),
     path("api/commented/<uuid:comment_id>/", views.get_comment, name="get_comment"),
 
