@@ -9,8 +9,9 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("register/", views.register, name="register"),
     path("login/", views.login_view, name="login"),
-    path("authors/<uuid:author_id>/posts/<uuid:post_id>/edit/", views.edit_post, name="edit_post"),      # Dev: Edit post view
-    path("authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post, name="delete_post"),  # Dev: Delete post view
+    path("authors/<uuid:author_id>/posts/<uuid:post_id>/edit/", views.edit_post, name="edit_post"),       
+    path("authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post_local, name="delete_post_local"),
+
 
     # Extra User-Facing Views (from following/friend branch)
     path("authors/", views.all_authors, name="all_authors"),
@@ -39,6 +40,8 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/posts/", views.get_author_posts, name="get_author_posts"),
     path("api/authors/<uuid:author_id>/posts/create/", views.create_post, name="create_post"),
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/image/", views.get_post_image, name="get_post_image"),
+    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/update/", views.update_post, name="update_post"),
+    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post, name="delete_post"),
 
     # Inbox API
     path("api/authors/<uuid:author_id>/inbox/", views.inbox, name="inbox"),
