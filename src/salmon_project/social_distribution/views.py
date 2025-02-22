@@ -303,7 +303,7 @@ def view_friends(request):
     following = set(current_author.following.all())
     followers = set(Author.objects.filter(following=current_author))
     friends = following.intersection(followers)
-    return render(request, "social_distribution/friends.html", {"friends": friends})@api_view(['GET'])
+    return render(request, "social_distribution/friends.html", {"friends": friends})
 def get_post(request, author_id, post_id):
     """
     GET [local, remote] get the public post whose serial is POST_ID
