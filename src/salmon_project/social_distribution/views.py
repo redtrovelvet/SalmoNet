@@ -8,8 +8,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .models import Author, Post, FollowRequest, Comment
-from .serializers import AuthorSerializer, PostSerializer, CommentSerializer
+from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike
+from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, LikesListSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import login, logout, authenticate
@@ -35,9 +35,14 @@ def index(request):
         posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
         author = None
 
+    # Serialize posts
+    serialized_posts = PostSerializer(posts, many=True).data.copy()
+
     # Convert posts to a new list with rendered text if needed
     rendered_posts = []
-    for p in posts:
+    for i in range(len(serialized_posts)):
+        p = posts[i]
+        sp = serialized_posts[i]
         html_text = render_markdown_if_needed(p.text, p.content_type)
         rendered_posts.append({
             "id": p.id,
@@ -47,6 +52,8 @@ def index(request):
             "video": p.video,
             "visibility": p.visibility,
             "created_at": p.created_at,
+            "comments": sp["comments"],
+            "likes": sp["likes"],
         })
 
     return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": author})
@@ -461,7 +468,7 @@ def commented(request, author_id):
         print(data)
         if serializer.is_valid():
             serializer.save()
-            return Response(status=201)
+            return redirect("index")
         return Response(status=400, data=serializer.errors)
     else:
         comments = Comment.objects.filter(author_id=author_id)
@@ -523,14 +530,14 @@ def get_like(request, like_id, author_id=None):
     pass
 
 @api_view(["POST"])
-def create_post_like(request, author_id):
+def like_post(request, author_id):
     '''
     API: allows an author to like a post
     '''
     pass
 
 @api_view(["POST"])
-def create_comment_like(request, author_id):
+def like_comment(request, author_id):
     '''
     API: allows an author to like a comment
     POST [local] create a like on a comment {AUTHOR_SERIAL}

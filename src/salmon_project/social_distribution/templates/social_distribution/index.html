@@ -26,12 +26,18 @@
       </video>
     {% endif %}
 
+    <form method="post" action="{% url 'like_post' author.id}">
+      <button type="button" class="btn btn-primary">Like: {{ post.likes.count }}</button>
+    </form>
+
     {% if post.comments %}
       <h3>Comments</h3>
       <ul>
         {% for comment in post.comments.src %}
           <li>{{ comment.author.display_name }}: {{ comment.comment }}</li>
-          <button type="button" class="btn btn-primary">Like</button>
+          <form method="post" action="{% url 'like_comment' author.id}">
+            <button type="button" class="btn btn-primary">Like: {{ comment.likes.count }}</button>
+          </form>
         {% endfor %}
       </ul>
     {% endif %}
@@ -46,7 +52,6 @@
           <input type="hidden" name="contentType" value="text/plain">
           <button type="submit" class="btn btn-primary">Comment</button>
         </form>
-        <button type="button" class="btn btn-primary">Like</button>
       </div>
     {% endif %}
   </div>
