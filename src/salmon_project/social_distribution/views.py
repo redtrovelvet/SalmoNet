@@ -465,7 +465,6 @@ def commented(request, author_id):
         author = get_object_or_404(Author, id=author_id)
         data["author"] = author.id
         serializer = CommentSerializer(data=data)
-        print(data)
         if serializer.is_valid():
             serializer.save()
             return redirect("index")
@@ -530,16 +529,41 @@ def get_like(request, like_id, author_id=None):
     pass
 
 @api_view(["POST"])
-def like_post(request, author_id):
+def like_post(request, author_id, post_id):
     '''
     API: allows an author to like a post
     '''
-    pass
+    data = request.data.copy()
+    if data.get("type") == "like":
+        data["author"] = author_id
+        data["object"] = post_id
+        serializer = PostLikeSerializer(data=data)
+        if serializer.is_valid():
+            if PostLike.objects.filter(author=author_id, object=post_id).exists():
+                PostLike.objects.filter(author=author_id, object=post_id).delete()
+            else:
+                try:
+                    serializer.save()
+                except Exception as e:
+                    print(e)
+    return redirect("index")
 
 @api_view(["POST"])
-def like_comment(request, author_id):
+def like_comment(request, author_id, comment_id):
     '''
     API: allows an author to like a comment
-    POST [local] create a like on a comment {AUTHOR_SERIAL}
     '''
-    pass
+    data = request.data.copy()
+    if data.get("type") == "like":
+        data["author"] = author_id
+        data["object"] = comment_id
+        serializer = CommentLikeSerializer(data=data)
+        if serializer.is_valid():
+            if CommentLike.objects.filter(author=author_id, object=comment_id).exists():
+                CommentLike.objects.filter(author=author_id, object=comment_id).delete()
+            else:
+                try:
+                    serializer.save()
+                except Exception as e:
+                    print(e)
+    return redirect("index")
