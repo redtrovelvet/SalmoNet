@@ -1,0 +1,31 @@
+{% extends "social_distribution/base.html" %}
+
+{% block content %}
+<h2>Post by {{ post.author.username }}</h2>
+<p>Posted on: {{ post.created_at }}</p>
+<p>Last updated: {{ post.updated_at }}</p>
+<p>Visibility: {{ post.visibility }}</p>
+
+{% if post.content_type == 'text/plain' or post.content_type == 'text/markdown' %}
+    <div>
+        <p>{{ post.text }}</p>
+    </div>
+{% elif post.content_type == 'image/png' or post.content_type == 'image/jpeg' %}
+    <div>
+        <img src="{{ post.image.url }}" alt="Post Image">
+    </div>
+{% elif post.content_type == 'video/mp4' %}
+    <div>
+        <video width="320" height="240" controls>
+            <source src="{{ post.video.url }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+{% endif %}
+
+<a href="{% url 'edit_post' post.id %}">Edit Post</a>
+<form action="{% url 'delete_post' post.id %}" method="post" style="display:inline;">
+    {% csrf_token %}
+    <button type="submit">Delete Post</button>
+</form>
+{% endblock %}

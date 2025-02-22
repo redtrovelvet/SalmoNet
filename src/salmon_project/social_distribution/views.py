@@ -6,16 +6,17 @@
 
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from .models import Author, Post
-from .serializers import AuthorSerializer
+from .serializers import AuthorSerializer, PostSerializer
 from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
-
+import commonmark
 
 # Create your views here.
 def index(request):
@@ -30,7 +31,21 @@ def index(request):
     else:
         posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
 
-    return render(request, "social_distribution/index.html", {"posts": posts})
+    # Convert posts to a new list with rendered text if needed
+    rendered_posts = []
+    for p in posts:
+        html_text = render_markdown_if_needed(p.text, p.content_type)
+        rendered_posts.append({
+            "id": p.id,
+            "author": p.author,
+            "text": html_text,
+            "image": p.image,
+            "video": p.video,
+            "visibility": p.visibility,
+            "created_at": p.created_at,
+        })
+
+    return render(request, "social_distribution/index.html", {"posts": rendered_posts})
 
 def profile(request, author_id):
     '''
@@ -38,7 +53,23 @@ def profile(request, author_id):
     '''
     author = get_object_or_404(Author, id=author_id)
     posts = Post.objects.filter(author=author, visibility="PUBLIC").order_by("-created_at")
-    return render(request, "social_distribution/profile.html", {"author": author, "posts": posts})
+    rendered_posts = []
+    for p in posts:
+        html_text = render_markdown_if_needed(p.text, p.content_type)
+        rendered_posts.append({
+            "id": p.id,
+            "author": p.author,
+            "text": html_text,
+            "image": p.image,
+            "video": p.video,
+            "visibility": p.visibility,
+            "created_at": p.created_at,
+        })
+
+    return render(request, "social_distribution/profile.html", {
+        "author": author,
+        "posts": rendered_posts
+    })
 
 def edit_profile(request, author_id):
     '''
@@ -146,4 +177,117 @@ def update_author(request, author_id):
     return Response(status=400, data=serializer.errors)
 
 
+@api_view(['GET'])
+def get_post(request, author_id, post_id):
+    """
+    GET [local, remote] get the public post whose serial is POST_ID
+    friends-only posts: must be authenticated
+    """
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
+        return Response(status=403)
+    serializer = PostSerializer(post)
+    return Response(serializer.data)
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_post(request, author_id, post_id):
+    """
+    DELETE [local] remove a local post
+    must be authenticated locally as the author
+    """
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    if post.author.user != request.user:
+        return Response(status=403)
+    post.delete()
+    return Response(status=204)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def edit_post(request, author_id, post_id):
+    """
+    PUT [local] update a post
+    must be authenticated locally as the author
+    """
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    if post.author.user != request.user:
+        return Response(status=403)
+    serializer = PostSerializer(post, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=400)
+
+@api_view(['GET'])
+def get_post_by_fqid(request, post_fqid):
+    """
+    GET [local] get the public post whose URL is POST_FQID
+    friends-only posts: must be authenticated
+    """
+    post = get_object_or_404(Post, id=post_fqid)
+    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
+        return Response(status=403)
+    serializer = PostSerializer(post)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def get_author_posts(request, author_id):
+    """
+    GET [local, remote] get the recent posts from author AUTHOR_ID (paginated)
+    Not authenticated: only public posts.
+    Authenticated locally as author: all posts.
+    Authenticated locally as follower of author: public + unlisted posts.
+    Authenticated locally as friend of author: all posts.
+    """
+    author = get_object_or_404(Author, id=author_id)
+    posts = Post.objects.filter(author=author)
+
+    if not request.user.is_authenticated:
+        posts = posts.filter(visibility='PUBLIC')
+    elif request.user.author == author:
+        pass  # Show all posts
+    elif request.user.author in author.following.all():
+        posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED'])
+    else:
+        posts = posts.filter(visibility='PUBLIC')
+
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_post(request, author_id):
+    """
+    POST [local] create a new post but generate a new ID
+    Authenticated locally as author
+    """
+    author = get_object_or_404(Author, id=author_id)
+    if author.user != request.user:
+        return Response(status=403)
+    serializer = PostSerializer(data=request.data, context={'author': author})
+    if serializer.is_valid():
+        serializer.save(author=author)
+        return redirect("profile", author_id=author.id)
+    return render(request, "social_distribution/profile.html")
+
+@api_view(['GET'])
+def get_post_image(request, author_id, post_id):
+    """
+    GET [local, remote] get the public post converted to binary as an image
+    return 404 if not an image
+    """
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    if post.content_type not in ['image/png', 'image/jpeg']:
+        return Response(status=404)
+    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
+        return Response(status=403)
+    return Response(post.image.read(), content_type=post.content_type)
+
+def render_markdown_if_needed(text, content_type):
+    """
+    If content_type is 'text/markdown', convert 'text' to HTML using commonmark.
+    Otherwise, return the text as-is (plain text).
+    """
+    if content_type == "text/markdown":
+        return commonmark.commonmark(text or "")
+    return text or ""
