@@ -155,8 +155,8 @@ class PostLikeSerializer(serializers.Serializer):
 class PostSerializer(serializers.ModelSerializer):
     # TODO: might need to add more attributes like page and description to the post
     type = serializers.CharField(default="post")
-    comments = CommentsListSerializer(many=True, read_only=True)
-    likes = LikesListSerializer(many=True, read_only=True)
+    comments = CommentsListSerializer(read_only=True)
+    likes = LikesListSerializer(read_only=True)
     class Meta:
         model = Post
         fields = ['type', 'id', 'author', 'text', 'image', 'video', 'content_type', 'visibility', 'created_at', 'updated_at', 'comments', 'likes']
@@ -184,7 +184,7 @@ class PostSerializer(serializers.ModelSerializer):
             "page": instance.id,
             "id": str(instance.id) + "/comments",
             "page_number": 1, # TODO: make this number variable
-            "size": min(len(serialized_comments), 50),
+            "size": min(len(serialized_comments), 5),
             "count": len(serialized_comments),
             "src": serialized_comments
         }

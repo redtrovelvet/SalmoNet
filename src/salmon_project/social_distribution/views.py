@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike
-from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, LikesListSerializer, CommentLikeSerializer, PostLikeSerializer
+from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib.auth import login, logout, authenticate
@@ -18,6 +18,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib import messages  
 from django.views.decorators.http import require_POST, require_http_methods
+from django.core.paginator import Paginator
 import commonmark
 
 # Create your views here.
@@ -509,7 +510,34 @@ def get_comments(request, post_id, author_id=None):
     GET [local, remote]: the comments on the post (that our server knows about) {POST_FQID}
     Body is a "comments" object
     '''
-    pass
+    # Get optional query parameters for pagination
+    page_number = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 5))
+
+    # Get the relevant comments based on the post id and optional author id
+    if author_id:
+        # TODO: implement the author serial thing when doing remote node management
+        comments = Comment.objects.filter(post_id=post_id)
+    else:
+        comments = Comment.objects.filter(post_id=post_id)
+
+    # Paginate the comments
+    paginator = Paginator(comments, size)
+    page = paginator.get_page(page_number)
+    serialized_comments = CommentSerializer(page, many=True).data
+
+    # Create the comments object
+    comments_data = {
+        "type": "comments",
+        "page": post_id,
+        "id": str(post_id) + "/comments",
+        "page_number": page_number,
+        "size": min(len(serialized_comments), size),
+        "count": len(comments),
+        "src": serialized_comments
+    }
+
+    return Response(comments_data)
 
 @api_view(["GET", "POST"])
 def commented(request, author_id):
@@ -526,16 +554,19 @@ def commented(request, author_id):
     body is list of "comment" objects
     '''
     if request.method == "POST":
-        # Add author id to the serializer data, but request.data queryDict is immutable
+        # Add author id to the serializer data, make a copy of the data because it is immutable
         data = request.data.copy()
         author = get_object_or_404(Author, id=author_id)
         data["author"] = author.id
+
+        # Create the comment
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return redirect("index")
         return Response(status=400, data=serializer.errors)
-    else:
+    else: # GET request
+        # Get the comments made by the author
         comments = Comment.objects.filter(author_id=author_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
@@ -549,7 +580,17 @@ def get_comment(request, comment_id, author_id=None, post_id=None):
     GET [local] get this comment {COMMENT_FQID}
     body is a "comment" object
     '''
-    comment = get_object_or_404(Comment, id=comment_id)
+    # Get the comment based on the comment id
+    if author_id:
+        # TODO: implement the author and post serial when doing remote node management
+        if post_id:
+            comment = get_object_or_404(Comment, id=comment_id)
+        else:
+            comment = get_object_or_404(Comment, id=comment_id)
+    else:
+        comment = get_object_or_404(Comment, id=comment_id)
+    
+    # Return the comment 
     serializer = CommentSerializer(comment)
     return Response(serializer.data)
 
@@ -563,16 +604,66 @@ def get_post_likes(request, post_id, author_id=None):
     GET [local] a list of likes from other authors on AUTHOR_SERIAL's post POST_SERIAL {POST_FQID}
     body is a "likes" object
     '''
-    pass
+    # Get optional query parameters for pagination
+    page_number = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 50))
+
+    if author_id:
+        # TODO: implement the author serial thing when doing remote node management
+        likes = PostLike.objects.filter(object=post_id)
+    else:
+        likes = PostLike.objects.filter(object=post_id)
+
+    # Paginate the likes
+    paginator = Paginator(likes, size)
+    page = paginator.get_page(page_number)
+    serialized_likes = PostLikeSerializer(page, many=True).data
+
+    # Create the likes object
+    likes_data = {
+        "type": "likes",
+        "page": post_id,
+        "id": str(post_id) + "/likes",
+        "page_number": page_number,
+        "size": min(len(serialized_likes), size),
+        "count": len(likes),
+        "src": serialized_likes
+    }
+
+    return Response(likes_data)    
 
 @api_view(["GET"])
-def get_comment_likes(request, like_id, comment_id):
+def get_comment_likes(request, author_id, post_id, comment_id):
     '''
     API: returns all likes for a comment
     GET [local, remote] a list of likes from other authors on AUTHOR_SERIAL's post POST_SERIAL comment COMMENT_FQID
     body is a "likes" object
     '''
-    pass
+    # Get optional query parameters for pagination
+    page_number = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 50))
+    
+    # TODO: implement the author and post serial thing when doing remote node management
+    likes = CommentLike.objects.filter(object=comment_id)
+
+    # Paginate the likes
+    paginator = Paginator(likes, size)
+    page = paginator.get_page(page_number)
+    serialized_likes = PostLikeSerializer(page, many=True).data
+
+    # Create the likes object
+    likes_data = {
+        "type": "likes",
+        "page": post_id,
+        "id": str(post_id) + "/likes",
+        "page_number": page_number,
+        "size": min(len(serialized_likes), size),
+        "count": len(likes),
+        "src": serialized_likes
+    }
+
+    return Response(likes_data)
+    
 
 @api_view(["GET"])
 def get_author_liked(request, author_id):
@@ -582,7 +673,35 @@ def get_author_liked(request, author_id):
     GET [local] a list of likes by AUTHOR_FQID {AUTHOR_FQID}
     body is a "likes" object
     '''
-    pass
+    # TODO: check if this body should actually be a "likes" object and not a list of "like" objects
+
+    # Get optional query parameters for pagination
+    page_number = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 50))
+
+    # Get the likes made by the author for both posts and comments
+    post_likes = PostLike.objects.filter(author=author_id)
+    comment_likes = CommentLike.objects.filter(author=author_id)
+    likes = list(post_likes) + list(comment_likes)
+
+    # Paginate the likes
+    paginator = Paginator(likes, size)
+    page = paginator.get_page(page_number)
+    serialized_likes = PostLikeSerializer(page, many=True).data
+
+    # Create the likes object
+    likes_data = {
+        "type": "likes",
+        "page": author_id,
+        "id": str(author_id) + "/likes",
+        "page_number": page_number,
+        "size": min(len(serialized_likes), size),
+        "count": len(likes),
+        "src": serialized_likes
+    }
+
+    return Response(likes_data)
+
 
 @api_view(["GET"])
 def get_like(request, like_id, author_id=None):
@@ -592,19 +711,34 @@ def get_like(request, like_id, author_id=None):
     GET [local] a single like {LIKE_FQID}
     body is a "like" object
     '''
-    pass
+    # Get the like based on the like id
+    if author_id:
+        # TODO: implement the author serial thing when doing remote node management
+        like = get_object_or_404(PostLike, id=like_id)
+    else:
+        like = get_object_or_404(PostLike, id=like_id)
+
+    serializer = PostLikeSerializer(like)
+    return Response(serializer.data)
 
 @api_view(["POST"])
 def like_post(request, author_id, post_id):
     '''
     API: allows an author to like a post
     '''
+    # Get the data
     data = request.data.copy()
+
+    # Ensure that the request is a like request
     if data.get("type") == "like":
+        # Add the author and post to the data
         data["author"] = author_id
         data["object"] = post_id
+
+        # Create the like
         serializer = PostLikeSerializer(data=data)
         if serializer.is_valid():
+            # Check if the author has already liked the post, if so, unlike it instead
             if PostLike.objects.filter(author=author_id, object=post_id).exists():
                 PostLike.objects.filter(author=author_id, object=post_id).delete()
             else:
@@ -619,12 +753,19 @@ def like_comment(request, author_id, comment_id):
     '''
     API: allows an author to like a comment
     '''
+    # Get the data
     data = request.data.copy()
+
+    # Ensure that the request is a like request
     if data.get("type") == "like":
+        # Add the author and comment to the data
         data["author"] = author_id
         data["object"] = comment_id
+
+        # Create the like
         serializer = CommentLikeSerializer(data=data)
         if serializer.is_valid():
+            # Check if the author has already liked the comment, if so, unlike it instead
             if CommentLike.objects.filter(author=author_id, object=comment_id).exists():
                 CommentLike.objects.filter(author=author_id, object=comment_id).delete()
             else:
