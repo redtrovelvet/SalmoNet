@@ -8,8 +8,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .models import Author, Post
-from .serializers import AuthorSerializer, PostSerializer
+from .models import Author, Post, Comment
+from .serializers import AuthorSerializer, PostSerializer, CommentSerializer
 from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
@@ -30,6 +30,7 @@ def index(request):
         #<END GENERATED></END>
     else:
         posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
+        author = None
 
     # Convert posts to a new list with rendered text if needed
     rendered_posts = []
@@ -45,7 +46,7 @@ def index(request):
             "created_at": p.created_at,
         })
 
-    return render(request, "social_distribution/index.html", {"posts": rendered_posts})
+    return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": author})
 
 def profile(request, author_id):
     '''
@@ -299,6 +300,8 @@ def inbox(request, author_id):
     '''
     pass
 
+
+# ========================== COMMENTS ==========================
 @api_view(["GET"])
 def get_comments(request, post_id, author_id=None):
     '''
@@ -323,7 +326,21 @@ def commented(request, author_id):
     GET [local] get the list of comments author has made on any post (that local node knows about) {AUTHOR_FQID}
     body is list of "comment" objects
     '''
-    pass
+    if request.method == "POST":
+        # Add author id to the serializer data, but request.data queryDict is immutable
+        data = request.data.copy()
+        author = get_object_or_404(Author, id=author_id)
+        data["author"] = author.id
+        serializer = CommentSerializer(data=data)
+        print(data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(status=201)
+        return Response(status=400, data=serializer.errors)
+    else:
+        comments = Comment.objects.filter(author_id=author_id)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
 
 @api_view(["GET"])
 def get_comment(request, comment_id, author_id=None, post_id=None):
@@ -334,8 +351,12 @@ def get_comment(request, comment_id, author_id=None, post_id=None):
     GET [local] get this comment {COMMENT_FQID}
     body is a "comment" object
     '''
-    pass
+    comment = get_object_or_404(Comment, id=comment_id)
+    serializer = CommentSerializer(comment)
+    return Response(serializer.data)
 
+
+# ========================== LIKES ==========================
 @api_view(["GET"])
 def get_post_likes(request, post_id, author_id=None):
     '''
@@ -372,5 +393,20 @@ def get_like(request, like_id, author_id=None):
     GET [local, remote] a single like {AUTHOR_SERIAL} {LIKE_SERIAL}
     GET [local] a single like {LIKE_FQID}
     body is a "like" object
+    '''
+    pass
+
+@api_view(["POST"])
+def create_post_like(request, author_id):
+    '''
+    API: allows an author to like a post
+    '''
+    pass
+
+@api_view(["POST"])
+def create_comment_like(request, author_id):
+    '''
+    API: allows an author to like a comment
+    POST [local] create a like on a comment {AUTHOR_SERIAL}
     '''
     pass
