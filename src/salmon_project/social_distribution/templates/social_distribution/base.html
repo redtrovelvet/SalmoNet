@@ -14,20 +14,31 @@
             <h1>SocialDistribution</h1>
             <nav>
                 <ul>
-                    <li><a href = "{% url 'index' %}">Home</a></li>
+                    <li><a href="{% url 'index' %}">Home</a></li>
                     {% if user.is_authenticated %}
                         {% if user.author %}
-                        <li><a href="{% url 'profile' user.author.id %}">Profile</a></li>
-                        <li><a href="{% url 'logout' %}">Logout</a></li>
+                            <li><a href="{% url 'profile' user.author.id %}">Profile</a></li>
                         {% endif %}
+                        <li><a href="{% url 'all_authors' %}">All Authors</a></li>  {# NEW: All Authors link #}
+                        <li><a href="{% url 'view_follow_requests' %}">Follow Requests</a></li>  {# NEW: Follow Requests link #}
+                        <li><a href="{% url 'logout' %}">Logout</a></li>
+            
                     {% else %}
                         <li><a href="{% url 'login' %}">Login</a></li>
                         <li><a href="{% url 'register' %}">Register</a></li>
                     {% endif %}
-
                 </ul>
             </nav>
         </header>
+        
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
         <main>
             {% block content %}{% endblock %}
         </main>

@@ -1,0 +1,25 @@
+{% for author in authors %}
+    <div class="author">
+        {# Wrap the display name in a hyperlink to the author's profile #}
+        <h3><a href="{% url 'profile' author.id %}">{{ author.display_name }}</a></h3>  {# NEW: Link added #}
+        
+        <p>Username: {{ author.username }}</p>
+
+        {# Check if the current user is logged in and is not viewing their own profile #}
+        {% if user.is_authenticated and user.author != author %}
+            {% if author in user.author.following.all %}
+                {# Use a form for unfollow so that a POST request is sent (if you wish to require POST) #}
+                <form action="{% url 'unfollow_author' author.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}  {# NEW: CSRF token added #}
+                    <button type="submit">Unfollow</button>
+                </form>
+            {% else %}
+                {# Use a form for follow so that a POST request is sent #}
+                <form action="{% url 'send_follow_request' author.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}  {# NEW: CSRF token added #}
+                    <button type="submit">Follow</button>
+                </form>
+            {% endif %}
+        {% endif %}
+    </div>
+{% endfor %}
