@@ -6,11 +6,13 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
+from rest_framework import status
 from .models import Author, Post, Comment, CommentLike, PostLike
-from .serializers import AuthorSerializer
+from .serializers import AuthorSerializer, PostSerializer
 import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth.models import User
 
 # Create your tests here.
 class AuthorTests(TestCase):
@@ -469,3 +471,139 @@ class LikeTests(TestCase):
         response = self.client.post(url, body, format="json")
         self.assertEqual(response.status_code, 302)
         self.assertEqual(CommentLike.objects.count(), 0)
+        
+class PostTests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="testuser",
+            display_name="Test User",
+            github="https://github.com/testuser",
+            profile_image=None,
+            host="http://127.0.0.1:8000"
+        )
+        # Create a user for authentication
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author.user = self.user
+        self.author.save()
+
+        self.post = Post.objects.create(
+            id=uuid.uuid4(),
+            author=self.author,
+            text="Test Post",
+            visibility="PUBLIC"
+        )
+        self.image_post = Post.objects.create(
+            id=uuid.uuid4(),
+            author=self.author,
+            text="Test Image Post",
+            visibility="PUBLIC",
+            content_type="image/jpeg",
+            image=SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg")
+        )
+
+    def test_get_post(self):
+        """
+        Test for GET /api/authors/{AUTHOR_ID}/posts/ to retrieve posts
+        """
+        response = self.client.get(f"/api/authors/{self.author.id}/posts/")
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(len(response.json()), 1)
+        
+    def test_create_post(self):
+        """
+        Test POST /api/authors/{AUTHOR_ID}/posts/ to create a new post.
+        """
+        self.client.force_authenticate(user=self.user)
+        url = reverse("create_post", args=[self.author.id])
+        data = {
+            "text": "New Post",
+            "visibility": "PUBLIC"
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertTrue(Post.objects.filter(text="New Post").exists())
+        
+    def test_delete_post(self):
+        """
+        Test for DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ to delete a post
+        """
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(f"/api/authors/{self.author.id}/posts/{self.post.id}/delete/")
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Post.objects.filter(id=self.post.id).exists())
+
+    def test_delete_post_unauthorized(self):
+        """
+        Test DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ with unauthorized user.
+        """
+        url = reverse("delete_post", args=[self.author.id, self.post.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_update_post(self):
+        """
+        Test PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ to update a post.
+        """
+        self.client.force_authenticate(user=self.user)
+        url = reverse("update_post", args=[self.author.id, self.post.id])
+        data = {"text": "Edited Post"}
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.text, "Edited Post")
+
+    def test_update_post_unauthorized(self):
+        """
+        Test PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ with unauthorized user.
+        """
+        url = reverse("update_post", args=[self.author.id, self.post.id])
+        data = {"text": "Edited Post"}
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_get_post_by_fqid(self):
+        """
+        Test GET /api/posts/{POST_FQID}/ to get a post by its fully qualified ID.
+        """
+        url = reverse("get_post_by_fqid", args=[self.post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['text'], "Test Post")
+        
+    def test_get_author_posts(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/ to get all posts by an author.
+        """
+        url = reverse("get_author_posts", args=[self.author.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)  # Two posts created in setUp
+
+    def test_get_author_posts_authenticated(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/ with authenticated user.
+        """
+        self.client.force_authenticate(user=self.author.user)
+        url = reverse("get_author_posts", args=[self.author.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        
+    def test_get_post_image(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/image/ to get an image post.
+        """
+        url = reverse("get_post_image", args=[self.author.id, self.image_post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], "image/jpeg")
+
+    def test_get_post_image_not_found(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/image/ for a non-image post.
+        """
+        url = reverse("get_post_image", args=[self.author.id, self.post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
