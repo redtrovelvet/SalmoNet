@@ -19,7 +19,7 @@ from django.contrib.auth.models import User
 from django.contrib import messages  
 from django.views.decorators.http import require_POST, require_http_methods
 from django.core.paginator import Paginator
-import commonmark
+import commonmark, uuid
 
 # Create your views here.
 def index(request):
@@ -44,6 +44,13 @@ def index(request):
         p = posts[i]
         sp = serialized_posts[i]
         html_text = render_markdown_if_needed(p.text, p.content_type)
+        post_comments = sp["comments"]["src"]
+        comments = []
+        for comment in post_comments:
+            comment["id"] = comment["id"].split("/")[-1]
+            comments.append(comment)
+
+        print(comments)
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
@@ -52,10 +59,11 @@ def index(request):
             "video": p.video,
             "visibility": p.visibility,
             "created_at": p.created_at,
-            "comments": sp["comments"],
+            "comments": comments,
             "likes": sp["likes"],
         })
 
+    
     return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": author})
 
 def profile(request, author_id):

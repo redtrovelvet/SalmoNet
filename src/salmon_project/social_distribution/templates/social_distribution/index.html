@@ -40,8 +40,8 @@
     {% if post.comments %}
       <h3>Comments</h3>
       <ul>
-        {% for comment in post.comments.src %}
-          <li>{{ comment.author.display_name }}: {{ comment.comment }}</li>
+        {% for comment in post.comments %}
+          <li>{{ comment.author.displayName }}: {{ comment.comment }}</li>
           {% if user.is_authenticated and author is not None %}
             <form method="post" action="{% url 'like_comment' author.id comment.id %}">
               {% csrf_token %}
