@@ -99,7 +99,7 @@ class CommentLike(models.Model):
         unique_together = ['comment', 'author']
 
 
-# NEW: FollowRequest model
+
 class FollowRequest(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
@@ -113,3 +113,16 @@ class FollowRequest(models.Model):
 
     def __str__(self):
         return f"{self.sender.username} -> {self.receiver.username} ({self.status})"
+    
+
+class FeedBlock(models.Model):
+    blocker = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="feed_blocks")
+    blocked_author = models.ForeignKey(Author, on_delete=models.CASCADE, related_name="blocked_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('blocker', 'blocked_author')
+
+    def __str__(self):
+        return f"{self.blocker.username} blocks {self.blocked_author.username}"
+
