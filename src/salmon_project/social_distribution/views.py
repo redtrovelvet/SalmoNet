@@ -50,7 +50,6 @@ def index(request):
             comment["id"] = comment["id"].split("/")[-1]
             comments.append(comment)
 
-        print(comments)
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
