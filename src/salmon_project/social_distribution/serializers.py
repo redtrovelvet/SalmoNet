@@ -49,6 +49,11 @@ class AuthorSerializer(serializers.Serializer):
         instance.profile_image = validated_data.get("profile_image", instance.profile_image)
         instance.save()
         return instance
+    
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['id'] = f"{instance.host}/api/authors/{instance.id}"
+        return {snake_to_camel(key): value for key, value in representation.items()}
 
 class CommentLikeSerializer(serializers.Serializer):
     type = serializers.CharField(default="like")
@@ -65,7 +70,14 @@ class CommentLikeSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
+
+        # Get the host
+        host = settings.BASE_URL
+
+        # Add the fields to the representation in the correct format
         representation['author'] = AuthorSerializer(instance.author).data
+        representation['id'] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
+        representation['object'] = f"{host}/api/authors/{instance.object.author.id}/commented/{instance.object.id}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
     def to_internal_value(self, data):
@@ -101,13 +113,20 @@ class CommentSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
+
+        # Get the host
+        host = settings.BASE_URL
+
         representation['author'] = AuthorSerializer(instance.author).data
+        representation['id'] = f"{host}/api/authors/{instance.author.id}/commented/{instance.id}"
+        representation['post'] = f"{host}/api/authors/{instance.author.id}/posts/{instance.post.id}"
+        representation['page'] = f"{host}/authors/{instance.author.id}/posts/{instance.post.id}"
         likes = CommentLike.objects.filter(object=instance.id)
         serialized_likes = CommentLikeSerializer(likes, many=True).data
         likes_data = {
             "type": "likes",
-            "page": instance.post.id,
-            "id": str(instance.id) + "/likes",
+            "page": f"{host}/authors/{instance.author.id}/comments/{instance.id}",
+            "id": f"{host}/api/authors/{instance.author.id}/commented/{instance.id}/likes",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_likes), 50),
             "count": len(serialized_likes),
@@ -145,7 +164,14 @@ class PostLikeSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
+
+        # Get the host
+        host = settings.BASE_URL
+
+        # Add the fields to the representation in the correct format
         representation['author'] = AuthorSerializer(instance.author).data
+        representation['id'] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
+        representation['object'] = f"{host}/api/authors/{instance.object.author.id}/posts/{instance.object.id}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
     def to_internal_value(self, data):
@@ -177,12 +203,16 @@ class PostSerializer(serializers.ModelSerializer):
         representation = super().to_representation(instance)
         representation["type"] = "post"
         representation['author'] = AuthorSerializer(instance.author).data
+
+        # Get the host
+        host = settings.BASE_URL
+
         comments = Comment.objects.filter(post=instance.id)
         serialized_comments = CommentSerializer(comments, many=True).data
         comments_data = {
             "type": "comments",
-            "page": instance.id,
-            "id": str(instance.id) + "/comments",
+            "page": f"{host}/authors/{instance.author.id}/posts/{instance.id}",
+            "id": f"{host}/api/authors/{instance.author.id}/posts/{instance.id}/comments",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_comments), 5),
             "count": len(serialized_comments),
@@ -193,8 +223,8 @@ class PostSerializer(serializers.ModelSerializer):
         serialized_likes = PostLikeSerializer(likes, many=True).data
         likes_data = {
             "type": "likes",
-            "page": instance.id,
-            "id": str(instance.id) + "/likes",
+            "page": f"{host}/authors/{instance.author.id}/posts/{instance.id}",
+            "id": f"{host}/api/authors/{instance.author.id}/posts/{instance.id}/likes",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_likes), 50),
             "count": len(serialized_likes),

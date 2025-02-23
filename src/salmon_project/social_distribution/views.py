@@ -520,17 +520,21 @@ def get_comments(request, post_id, author_id=None):
         comments = Comment.objects.filter(post_id=post_id)
     else:
         comments = Comment.objects.filter(post_id=post_id)
+        author_id = Post.objects.get(id=post_id).author.id
 
     # Paginate the comments
     paginator = Paginator(comments, size)
     page = paginator.get_page(page_number)
     serialized_comments = CommentSerializer(page, many=True).data
 
+    # Get the host for the page
+    host = settings.BASE_URL
+
     # Create the comments object
     comments_data = {
         "type": "comments",
-        "page": post_id,
-        "id": str(post_id) + "/comments",
+        "page": f"{host}/authors/{author_id}/posts/{post_id}",
+        "id": f"{host}/api/authors/{author_id}/posts/{post_id}/comments",
         "page_number": page_number,
         "size": min(len(serialized_comments), size),
         "count": len(comments),
@@ -613,17 +617,21 @@ def get_post_likes(request, post_id, author_id=None):
         likes = PostLike.objects.filter(object=post_id)
     else:
         likes = PostLike.objects.filter(object=post_id)
+        author_id = Post.objects.get(id=post_id).author.id
 
     # Paginate the likes
     paginator = Paginator(likes, size)
     page = paginator.get_page(page_number)
     serialized_likes = PostLikeSerializer(page, many=True).data
 
+    # Get the host for the page
+    host = settings.BASE_URL
+
     # Create the likes object
     likes_data = {
         "type": "likes",
-        "page": post_id,
-        "id": str(post_id) + "/likes",
+        "page": f"{host}/authors/{author_id}/posts/{post_id}",
+        "id": f"{host}/api/authors/{author_id}/posts/{post_id}/likes",
         "page_number": page_number,
         "size": min(len(serialized_likes), size),
         "count": len(likes),
@@ -649,13 +657,16 @@ def get_comment_likes(request, author_id, post_id, comment_id):
     # Paginate the likes
     paginator = Paginator(likes, size)
     page = paginator.get_page(page_number)
-    serialized_likes = PostLikeSerializer(page, many=True).data
+    serialized_likes = CommentLikeSerializer(page, many=True).data
+
+    # Get the host for the page
+    host = settings.BASE_URL
 
     # Create the likes object
     likes_data = {
         "type": "likes",
-        "page": post_id,
-        "id": str(post_id) + "/likes",
+        "page": f"{host}/authors/{author_id}/comments/{comment_id}", # TODO: maybe change this to user display name
+        "id": f"{host}/api/authors/{author_id}/commented/{comment_id}/likes",
         "page_number": page_number,
         "size": min(len(serialized_likes), size),
         "count": len(likes),
@@ -689,11 +700,14 @@ def get_author_liked(request, author_id):
     page = paginator.get_page(page_number)
     serialized_likes = PostLikeSerializer(page, many=True).data
 
+    # Get the host for the page
+    host = settings.BASE_URL
+
     # Create the likes object
     likes_data = {
         "type": "likes",
-        "page": author_id,
-        "id": str(author_id) + "/likes",
+        "page": f"{host}/authors/{author_id}/likes", # TODO: maybe change this to user display name
+        "id": f"{host}/api/authors/{author_id}/likes",
         "page_number": page_number,
         "size": min(len(serialized_likes), size),
         "count": len(likes),
@@ -711,14 +725,30 @@ def get_like(request, like_id, author_id=None):
     GET [local] a single like {LIKE_FQID}
     body is a "like" object
     '''
-    # Get the like based on the like id
+    # Get the like based on the like id, try both posts and comments
     if author_id:
         # TODO: implement the author serial thing when doing remote node management
-        like = get_object_or_404(PostLike, id=like_id)
+        try:
+            like = PostLike.objects.get(id=like_id)
+            post = True
+        except:
+            like = CommentLike.objects.get(id=like_id)
+            post = False
     else:
-        like = get_object_or_404(PostLike, id=like_id)
+        try:
+            like = PostLike.objects.get(id=like_id)
+            post = True
+        except:
+            like = CommentLike.objects.get(id=like_id)
+            post = False
+    
+    if not like:
+        return Response(status=404)
 
-    serializer = PostLikeSerializer(like)
+    if post:
+        serializer = PostLikeSerializer(like)
+    else:
+        serializer = CommentLikeSerializer(like)
     return Response(serializer.data)
 
 @api_view(["POST"])
