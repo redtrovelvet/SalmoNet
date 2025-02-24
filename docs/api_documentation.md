@@ -703,3 +703,1644 @@ Response: An HTML page is returned listing all followers of the current user.
   ```bash
   curl -X POST http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/ -H "Authorization: Token <auth_token>" -H "Content-Type: application/json" -d '{"text": "New Post", "visibility": "PUBLIC"}'
   ```
+
+
+## Comments
+
+### 1.Get comments on a post by author and post serial
+
+**Endpoint:** 'GET /api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/comments/'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve all of the comments on the post in the form of a "comments" object
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/comments/'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to display all comments on a post
+- Don't use if you have the post FQID, use the post FQID endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/>
+Response: A JSON "comments" object
+``` json
+{
+    "type":"comments",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/",
+    "page_number":1,
+    "size":2,
+    "count": 2,
+    "src":[
+        {
+            "type":"comment",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "comment":"Hello World",
+            "contentType":"text/markdown",
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+            "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+            "likes": {
+                "type": "likes",
+                "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+                "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+                "page_number": 1,
+                "size": 50,
+                "count": 0,
+                "src": [],
+            },
+        },
+        {
+            "type":"comment",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "comment":"Hello World2",
+            "contentType":"text/markdown",
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002",
+            "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+            "likes": {
+                "type": "likes",
+                "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+                "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+                "page_number": 1,
+                "size": 50,
+                "count": 0,
+                "src": [],
+            },
+        }
+    ]
+}
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/?page=1&size=1>
+Response: A JSON "comments object"
+``` json
+{
+    "type":"comments",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/",
+    "page_number":1,
+    "size":1,
+    "count": 2,
+    "src":[
+        {
+            "type":"comment",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "comment":"Hello World",
+            "contentType":"text/markdown",
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+            "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+            "likes": {
+                "type": "likes",
+                "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+                "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+                "page_number": 1,
+                "size": 50,
+                "count": 0,
+                "src": [],
+            },
+        }
+    ]
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to comments becuase it is a comments object.
+page (string, URL): the URL of the page where the comments are displayed.
+id (string, URL): the unique identifier of the post's comments.
+page_number (int): the current page number of the comments.
+size (int): the number of comments per page.
+count (int): the total number of comments.
+src (array): an array of comment objects.
+
+#### Interesting Features
+Pagination: The comments are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.
+
+
+### 2.Get comments on a post by post FQID
+**Endpoint:** 'GET /api/posts/{POST_FQID}/comments'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve all of the comments on the post in the form of a "comments" object
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/posts/{POST_FQID}/comments'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to display all comments on a post
+- Don't use if you have the author and post serial, use the author and post serial endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/>
+Response: A JSON "comments" object
+``` json
+{
+    "type":"comments",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/",
+    "page_number":1,
+    "size":2,
+    "count": 2,
+    "src":[
+        {
+            "type":"comment",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "comment":"Hello World",
+            "contentType":"text/markdown",
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+            "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+            "likes": {
+                "type": "likes",
+                "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+                "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+                "page_number": 1,
+                "size": 50,
+                "count": 0,
+                "src": [],
+            },
+        },
+        {
+            "type":"comment",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "comment":"Hello World2",
+            "contentType":"text/markdown",
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002",
+            "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+            "likes": {
+                "type": "likes",
+                "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+                "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+                "page_number": 1,
+                "size": 50,
+                "count": 0,
+                "src": [],
+            },
+        }
+    ]
+}
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/?page=1&size=1>
+Response: A JSON "comments object"
+``` json
+{
+    "type":"comments",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/",
+    "page_number":1,
+    "size":1,
+    "count": 2,
+    "src":[
+        {
+            "type":"comment",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "comment":"Hello World",
+            "contentType":"text/markdown",
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+            "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+            "likes": {
+                "type": "likes",
+                "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+                "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+                "page_number": 1,
+                "size": 50,
+                "count": 0,
+                "src": [],
+            },
+        }
+    ]
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to comments becuase it is a comments object.
+page (string, URL): the URL of the page where the comments are displayed.
+id (string, URL): the unique identifier of the post's comments.
+page_number (int): the current page number of the comments.
+size (int): the number of comments per page.
+count (int): the total number of comments.
+src (array): an array of comment objects.
+
+#### Interesting Features
+Pagination: The comments are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.
+
+
+### 3.Get a specific comment
+**Endpoint:** 'GET /api/authors/{AUTHOR_SERIAL}/post/{POST_SERIAL}/comment/{REMOTE_COMMENT_FQID}'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve a single comment
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{AUTHOR_SERIAL}/post/{POST_SERIAL}/comment/{REMOTE_COMMENT_FQID}'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a single comment
+- Don't use if you want multiple comments from a post, use the get comments enpoints instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474001>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"comment",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "comment":"Hello World",
+    "contentType":"text/markdown",
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+    "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+    "likes": {
+        "type": "likes",
+        "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+        "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+        "page_number": 1,
+        "size": 50,
+        "count": 0,
+        "src": [],
+    }
+}
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474002>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"comment",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "comment":"Hello World2",
+    "contentType":"text/markdown",
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002",
+    "post": "http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+    "likes": {
+        "type": "likes",
+        "id": "http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+        "page": "http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+        "page_number": 1,
+        "size": 50,
+        "count": 0,
+        "src": [],
+    }
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to comment becuase it is a comment object.
+author (object): the author of the comment in the form of an author object.
+comment (string): the text content of the comment.
+contentType (string): the type of content in the comment.
+published (string): the date and time the comment was published.
+id (string, URL): the unique identifier of the comment.
+post (string, URL): the URL of the post the comment is on.
+page (string, URL): the URL of the page where the comment is displayed.
+likes (object): the likes object of the comment listing all likes.
+
+
+## Commented
+
+### 1.GET and POST comments for an author
+**Endpoint:** 'GET /api/authors/{AUTHOR_SERIAL}/commented'
+**Endpoint:** 'POST /api/authors/{AUTHOR_SERIAL}/commented'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve a a list of comments made by an author or when you want to create a new comment.
+
+#### How the API endpoint should be used
+
+Send a GET or POST request to '/api/authors/{AUTHOR_SERIAL}/commented'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get all comments made by an author
+- Use it to create a new comment
+- Don't use if you want to get a specific comment, use the get comment endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/commented>
+Response: A JSON list of "comment" objects
+``` json
+[
+    {
+        "type":"comment",
+        "author":{
+            "type":"author",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "host":"http://127.0.0.1:8000/api/",
+            "displayName":"John Doe",
+            "github": "http://github.com/jdoe",
+            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+        },
+        "comment":"Hello World",
+        "contentType":"text/markdown",
+        "published":"2025-02-20T13:07:04+00:00",
+        "id":"http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+        "post": "http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page": "http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        "likes": {
+            "type": "likes",
+            "id": "http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+            "page": "http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+            "page_number": 1,
+            "size": 50,
+            "count": 0,
+            "src": [],
+        },
+    },
+    {
+        "type":"comment",
+        "author":{
+            "type":"author",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "host":"http://127.0.0.1:8000/api/",
+            "displayName":"John Doe",
+            "github": "http://github.com/jdoe",
+            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+        },
+        "comment":"Hello World2",
+        "contentType":"text/markdown",
+        "published":"2025-02-20T13:07:04+00:00",
+        "id":"http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002",
+        "post": "http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page": "http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        "likes": {
+            "type": "likes",
+            "id": "http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+            "page": "http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+            "page_number": 1,
+            "size": 50,
+            "count": 0,
+            "src": [],
+        },
+    }
+]
+
+```
+
+#### 2nd Example
+
+Request: POST <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474001>
+Body: A JSON "comment" object
+``` json
+{
+    "type":"comment",
+    "comment":"Hello World",
+    "contentType":"text/markdown",
+    "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+}
+```
+Response: HTTP 302 Found
+
+#### Explantion of JSON Field
+
+type (string): always set to comment becuase it is a comment object.
+author (object): the author of the comment in the form of an author object.
+comment (string): the text content of the comment.
+contentType (string): the type of content in the comment.
+published (string): the date and time the comment was published.
+id (string, URL): the unique identifier of the comment.
+post (string, URL): the URL of the post the comment is on.
+page (string, URL): the URL of the page where the comment is displayed.
+likes (object): the likes object of the comment listing all likes.
+
+
+### 2.GET comments for an author locally
+**Endpoint:** 'GET /api/authors/{AUTHOR_FQID}/commented'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve a a list of comments made by an author locally.
+
+#### How the API endpoint should be used
+
+Send a GET or POST request to '/api/authors/{AUTHOR_FQID}/commented'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get all comments made by an author
+- Don't use it to create a comment
+- Don't use it if you want to get the comments of an author on a remote server
+- Don't use if you want to get a specific comment, use the get comment endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/commented>
+Response: A JSON list of "comment" objects
+``` json
+[
+    {
+        "type":"comment",
+        "author":{
+            "type":"author",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "host":"http://127.0.0.1:8000/api/",
+            "displayName":"John Doe",
+            "github": "http://github.com/jdoe",
+            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+        },
+        "comment":"Hello World",
+        "contentType":"text/markdown",
+        "published":"2025-02-20T13:07:04+00:00",
+        "id":"http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+        "post": "http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page": "http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        "likes": {
+            "type": "likes",
+            "id": "http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+            "page": "http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+            "page_number": 1,
+            "size": 50,
+            "count": 0,
+            "src": [],
+        },
+    },
+    {
+        "type":"comment",
+        "author":{
+            "type":"author",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "host":"http://127.0.0.1:8000/api/",
+            "displayName":"John Doe",
+            "github": "http://github.com/jdoe",
+            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+        },
+        "comment":"Hello World2",
+        "contentType":"text/markdown",
+        "published":"2025-02-20T13:07:04+00:00",
+        "id":"http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002",
+        "post": "http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page": "http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        "likes": {
+            "type": "likes",
+            "id": "http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+            "page": "http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+            "page_number": 1,
+            "size": 50,
+            "count": 0,
+            "src": [],
+        },
+    }
+]
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/commented>
+Response: A JSON list of "comment" objects
+``` json
+[
+    {
+        "type":"comment",
+        "author":{
+            "type":"author",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+            "host":"http://127.0.0.1:8000/api/",
+            "displayName":"John Doe",
+            "github": "http://github.com/jdoe",
+            "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+        },
+        "comment":"Hello World",
+        "contentType":"text/markdown",
+        "published":"2025-02-20T13:07:04+00:00",
+        "id":"http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+        "post": "http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page": "http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        "likes": {
+            "type": "likes",
+            "id": "http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+            "page": "http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+            "page_number": 1,
+            "size": 50,
+            "count": 0,
+            "src": [],
+        },
+    }
+]
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to comment becuase it is a comment object.
+author (object): the author of the comment in the form of an author object.
+comment (string): the text content of the comment.
+contentType (string): the type of content in the comment.
+published (string): the date and time the comment was published.
+id (string, URL): the unique identifier of the comment.
+post (string, URL): the URL of the post the comment is on.
+page (string, URL): the URL of the page where the comment is displayed.
+likes (object): the likes object of the comment listing all likes.
+
+
+### 3.Get a specific comment
+**Endpoint:** 'GET /api/authors/{AUTHOR_SERIAL}/commented/{COMMENT_SERIAL}'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve a single comment locally or remotely
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{AUTHOR_SERIAL}/commented/{COMMENT_SERIAL}'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a single comment
+- Don't use if you want multiple comments from a post, use the get comments enpoints instead
+- Don't use it if you have the comment FQID, use the get comment by FQID endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"comment",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "comment":"Hello World",
+    "contentType":"text/markdown",
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+    "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+    "likes": {
+        "type": "likes",
+        "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+        "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+        "page_number": 1,
+        "size": 50,
+        "count": 0,
+        "src": [],
+    }
+}
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"comment",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "comment":"Hello World2",
+    "contentType":"text/markdown",
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002",
+    "post": "http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+    "likes": {
+        "type": "likes",
+        "id": "http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+        "page": "http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+        "page_number": 1,
+        "size": 50,
+        "count": 0,
+        "src": [],
+    }
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to comment becuase it is a comment object.
+author (object): the author of the comment in the form of an author object.
+comment (string): the text content of the comment.
+contentType (string): the type of content in the comment.
+published (string): the date and time the comment was published.
+id (string, URL): the unique identifier of the comment.
+post (string, URL): the URL of the post the comment is on.
+page (string, URL): the URL of the page where the comment is displayed.
+likes (object): the likes object of the comment listing all likes.
+
+
+### 4.Get a specific comment by FQID
+**Endpoint:** 'GET /api/commented/{COMMENT_FQID}'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve a single comment locally or remotely
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/commented/{COMMENT_FQID}'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a single comment
+- Don't use if you want multiple comments from a post, use the get comments enpoints instead
+- Don't use it if you have the author and comment serial, use the get comment endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/commented/543e4897-e89b-12e3-a456-426685474001>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"comment",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "comment":"Hello World",
+    "contentType":"text/markdown",
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001",
+    "post": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+    "likes": {
+        "type": "likes",
+        "id": "http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+        "page": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+        "page_number": 1,
+        "size": 50,
+        "count": 0,
+        "src": [],
+    }
+}
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/commented/543e4897-e89b-12e3-a456-426685474002>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"comment",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "comment":"Hello World2",
+    "contentType":"text/markdown",
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002",
+    "post": "http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+    "likes": {
+        "type": "likes",
+        "id": "http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes",
+        "page": "http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes"
+        "page_number": 1,
+        "size": 50,
+        "count": 0,
+        "src": [],
+    }
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to comment becuase it is a comment object.
+author (object): the author of the comment in the form of an author object.
+comment (string): the text content of the comment.
+contentType (string): the type of content in the comment.
+published (string): the date and time the comment was published.
+id (string, URL): the unique identifier of the comment.
+post (string, URL): the URL of the post the comment is on.
+page (string, URL): the URL of the page where the comment is displayed.
+likes (object): the likes object of the comment listing all likes.
+
+
+
+
+## Likes
+
+### 1.Get likes on a POST
+**Endpoint:** 'GET /api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/likes'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve all likes on a post
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/likes'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a all likes on a post
+- Don't use if you want to get a single like
+- Don't use if you want to get all likes on a comment, use the get likes on comment endpoint instead
+- Don't use if you have the post FQID, use the get likes by FQID endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/likes/?page=1&size=1>
+Response: A JSON "likes" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/likes",
+    "page_number":1,
+    "size":1,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        },
+    ]
+}
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/likes/>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/likes",
+    "page_number":1,
+    "size":2,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        },
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        }
+    ]
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to likes becuase it is a likes object.
+page (string, URL): the URL of the page where the likes are displayed.
+id (string, URL): the unique identifier of the likes.
+page_number (int): the current page number of the likes.
+size (int): the number of likes per page.
+count (int): the total number of likes.
+src (list): a list of "like" objects.
+
+#### Interesting Features
+Pagination: The likes are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.
+
+
+### 2.Get likes on a POST by FQID
+**Endpoint:** 'GET /api/posts/{POST_FQID}/likes'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve all likes on a post
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/posts/{POST_FQID}/likes'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a all likes on a post
+- Don't use if you want to get a single like
+- Don't use if you want to get all likes on a comment, use the get likes on comment endpoint instead
+- Don't use if you have the author and post serial, use the get likes endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/likes/?page=1&size=1>
+Response: A JSON "likes" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/likes",
+    "page_number":1,
+    "size":1,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        },
+    ]
+}
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/likes/>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/likes",
+    "page_number":1,
+    "size":2,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        },
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001"
+        }
+    ]
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to likes becuase it is a likes object.
+page (string, URL): the URL of the page where the likes are displayed.
+id (string, URL): the unique identifier of the likes.
+page_number (int): the current page number of the likes.
+size (int): the number of likes per page.
+count (int): the total number of likes.
+src (list): a list of "like" objects.
+
+#### Interesting Features
+Pagination: The likes are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.
+
+
+### 3.Get likes on a comment
+**Endpoint:** 'GET /api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/comments/{COMMENT_FQID}/likes'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve all likes on a comment
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/comments/{COMMENT_FQID}/likes'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a all likes on a comment
+- Don't use if you want to get a single like
+- Don't use if you want to get all likes on a post, use the get likes on post endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474002/likes/?page=1&size=1>
+Response: A JSON "likes" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/comments/543e4897-e89b-12e3-a456-426685474002",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002/likes",
+    "page_number":1,
+    "size":1,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+        },
+    ]
+}
+
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474002/likes/>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/comments/543e4897-e89b-12e3-a456-426685474002",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002/likes",
+    "page_number":1,
+    "size":2,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+        },
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+        }
+    ]
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to likes becuase it is a likes object.
+page (string, URL): the URL of the page where the likes are displayed.
+id (string, URL): the unique identifier of the likes.
+page_number (int): the current page number of the likes.
+size (int): the number of likes per page.
+count (int): the total number of likes.
+src (list): a list of "like" objects.
+
+#### Interesting Features
+Pagination: The likes are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.
+
+
+## Liked
+
+### 1.Get author's likes
+**Endpoint:** 'GET /api/authors/{AUTHOR_SERIAL}/liked'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve all likes by an author
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{AUTHOR_SERIAL}/liked'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a all likes by an author
+- Don't use if you want to get a single like
+- Don't use if you want to get all likes on a post or comment, use the get likes on post or comment endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/?page=1&size=1>
+Response: A JSON "likes" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/likes",
+    "page_number":1,
+    "size":1,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+        },
+    ]
+}
+
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/likes",
+    "page_number":1,
+    "size":2,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+        },
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002"
+        }
+    ]
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to likes becuase it is a likes object.
+page (string, URL): the URL of the page where the likes are displayed.
+id (string, URL): the unique identifier of the likes.
+page_number (int): the current page number of the likes.
+size (int): the number of likes per page.
+count (int): the total number of likes.
+src (list): a list of "like" objects.
+
+#### Interesting Features
+Pagination: The likes are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.
+
+
+### 2.Get a single like
+**Endpoint:** 'GET /api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve a single like by an author
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a single like by an author
+- Don't use if you want to get multiple likes, use the get likes endpoint instead
+- Don't use if you have the like FQID, use the get like by FQID endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384>
+Response: A JSON "like" object
+``` json
+{
+    "type":"like",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+    "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+}
+
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7385>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"like",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7385",
+    "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002"
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to like becuase it is a like object.
+author (object): the author who liked the object in the form of an author object.
+published (string): the date and time the like was published.
+id (string, URL): the unique identifier of the like.
+object (string, URL): the URL of the object that was liked (either a post or a comment).
+
+
+### 3.Get author's likes by FQID
+**Endpoint:** 'GET /api/authors/{AUTHOR_FQID}/liked'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve all likes by an author
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{AUTHOR_FQID}/liked'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a all likes by an author
+- Don't use if you want to get a single like
+- Don't use if you want to get all likes on a post or comment, use the get likes on post or comment endpoint instead
+- Don't use for remote authors
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/?page=1&size=1>
+Response: A JSON "likes" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/likes",
+    "page_number":1,
+    "size":1,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+        },
+    ]
+}
+
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"likes",
+    "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/likes",
+    "page_number":1,
+    "size":2,
+    "count": 2,
+    "src":[
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+        },
+        {
+            "type":"like",
+            "author":{
+                "type":"author",
+                "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+                "host":"http://127.0.0.1:8000/api/",
+                "displayName":"John Doe",
+                "github": "http://github.com/jdoe",
+                "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+            },
+            "published":"2025-02-20T13:07:04+00:00",
+            "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+            "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002"
+        }
+    ]
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to likes becuase it is a likes object.
+page (string, URL): the URL of the page where the likes are displayed.
+id (string, URL): the unique identifier of the likes.
+page_number (int): the current page number of the likes.
+size (int): the number of likes per page.
+count (int): the total number of likes.
+src (list): a list of "like" objects.
+
+#### Interesting Features
+Pagination: The likes are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.
+
+
+### 4.Get a single like by FQID
+**Endpoint:** 'GET /api/liked/{LIKE_FQID}'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to retrieve a single like
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/liked/{LIKE_FQID}'.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to get a single like 
+- Don't use if you want to get multiple likes, use the get likes endpoint instead
+- Don't use if you have the like author and like serial, use the get like endpoint instead
+
+#### 1st Example
+
+Request: GET <http://127.0.0.1:8000/api/liked/12123457-e89b-12d3-a456-42661ead7384>
+Response: A JSON "like" object
+``` json
+{
+    "type":"like",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384",
+    "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002"
+}
+
+
+```
+
+#### 2nd Example
+
+Request: GET <http://127.0.0.1:8000/api/liked/12123457-e89b-12d3-a456-42661ead7385>
+Response: A JSON "comment" object
+``` json
+{
+    "type":"like",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "page":"http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"John Doe",
+        "github": "http://github.com/jdoe",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "published":"2025-02-20T13:07:04+00:00",
+    "id":"http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7385",
+    "object": "http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002"
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to like becuase it is a like object.
+author (object): the author who liked the object in the form of an author object.
+published (string): the date and time the like was published.
+id (string, URL): the unique identifier of the like.
+object (string, URL): the URL of the object that was liked (either a post or a comment).
+
+
+### 5.Like a post
+**Endpoint:** 'POST /api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/liked'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to like a post
+
+#### How the API endpoint should be used
+
+Send a POST request to '/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/liked'.
+AUTHOR_SERIAL is the serial of the author who liked the post.
+POST_SERIAL is the serial of the post that was liked.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to like a post
+- Don't use it to like a comment, use the like comment endpoint instead
+
+#### 1st Example
+
+Request: POST <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002/liked>
+BODY:
+``` json
+{
+    "type":"like"
+}
+```
+Response: HTTP 302 Found
+
+#### 2nd Example
+
+Request: POST <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002/liked>
+BODY:
+``` json
+{
+    "type":"comment"
+}
+```
+Response: HTTP 405 Method Not Allowed
+
+#### Explantion of JSON Field
+
+type (string): always set to like becuase it is a like object.
+
+
+### 6.Like a comment
+**Endpoint:** 'POST /api/authors/{AUTHOR_SERIAL}/comments/{COMMENT_SERIAL}/liked'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you want to like a comment
+
+#### How the API endpoint should be used
+
+Send a POST request to '/api/authors/{AUTHOR_SERIAL}/comments/{comment_SERIAL}/liked'.
+AUTHOR_SERIAL is the serial of the author who liked the comment.
+POST_SERIAL is the serial of the comment that was liked.
+
+#### Why the API endpoint should or should not be used
+
+- Use it to like a comment
+- Don't use it to like a post, use the like post endpoint instead
+
+#### 1st Example
+
+Request: POST <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/comments/543e4897-e89b-12e3-a456-426685474002/liked>
+BODY:
+``` json
+{
+    "type":"like"
+}
+```
+Response: HTTP 302 Found
+
+#### 2nd Example
+
+Request: POST <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/comments/543e4897-e89b-12e3-a456-426685474002/liked>
+BODY:
+``` json
+{
+    "type":"comment"
+}
+```
+Response: HTTP 405 Method Not Allowed
+
+#### Explantion of JSON Field
+
+type (string): always set to like becuase it is a like object.
