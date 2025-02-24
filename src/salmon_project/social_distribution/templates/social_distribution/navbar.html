@@ -1,0 +1,26 @@
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Social Distribution{% endblock %}</title>
+    <link rel="stylesheet" type="text/css"  href="{% static "css/basic_style.css" %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<nav class="navbar">
+    <h1>Social Distribution</h1>
+    <ul>
+        <li><a href="{% url 'index' %}"><i class="fas fa-home"></i> Home</a></li>
+        {% if user.is_authenticated %}
+            {% if user.author %}
+                <li><a href="{% url 'profile' user.author.id %}"><i class="fas fa-user"></i> Profile</a></li>
+            {% endif %}
+            <li><a href="{% url 'all_authors' %}"><i class="fas fa-users"></i> All Authors</a></li>  
+            <li><a href="{% url 'view_follow_requests' %}"><i class="fa-solid fa-bell"></i> Follow Requests</a></li>  
+            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+
+        {% else %}
+            <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+            <li><a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a></li>
+        {% endif %}
+    </ul>
+</nav>

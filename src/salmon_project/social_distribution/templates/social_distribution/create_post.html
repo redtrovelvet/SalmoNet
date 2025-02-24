@@ -1,48 +1,50 @@
 {% extends "social_distribution/base.html" %}
 
 {% block content %}
-<h2>Create a New Post</h2>
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    
-    <!-- Content Type (for text only) -->
-    <div>
-        <label for="content_type">Content Type:</label>
-        <select name="content_type" id="content_type">
-            <!-- Only Plain Text or Markdown -->
-            <option value="text/plain">Plain Text</option>
-            <option value="text/markdown">CommonMark (Markdown)</option>
-        </select>
-    </div>
+<div class="content">
+    <h2>Create a New Post</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Content Type (for text only) -->
+        <div>
+            <label for="content_type">Content Type:</label>
+            <select name="content_type" id="content_type">
+                <!-- Only Plain Text or Markdown -->
+                <option value="text/plain">Plain Text</option>
+                <option value="text/markdown">CommonMark (Markdown)</option>
+            </select>
+        </div>
 
-    <!-- Text area for either plain text or markdown -->
-    <div>
-        <label for="text">Text:</label>
-        <textarea name="text" id="text" rows="5" cols="40"></textarea>
-    </div>
+        <!-- Text area for either plain text or markdown -->
+        <div>
+            <label for="text">Text:</label>
+            <textarea name="text" id="text" rows="5" cols="40"></textarea>
+        </div>
 
-    <!-- Optional image upload (kept) -->
-    <div>
-        <label for="image">Image:</label>
-        <input type="file" name="image" id="image">
-    </div>
+        <!-- Optional image upload (kept) -->
+        <div>
+            <label for="image">Image:</label>
+            <input type="file" name="image" id="image">
+        </div>
 
-    <!-- Optional video upload (kept) -->
-    <div>
-        <label for="video">Video:</label>
-        <input type="file" name="video" id="video">
-    </div>
+        <!-- Optional video upload (kept) -->
+        <div>
+            <label for="video">Video:</label>
+            <input type="file" name="video" id="video">
+        </div>
 
-    <!-- Visibility -->
-    <div>
-        <label for="visibility">Visibility:</label>
-        <select name="visibility" id="visibility">
-            <option value="PUBLIC">Public</option>
-            <option value="UNLISTED">Unlisted</option>
-            <option value="FRIENDS">Friends</option>
-        </select>
-    </div>
-    
-    <button type="submit">Create Post</button>
-</form>
+        <!-- Visibility -->
+        <div>
+            <label for="visibility">Visibility:</label>
+            <select name="visibility" id="visibility">
+                <option value="PUBLIC">Public</option>
+                <option value="UNLISTED">Unlisted</option>
+                <option value="FRIENDS">Friends</option>
+            </select>
+        </div>
+        
+        <button type="submit">Create Post</button>
+    </form>
+</div>
 {% endblock %}
