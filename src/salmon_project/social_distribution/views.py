@@ -288,7 +288,7 @@ def delete_post_local(request, author_id, post_id):
     """
     Local view to delete a post via an HTML confirmation page.
     GET: Render delete_post.html to confirm deletion, passing rendered_text.
-    POST: Delete the post and redirect to the profile page.
+    POST: Instead of deleting the post, mark its visibility as "DELETED" and redirect to the profile page.
     """
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     if post.author.user != request.user:
@@ -298,9 +298,10 @@ def delete_post_local(request, author_id, post_id):
         rendered_text = render_markdown_if_needed(post.text, post.content_type)
         return render(request, "social_distribution/delete_post.html", {"post": post,"rendered_text": rendered_text,"author": post.author})
     
-    # On POST, delete the post and redirect.
-    post.delete()
+    post.visibility = "DELETED"
+    post.save()
     return redirect("profile", author_id=author_id)
+
 
 
 
@@ -500,7 +501,8 @@ def delete_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     if post.author.user != request.user:
         return Response(status=403)
-    post.delete()
+    post.visibility = "DELETED"
+    post.save()
     return Response(status=204)
 
 @api_view(['PUT'])
