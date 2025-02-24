@@ -6,25 +6,73 @@
 <p>Last updated: {{ post.updated_at }}</p>
 <p>Visibility: {{ post.visibility }}</p>
 
-<!-- Button for copying link to posts -->
-<button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
-    <span class="copy-label">Copy Link</span>
-</button>
+{% if post.visibility == 'PUBLIC' %}
+    <!-- Button for copying link to posts -->
+    <button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+        <span class="copy-label">Copy Link</span>
+    </button>
+{% elif user.is_authenticated and user.author.id == author.id %}
+    <!-- Button for copying link to posts -->
+    <button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+        <span class="copy-label">Copy Link</span>
+    </button>
+{% endif %}
 
-{% if post.content_type == 'text/plain' or post.content_type == 'text/markdown' %}
+{% if post.text %}
     <div>
         <p>{{ post.text }}</p>
     </div>
-{% elif post.content_type == 'image/png' or post.content_type == 'image/jpeg' %}
+{% endif %}
+
+{% if post.image %}
     <div>
         <img src="{{ post.image.url }}" alt="Post Image">
     </div>
-{% elif post.content_type == 'video/mp4' %}
+{% endif %}
+
+{% if post.video %}
     <div>
         <video width="320" height="240" controls>
             <source src="{{ post.video.url }}" type="video/mp4">
             Your browser does not support the video tag.
         </video>
+    </div>
+{% endif %}
+
+{% if user.is_authenticated and current_user is not None %}
+    <form method="post" action="{% url 'like_post' current_user.id post.id %}">
+    {% csrf_token %}
+    <input type="hidden" name="type" value="like">
+    <button type="submit" class="btn btn-primary">Like: {{ post.likes.count }}</button>
+    </form>
+{% endif %}
+
+{% if post.comments %}
+    <h3>Comments</h3>
+    <ul>
+    {% for comment in post.comments %}
+        <li>{{ comment.author.displayName }}: {{ comment.comment }}</li>
+        {% if user.is_authenticated and current_user is not None %}
+        <form method="post" action="{% url 'like_comment' current_user.id comment.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="like">
+            <button type="submit" class="btn btn-primary">Like: {{ comment.likes.count }}</button>
+        </form>
+        {% endif %}
+    {% endfor %}
+    </ul>
+{% endif %}
+
+{% if user.is_authenticated and current_user is not None %}
+    <div>
+    <form method="post" action="{% url 'commented' current_user.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="type" value="comment">
+        <textarea name="comment" rows="3" cols="50"></textarea>
+        <input type="hidden" name="post" value="{{ post.id }}">
+        <input type="hidden" name="contentType" value="text/plain">
+        <button type="submit" class="btn btn-primary">Comment</button>
+    </form>
     </div>
 {% endif %}
 

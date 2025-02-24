@@ -29,6 +29,9 @@ class Author(models.Model):
     def __str__(self):
         return self.username
     
+    def is_friends_with(self, other_author):
+        return self in other_author.following.all() and other_author in self.following.all()
+    
 class Post(models.Model):
     """
     A post by an author with text and/or an image
