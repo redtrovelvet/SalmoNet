@@ -1,5 +1,9 @@
 {% extends 'social_distribution/base.html' %}
+{% load static %}
+
 {% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/all_authors.css' %}">
+
 <div class="content authors-list">
     <h1>All Authors</h1>
     {% for author in authors %}
