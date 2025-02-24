@@ -11,8 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
-from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib.auth import login, logout, authenticate
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
+
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
@@ -78,7 +79,7 @@ def profile(request, author_id):
     renders the profile page for an author
     '''
     author = get_object_or_404(Author, id=author_id)
-    posts = Post.objects.filter(author=author, visibility="PUBLIC").order_by("-created_at")
+    posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
     rendered_posts = []
     for p in posts:
         html_text = render_markdown_if_needed(p.text, p.content_type)
@@ -159,6 +160,27 @@ def logout_view(request):
     '''
     logout(request)
     return redirect("index")
+
+def view_post(request, author_id, post_id):
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    post_author = get_object_or_404(Author, id=author_id)
+
+    # Attempt to get author object from current user
+    try:
+        current_user = request.user.author
+
+    # If current user is not signed in
+    except AttributeError:
+        current_user = request.user
+        if post.visibility == "FRIENDS":
+            return HttpResponse(status=403)
+
+    # If current user is signed in, check access
+    else:
+        if post.visibility == "FRIENDS" and not (current_user == post_author or post_author in current_user.following.all()):
+            return HttpResponse(status=403)
+        
+    return render(request, "social_distribution/view_post.html", {"post": post})
 
 def render_markdown_if_needed(text, content_type):
     """

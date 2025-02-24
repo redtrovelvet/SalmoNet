@@ -1,3 +1,7 @@
+{% extends 'social_distribution/base.html' %}
+
+{% block content %}
+
 {% for author in authors %}
     <div class="author">
         {# Wrap the display name in a hyperlink to the author's profile #}
@@ -23,3 +27,4 @@
         {% endif %}
     </div>
 {% endfor %}
+{% endblock %}

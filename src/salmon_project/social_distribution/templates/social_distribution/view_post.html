@@ -6,6 +6,11 @@
 <p>Last updated: {{ post.updated_at }}</p>
 <p>Visibility: {{ post.visibility }}</p>
 
+<!-- Button for copying link to posts -->
+<button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+    <span class="copy-label">Copy Link</span>
+</button>
+
 {% if post.content_type == 'text/plain' or post.content_type == 'text/markdown' %}
     <div>
         <p>{{ post.text }}</p>
@@ -23,9 +28,10 @@
     </div>
 {% endif %}
 
-<a href="{% url 'edit_post' post.id %}">Edit Post</a>
-<form action="{% url 'delete_post' post.id %}" method="post" style="display:inline;">
+<!-- <a href="{% url 'edit_post' post.author.id post.id %}">Edit Post</a>
+<form action="{% url 'delete_post' post.author.id post.id %}" method="post" style="display:inline;">
     {% csrf_token %}
     <button type="submit">Delete Post</button>
-</form>
+</form> -->
+
 {% endblock %}
