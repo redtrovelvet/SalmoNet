@@ -291,9 +291,107 @@ github (string, URL): author's github link.
 profile_mage (string, URL): a link to the author's profile image.
 host (string, URL): url of the node where the author is.
 
-Below is the comprehensive documentation for your API endpoints. Each endpoint is documented with its purpose, usage, request/response structure, and examples. Additionally, I've included explanations for any interesting aspects of the endpoints, such as pagination.
 
----
+## Following/Friends:
+
+### 1.Send Follow Request:
+
+**Endpoint:** 'POST /authors/<uuid:author_id>/follow/'
+
+#### When to use this endpoint:
+Use this endpoint when an authenticated author wants to follow another author. This sends a follow request from the current user to the target author.
+
+#### How the API endpoint should be used:
+Send a POST request to /authors/<uuid:author_id>/follow/, replacing <uuid:author_id> with the UUID of the target author.
+
+### Response:
+On success, the endpoint redirects (HTTP 302) to the target author’s profile page, indicating that the follow request was sent.
+
+#### 1st Example:
+Request: POST http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/follow/
+
+Response: HTTP 302 redirect to the profile page with a success message.
+
+### 2. Approve Follow Request:
+
+**Endpoint:** 'POST /follow_requests/<int:request_id>/approve/'
+
+#### When to use this endpoint:
+Use this endpoint when an authenticated author (the receiver) wants to approve a follow request they received.
+
+#### How the API endpoint should be used:
+Send a POST request to /follow_requests/<int:request_id>/approve/, replacing <int:request_id> with the numeric identifier of the follow request.
+
+### Response:
+On success, the follow request's status is updated to "ACCEPTED", the sender is added as a follower, and the endpoint redirects (HTTP 302) to a confirmation page or the all authors page.
+
+#### Example:
+Request: POST http://127.0.0.1:8000/follow_requests/10/approve/
+
+
+Response: HTTP 302 redirect with a message that the follow request was approved.
+
+### 3. Deny Follow Request:
+
+**Endpoint:** 'POST /follow_requests/<int:request_id>/deny/'
+
+#### When to use this endpoint:
+Use this endpoint when an authenticated author (the receiver) wants to deny a follow request.
+
+#### How the API endpoint should be used:
+Send a POST request to /follow_requests/<int:request_id>/deny/, replacing <int:request_id> with the numeric identifier of the follow request.
+
+### Response:
+On success, the follow request's status is updated to "DENIED", and the endpoint redirects (HTTP 302) with a message indicating the request was denied.
+
+#### Example:
+Request: POST http://127.0.0.1:8000/follow_requests/10/deny/
+
+Response: HTTP 302 redirect with a message that the follow request was denied.
+
+### 4. Unfollow an Author:
+
+**Endpoint:** 'GET /authors/<uuid:author_id>/unfollow/'
+
+#### When to use this endpoint:
+Use this endpoint when an authenticated author wants to unfollow another author.
+
+#### How the API endpoint should be used:
+Send a GET request to /authors/<uuid:author_id>/unfollow/, where <uuid:author_id> is the UUID of the author to unfollow.
+
+### Response:
+On success, the specified author is removed from the current user's following list (and posts from that author are blocked from the feed). The endpoint then redirects (HTTP 302) to the unfollowed author's profile page..
+
+#### Example:
+Request: GET http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/unfollow/
+
+
+Response: HTTP 302 redirect with a message confirming the unfollow action.
+
+### 4. View Followers, Following, and Friends:
+
+**Endpoint:**
+- View Followers: GET /profile/followers/
+- View Following: GET /profile/following/
+- View Friends: GET /profile/friends/
+
+#### When to use this endpoint:
+Use these endpoints to view the lists of:
+    - Authors following the current user (followers),
+    - Authors the current user is following (following),
+    - Authors who are mutual followers (friends).
+
+#### How the API endpoint should be used:
+Send a GET request to each endpoint. These endpoints render HTML pages listing the respective authors.
+
+
+#### Example:
+Request: GET http://127.0.0.1:8000/profile/followers/
+
+Response: An HTML page is returned listing all followers of the current user.
+
+
+
 
 ### 1. **Get a Specific Post**
 
