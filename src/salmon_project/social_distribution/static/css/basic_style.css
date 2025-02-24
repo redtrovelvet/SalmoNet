@@ -10,13 +10,15 @@ html, body {
 ul.messages {
     list-style-type: none;
     padding: 0;
-    margin: 10px 0;
+    margin-left: 400px;
+    width: fit-content;
+    text-align: center;
 }
 
 ul.messages li {
     padding: 10px;
     margin-bottom: 5px;
-    border-radius: 3px;
+    border-radius: 3px; 
 }
 
 /* Style based on the message tag */

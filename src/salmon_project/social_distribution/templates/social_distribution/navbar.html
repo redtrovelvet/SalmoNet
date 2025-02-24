@@ -15,7 +15,7 @@
                 <li><a href="{% url 'profile' user.author.id %}"><i class="fas fa-user"></i> Profile</a></li>
             {% endif %}
             <li><a href="{% url 'all_authors' %}"><i class="fas fa-users"></i> All Authors</a></li>  
-            <li><a href="{% url 'view_follow_requests' %}"><i class="fa-solid fa-bell"></i> Notifications</a></li>  
+            <li><a href="{% url 'view_follow_requests' %}"><i class="fa-solid fa-bell"></i> Inbox </a></li>  
             <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
 
         {% else %}
