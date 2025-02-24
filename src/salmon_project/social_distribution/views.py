@@ -11,8 +11,9 @@ from rest_framework.permissions import IsAuthenticated
 from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
-from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.contrib.auth import login, logout, authenticate
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
+
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
@@ -24,16 +25,24 @@ import commonmark, uuid
 # Create your views here.
 def index(request):
     if request.user.is_authenticated:
-        author = get_object_or_404(Author, username=request.user.username)
-        followed_authors = author.following.all()
-        #<BEGIN GENERATED model='gpt-4' date=2025-02-17 prompt: So in my project there are multiple users and when i go to the homepage, i should be able to see user's posts depending on whether i am logged in to the website. If i am logged in i should see friends, unlisted, and public posts, but if i am not logged i then i should just see public posts. here are my models (screenshot of my models). Please tell me how to write my index method in views.py in order to see the correst stream in homepage>
-        posts = Post.objects.filter(author__in=followed_authors, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).exclude(visibility="DELETED").order_by("-created_at")
-        public_posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
+        current_author = get_object_or_404(Author, username=request.user.username)
+        # Get posts from authors that current_author follows
+        posts = Post.objects.none()
+        for author in current_author.following.all():
+            if current_author in author.following.all():
+                # Mutual follow (friends): include PUBLIC, UNLISTED, and FRIENDS posts
+                author_posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "UNLISTED", "FRIENDS"])
+            else:
+                # Not mutual: only include PUBLIC and UNLISTED posts
+                author_posts = Post.objects.filter(author=author).exclude(visibility="FRIENDS")
+            posts |= author_posts
+
+        # Also include public posts from all other authors (to widen the feed)
+        public_posts = Post.objects.filter(visibility="PUBLIC")
         posts = (posts | public_posts).distinct().order_by("-created_at")
-        #<END GENERATED></END>
     else:
         posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
-        author = None
+        current_author = None
 
     # Serialize posts
     serialized_posts = PostSerializer(posts, many=True).data.copy()
@@ -63,17 +72,28 @@ def index(request):
         })
 
     
-    return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": author})
+    return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": current_author})
 
 def profile(request, author_id):
     '''
     renders the profile page for an author
     '''
     author = get_object_or_404(Author, id=author_id)
-    posts = Post.objects.filter(author=author, visibility="PUBLIC").order_by("-created_at")
+    posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
+    # Serialize posts
+    serialized_posts = PostSerializer(posts, many=True).data.copy()
+
     rendered_posts = []
-    for p in posts:
+    for i in range(len(serialized_posts)):
+        p = posts[i]
+        sp = serialized_posts[i]
         html_text = render_markdown_if_needed(p.text, p.content_type)
+        post_comments = sp["comments"]["src"]
+        comments = []
+        for comment in post_comments:
+            comment["id"] = comment["id"].split("/")[-1]
+            comments.append(comment)
+
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
@@ -82,6 +102,8 @@ def profile(request, author_id):
             "video": p.video,
             "visibility": p.visibility,
             "created_at": p.created_at,
+            "comments": comments,
+            "likes": sp["likes"],
         })
 
     return render(request, "social_distribution/profile.html", {
@@ -151,6 +173,27 @@ def logout_view(request):
     '''
     logout(request)
     return redirect("index")
+
+def view_post(request, author_id, post_id):
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    post_author = get_object_or_404(Author, id=author_id)
+
+    # Attempt to get author object from current user
+    try:
+        current_user = request.user.author
+
+    # If current user is not signed in
+    except AttributeError:
+        current_user = request.user
+        if post.visibility == "FRIENDS":
+            return HttpResponse(status=403)
+
+    # If current user is signed in, check access
+    else:
+        if post.visibility == "FRIENDS" and not (current_user == post_author or post_author in current_user.following.all()):
+            return HttpResponse(status=403)
+        
+    return render(request, "social_distribution/view_post.html", {"post": post})
 
 def render_markdown_if_needed(text, content_type):
     """
@@ -357,12 +400,17 @@ def unfollow_author(request, author_id):
         messages.error(request, "Please log in to unfollow authors.")
         return redirect('login')
     
-    current_author = request.user.author  # Get current user's Author profile
-    target_author = get_object_or_404(Author, id=author_id)  # Get the target author
+    current_author = request.user.author  
+    target_author = get_object_or_404(Author, id=author_id)  
 
-    # Remove the target from current user's following set
+
     current_author.following.remove(target_author)
-    messages.success(request, f"You have unfollowed {target_author.display_name}.")
+
+   
+    from .models import FeedBlock  
+    FeedBlock.objects.get_or_create(blocker=current_author, blocked_author=target_author)
+
+    messages.success(request, f"You have unfollowed {target_author.display_name} and blocked their posts from your feed.")
     return redirect('profile', author_id=target_author.id)
 
 def view_followers(request):
@@ -460,13 +508,20 @@ def get_author_posts(request, author_id):
     posts = Post.objects.filter(author=author)
 
     if not request.user.is_authenticated:
+        # Not logged in: show only public posts.
         posts = posts.filter(visibility='PUBLIC')
     elif request.user.author == author:
-        pass  # Show all posts
-    elif request.user.author in author.following.all():
-        posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED'])
+        # Viewing your own profile: show all posts.
+        pass  
     else:
-        posts = posts.filter(visibility='PUBLIC')
+        current_author = request.user.author
+        # Check if current_author and author are mutual followers (i.e. friends).
+        if current_author in author.following.all() and author in current_author.following.all():
+            # They are friends: allow public, unlisted, and friends-only posts.
+            posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED', 'FRIENDS'])
+        else:
+            # Not mutual friends: show only public posts.
+            posts = posts.filter(visibility='PUBLIC')
 
     serializer = PostSerializer(posts, many=True)
     return Response(serializer.data)
@@ -574,7 +629,7 @@ def commented(request, author_id):
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return redirect("index")
+            return redirect(request.META.get('HTTP_REFERER', 'index'))
         return Response(status=400, data=serializer.errors)
     else: # GET request
         # Get the comments made by the author
@@ -783,7 +838,7 @@ def like_post(request, author_id, post_id):
                     serializer.save()
                 except Exception as e:
                     print(e)
-    return redirect("index")
+    return redirect(request.META.get("HTTP_REFERER", "index"))
 
 @api_view(["POST"])
 def like_comment(request, author_id, comment_id):
@@ -810,4 +865,4 @@ def like_comment(request, author_id, comment_id):
                     serializer.save()
                 except Exception as e:
                     print(e)
-    return redirect("index")
+    return redirect(request.META.get("HTTP_REFERER", "index"))

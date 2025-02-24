@@ -69,7 +69,6 @@
 
     <!-- Display Posts -->
     <h2>Posts</h2>
-
     <!-- Container for all posts -->
     <div>
         {% for post in posts %}
@@ -91,41 +90,56 @@
                     Your browser does not support the video tag.
                 </video>
             {% endif %}
-            
-            <p>Posted on {{ post.created_at }}</p>
-
-            {% if post.visibility == 'PUBLIC' %}
-                <!-- Button for copying link to posts -->
-                <button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
-                    <span class="copy-label">Copy Link</span>
-                </button>
-            {% elif user.is_authenticated and user.author.id == author.id %}
-                <!-- Button for copying link to posts -->
-                <button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
-                    <span class="copy-label">Copy Link</span>
-                </button>
-            {% endif %}
 
             {% if user.is_authenticated and author is not None %}
-            <div>
-                <form method="post" action="{% url 'commented' author.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="type" value="comment">
-                <textarea name="comment" rows="3" cols="50"></textarea>
-                <input type="hidden" name="post" value="{{ post.id }}">
-                <input type="hidden" name="contentType" value="text/plain">
-                <button type="submit" class="btn btn-primary">Comment</button>
+                <form method="post" action="{% url 'like_post' author.id post.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="type" value="like">
+                    <button type="submit" class="btn btn-primary">Like: {{ post.likes.count }}</button>
                 </form>
-            </div>
             {% endif %}
 
-            {% if user.is_authenticated and user.author.id == author.id %}
-            <!-- Put Edit and Delete on the same line -->
-            <div>
-                <a href="{% url 'edit_post' author.id post.id %}" style="margin-right: 1em;">Edit</a>
-                <a href="{% url 'delete_post_local' author.id post.id %}" class="btn btn-danger">Delete</a>
-            </div>
+            {% if post.comments %}
+            <h3>Comments</h3>
+            <ul>
+                {% for comment in post.comments %}
+                    <li>{{ comment.author.displayName }}: {{ comment.comment }}</li>
+                    {% if user.is_authenticated and author is not None %}
+                        <form method="post" action="{% url 'like_comment' author.id comment.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="type" value="like">
+                        <button type="submit" class="btn btn-primary">Like: {{ comment.likes.count }}</button>
+                        </form>
+                    {% endif %}
+                {% endfor %}
+            </ul>
             {% endif %}
+        
+        <p>Posted on {{ post.created_at }}</p>
+
+        <!-- Button for copying link to posts -->
+        <button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+            <span class="copy-label">Copy Link</span>
+        </button>
+
+        {% if user.is_authenticated and author is not None %}
+        <div>
+            <form method="post" action="{% url 'commented' author.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="comment">
+            <textarea name="comment" rows="3" cols="50"></textarea>
+            <input type="hidden" name="post" value="{{ post.id }}">
+            <input type="hidden" name="contentType" value="text/plain">
+            <button type="submit" class="btn btn-primary">Comment</button>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if user.is_authenticated and user.author.id == author.id %}
+        <!-- Put Edit and Delete on the same line -->
+        <div>
+            <a href="{% url 'edit_post' author.id post.id %}" style="margin-right: 1em;">Edit</a>
+            <a href="{% url 'delete_post_local' author.id post.id %}" class="btn btn-danger">Delete</a>
         </div>
         {% endfor %}
     </div>

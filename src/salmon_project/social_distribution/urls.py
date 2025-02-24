@@ -9,6 +9,7 @@ urlpatterns = [
     path("logout/", views.logout_view, name="logout"),
     path("register/", views.register, name="register"),
     path("login/", views.login_view, name="login"),
+    path("authors/<uuid:author_id>/posts/<uuid:post_id>/view/", views.view_post, name="view_post"),
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/edit/", views.edit_post, name="edit_post"),       
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post_local, name="delete_post_local"),
 

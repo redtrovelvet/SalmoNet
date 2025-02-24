@@ -1,4 +1,5 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -8,6 +9,9 @@
         <link rel="stylesheet" type="text/css"  href="{% static "css/basic_style.css" %}">
         <link rel="stylesheet" type="text/css"  href="{% static "css/all_authors.css" %}">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+        <!-- Copy post link script -->
+        <script src="{% static 'js/copy-post-link.js' %}" defer></script>
     </head>
     {% include 'social_distribution/navbar.html' %}
     <body>
