@@ -1,0 +1,28 @@
+{% extends 'social_distribution/base.html' %}
+
+{% block content %}
+<div class="content">
+    <h1>Follow Requests</h1>
+    {% if follow_requests %}
+        <ul>
+            {% for req in follow_requests %}
+                <li>
+                    {{ req.sender.display_name }} wants to follow you.
+                    <!-- Approve form -->
+                    <form method="post" action="{% url 'approve_follow_request' req.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">Approve</button>
+                    </form>
+                    <!-- Deny form -->
+                    <form method="post" action="{% url 'deny_follow_request' req.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit">Deny</button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No follow requests.</p>
+    {% endif %}
+</div>
+{% endblock %}

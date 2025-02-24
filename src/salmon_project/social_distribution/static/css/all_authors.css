@@ -1,0 +1,96 @@
+/* General Styling */
+.authors-list {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+.authors-list h1 {
+    text-align: center;
+    font-size: 28px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Author Card */
+.author {
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    transition: 0.3s;
+}
+
+.author:hover {
+    background: #f1f1f1;
+    transform: translateY(-2px);
+}
+
+/* Author Name */
+.author-name a {
+    text-decoration: none;
+    font-size: 20px;
+    font-weight: bold;
+    color: #007bff;
+    transition: 0.3s;
+}
+
+.author-name a:hover {
+    color: #0056b3;
+}
+
+/* Username */
+.author p {
+    margin: 5px 0;
+    color: #555;
+}
+
+/* Follow & Unfollow Buttons */
+.author form {
+    display: inline;
+}
+
+.author button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 5px;
+}
+
+.author button:hover {
+    background: #0056b3;
+}
+
+/* Unfollow Button */
+.author form[action*="unfollow"] button {
+    background: #007bff;
+}
+
+.author form[action*="unfollow"] button:hover {
+    background: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .authors-list {
+        padding: 15px;
+    }
+
+    .author {
+        padding: 10px;
+    }
+
+    .author-name a {
+        font-size: 18px;
+    }
+}
