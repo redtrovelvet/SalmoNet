@@ -190,6 +190,7 @@ class AuthorTests(TestCase):
         # Refresh the edwards_author instance and verify Bruce is no longer in Edwards' following.
         self.edwards_author.refresh_from_db()
         self.assertNotIn(self.bruce_author, self.edwards_author.following.all())
+
 class CommentTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -526,6 +527,13 @@ class LikeTests(TestCase):
 class PostTests(APITestCase):
     def setUp(self):
         self.client = APIClient()
+
+        # Create users
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.friend_user = User.objects.create_user(username='frienduser', password='friendpass')
+        self.non_friend_user = User.objects.create_user(username='nonfrienduser', password='nonfriendpass')
+
+        # Create authors
         self.author = Author.objects.create(
             id=uuid.uuid4(),
             username="testuser",
@@ -534,17 +542,54 @@ class PostTests(APITestCase):
             profile_image=None,
             host="http://127.0.0.1:8000"
         )
-        # Create a user for authentication
-        self.user = User.objects.create_user(username='testuser', password='testpass')
+
+        self.friend_author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="frienduser",
+            display_name="Friend User",
+            github="https://github.com/frienduser",
+            profile_image=None,
+            host="http://127.0.0.1:8000"
+        )
+
+        self.non_friend_author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="nonfrienduser",
+            display_name="Non-Friend User",
+            github="https://github.com/nonfrienduser",
+            profile_image=None,
+            host="http://127.0.0.1:8000"
+        )
+
+        # Link users to authors AFTER creation
         self.author.user = self.user
         self.author.save()
 
-        self.post = Post.objects.create(
+        self.friend_author.user = self.friend_user
+        self.friend_author.save()
+
+        self.non_friend_author.user = self.non_friend_user
+        self.non_friend_author.save()
+
+        # Establish friendship (two-way follow)
+        self.author.following.add(self.friend_author)
+        self.friend_author.following.add(self.author)
+
+        # Create posts
+        self.public_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Test Post",
+            text="This is a public post.",
             visibility="PUBLIC"
         )
+
+        self.friends_only_post = Post.objects.create(
+            id=uuid.uuid4(),
+            author=self.author,
+            text="This is a friends-only post.",
+            visibility="FRIENDS"
+        )
+
         self.image_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
@@ -554,13 +599,47 @@ class PostTests(APITestCase):
             image=SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg")
         )
 
-    def test_get_post(self):
+    def test_get_public_post(self):
         """
-        Test for GET /api/authors/{AUTHOR_ID}/posts/ to retrieve posts
+        Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ for a public post.
+        Should return 200 for anyone.
         """
-        response = self.client.get(f"/api/authors/{self.author.id}/posts/")
-        self.assertEqual(response.status_code, 200)
-        self.assertGreaterEqual(len(response.json()), 1)
+        url = reverse("get_post", args=[self.author.id, self.public_post.id])
+        response = self.client.get(url)  # No authentication needed
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["text"], "This is a public post.")
+
+    def test_get_friends_only_post_as_friend(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ for a friends-only post.
+        Should return 200 if the requester is a friend.
+        """
+        self.client.force_authenticate(user=self.friend_user)  # Authenticate as friend
+        url = reverse("get_post", args=[self.author.id, self.friends_only_post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["text"], "This is a friends-only post.")
+
+    def test_get_friends_only_post_as_non_friend(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ for a friends-only post.
+        Should return 403 if the requester is NOT a friend.
+        """
+        self.client.force_authenticate(user=self.non_friend_user)  # Authenticate as non-friend
+        url = reverse("get_post", args=[self.author.id, self.friends_only_post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data["detail"], "You are not friends with the author.")
+
+    def test_get_friends_only_post_unauthenticated(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ for a friends-only post.
+        Should return 403 if the requester is NOT authenticated.
+        """
+        url = reverse("get_post", args=[self.author.id, self.friends_only_post.id])
+        response = self.client.get(url)  # No authentication
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data["detail"], "Authentication required.")
         
     def test_create_post(self):
         """
@@ -581,47 +660,50 @@ class PostTests(APITestCase):
         Test for DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ to delete a post
         """
         self.client.force_authenticate(user=self.user)
-        response = self.client.delete(f"/api/authors/{self.author.id}/posts/{self.post.id}/delete/")
-        self.assertEqual(response.status_code, 204)
-        self.assertFalse(Post.objects.filter(id=self.post.id).exists())
+        response = self.client.delete(f"/api/authors/{self.author.id}/posts/{self.public_post.id}/delete/")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.public_post.refresh_from_db()
+        self.assertEqual(self.public_post.visibility, "DELETED")
 
     def test_delete_post_unauthorized(self):
         """
         Test DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ with unauthorized user.
         """
-        url = reverse("delete_post", args=[self.author.id, self.post.id])
+        self.client.force_authenticate(user=self.non_friend_user)
+        url = reverse("delete_post", args=[self.author.id, self.public_post.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
+
     def test_update_post(self):
         """
         Test PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ to update a post.
         """
         self.client.force_authenticate(user=self.user)
-        url = reverse("update_post", args=[self.author.id, self.post.id])
+        url = reverse("update_post", args=[self.author.id, self.public_post.id])
         data = {"text": "Edited Post"}
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.post.refresh_from_db()
-        self.assertEqual(self.post.text, "Edited Post")
+        self.public_post.refresh_from_db()
+        self.assertEqual(self.public_post.text, "Edited Post")
 
     def test_update_post_unauthorized(self):
         """
         Test PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ with unauthorized user.
         """
-        url = reverse("update_post", args=[self.author.id, self.post.id])
+        self.client.force_authenticate(user=self.non_friend_user)
+        url = reverse("update_post", args=[self.author.id, self.public_post.id])
         data = {"text": "Edited Post"}
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        
+
     def test_get_post_by_fqid(self):
         """
         Test GET /api/posts/{POST_FQID}/ to get a post by its fully qualified ID.
         """
-        url = reverse("get_post_by_fqid", args=[self.post.id])
+        url = reverse("get_post_by_fqid", args=[self.public_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['text'], "Test Post")
+        self.assertEqual(response.data["text"], "This is a public post.")
         
     def test_get_author_posts(self):
         """
@@ -630,7 +712,7 @@ class PostTests(APITestCase):
         url = reverse("get_author_posts", args=[self.author.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)  # Two posts created in setUp
+        self.assertEqual(len(response.data), 2)  # Two public posts
 
     def test_get_author_posts_authenticated(self):
         """
@@ -640,7 +722,7 @@ class PostTests(APITestCase):
         url = reverse("get_author_posts", args=[self.author.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 3) # Two public posts and one friends-only post
         
     def test_get_post_image(self):
         """
@@ -655,6 +737,6 @@ class PostTests(APITestCase):
         """
         Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/image/ for a non-image post.
         """
-        url = reverse("get_post_image", args=[self.author.id, self.post.id])
+        url = reverse("get_post_image", args=[self.author.id, self.public_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
