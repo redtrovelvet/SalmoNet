@@ -35,7 +35,7 @@ def index(request):
                 author_posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "UNLISTED", "FRIENDS"])
             else:
                 # Not mutual: only include PUBLIC and UNLISTED posts
-                author_posts = Post.objects.filter(author=author).exclude(visibility="FRIENDS")
+                author_posts = Post.objects.filter(author=author).exclude(visibility__in=["FRIENDS", "DELETED"])
             posts |= author_posts
 
         # Also include public posts from all other authors (to widen the feed)
@@ -576,6 +576,22 @@ def get_post_image(request, author_id, post_id):
         return Response(status=403)
     return Response(post.image.read(), content_type=post.content_type)
 
+# ================= NEW: Followers and Follow Request API Endpoints =================
+
+@api_view(["GET"])
+def get_followers_api(request, author_id):
+    """
+    API: GET /api/authors/{author_id}/followers/
+    Returns a JSON object with a list of authors who follow the given author.
+    """
+    author = get_object_or_404(Author, id=author_id)
+    followers = Author.objects.filter(following=author)
+    serializer = AuthorSerializer(followers, many=True)
+    return Response({
+        "type": "followers",
+        "followers": serializer.data
+    })
+
 @api_view(["POST"])
 def inbox(request, author_id):
     '''
@@ -604,51 +620,6 @@ def inbox(request, author_id):
             return Response({"detail": "Follow request already exists."}, status=200)
     else:
         return Response({"detail": "Unsupported type for inbox."}, status=400)
-
-# New Followers API endpoints
-
-@api_view(["GET"])
-def get_followers_api(request, author_id):
-    """
-    API: GET /api/authors/{author_id}/followers/
-    Returns a JSON object with a list of authors who follow the given author.
-    """
-    author = get_object_or_404(Author, id=author_id)
-    followers = Author.objects.filter(following=author)
-    serializer = AuthorSerializer(followers, many=True)
-    return Response({
-        "type": "followers",
-        "followers": serializer.data
-    })
-
-@api_view(["GET", "PUT", "DELETE"])
-@permission_classes([IsAuthenticated])
-def modify_follower_api(request, author_id, foreign_author_fqid):
-    """
-    API: Handles GET, PUT, DELETE for a specific foreign author follower.
-    GET: Check if foreign author (given by percent-encoded URL) is a follower.
-    PUT: Add the foreign author as a follower (i.e. add the local author to the foreign author's following).
-    DELETE: Remove the foreign author as a follower.
-    """
-    author = get_object_or_404(Author, id=author_id)
-    foreign_author_url = unquote(foreign_author_fqid)
-    try:
-        foreign_uuid = uuid.UUID(foreign_author_url.split("/")[-1])
-    except Exception:
-        return Response({"detail": "Invalid foreign author id."}, status=400)
-    foreign_author = get_object_or_404(Author, id=foreign_uuid)
-    if request.method == "GET":
-        if author in foreign_author.following.all():
-            serializer = AuthorSerializer(foreign_author)
-            return Response(serializer.data)
-        else:
-            return Response(status=404)
-    elif request.method == "PUT":
-        foreign_author.following.add(author)
-        return Response({"detail": "Follower added."}, status=200)
-    elif request.method == "DELETE":
-        foreign_author.following.remove(author)
-        return Response({"detail": "Follower removed."}, status=200)
 
 # ========================== COMMENTS ==========================
 @api_view(["GET"])
@@ -715,8 +686,8 @@ def get_comment(request, comment_id, author_id=None, post_id=None):
             comment = get_object_or_404(Comment, id=comment_id)
     else:
         comment = get_object_or_404(Comment, id=comment_id)
-
-    # Return the comment 
+    
+    # Return the comment
     serializer = CommentSerializer(comment)
     return Response(serializer.data)
 
@@ -793,285 +764,6 @@ def get_author_liked(request, author_id):
     '''
 
     # Get optional query parameters for pagination
-    page_number = int(request.GET.get("page", 1))
-    size = int(request.GET.get("size", 50))
-    post_likes = PostLike.objects.filter(author=author_id)
-    comment_likes = CommentLike.objects.filter(author=author_id)
-    likes = list(post_likes) + list(comment_likes)
-    paginator = Paginator(likes, size)
-    page = paginator.get_page(page_number)
-    serialized_likes = PostLikeSerializer(page, many=True).data
-    host = settings.BASE_URL
-    likes_data = {
-        "type": "likes",
-        "page": f"{host}/authors/{author_id}/likes",
-        "id": f"{host}/api/authors/{author_id}/likes",
-        "page_number": page_number,
-        "size": min(len(serialized_likes), size),
-        "count": len(likes),
-        "src": serialized_likes
-    }
-    return Response(likes_data)
-
-@api_view(["GET"])
-def get_like(request, like_id, author_id=None):
-    '''
-    API: returns a specific like
-    '''
-    if author_id:
-        try:
-            like = PostLike.objects.get(id=like_id)
-            post = True
-        except:
-            like = CommentLike.objects.get(id=like_id)
-            post = False
-    else:
-        try:
-            like = PostLike.objects.get(id=like_id)
-            post = True
-        except:
-            like = CommentLike.objects.get(id=like_id)
-            post = False
-    if not like:
-        return Response(status=404)
-    if post:
-        serializer = PostLikeSerializer(like)
-    else:
-        serializer = CommentLikeSerializer(like)
-    return Response(serializer.data)
-
-@api_view(["POST"])
-def like_post(request, author_id, post_id):
-    '''
-    API: allows an author to like a post
-    '''
-    data = request.data.copy()
-    if data.get("type") == "like":
-        data["author"] = author_id
-        data["object"] = post_id
-        serializer = PostLikeSerializer(data=data)
-        if serializer.is_valid():
-            if PostLike.objects.filter(author=author_id, object=post_id).exists():
-                PostLike.objects.filter(author=author_id, object=post_id).delete()
-            else:
-                try:
-                    serializer.save()
-                except Exception as e:
-                    print(e)
-    return redirect(request.META.get("HTTP_REFERER", "index"))
-
-@api_view(["POST"])
-def like_comment(request, author_id, comment_id):
-    '''
-    API: allows an author to like a comment
-    '''
-    data = request.data.copy()
-    if data.get("type") == "like":
-        data["author"] = author_id
-        data["object"] = comment_id
-        serializer = CommentLikeSerializer(data=data)
-        if serializer.is_valid():
-            if CommentLike.objects.filter(author=author_id, object=comment_id).exists():
-                CommentLike.objects.filter(author=author_id, object=comment_id).delete()
-            else:
-                try:
-                    serializer.save()
-                except Exception as e:
-                    print(e)
-    return redirect(request.META.get("HTTP_REFERER", "index"))
-
-# ================= NEW: Followers and Follow Request API Endpoints =================
-
-@api_view(["GET"])
-def get_followers_api(request, author_id):
-    """
-    API: GET /api/authors/{author_id}/followers/
-    Returns a JSON object with a list of authors who follow the given author.
-    """
-    author = get_object_or_404(Author, id=author_id)
-    followers = Author.objects.filter(following=author)
-    serializer = AuthorSerializer(followers, many=True)
-    return Response({
-        "type": "followers",
-        "followers": serializer.data
-    })
-
-@api_view(["GET", "PUT", "DELETE"])
-@permission_classes([IsAuthenticated])
-def modify_follower_api(request, author_id, foreign_author_fqid):
-    """
-    API: Handles GET, PUT, DELETE for a specific foreign author follower.
-    GET: Check if the foreign author (provided as percent-encoded URL) is a follower.
-    PUT: Add the foreign author as a follower (i.e. add the local author to the foreign author's following).
-    DELETE: Remove the foreign author as a follower.
-    """
-    author = get_object_or_404(Author, id=author_id)
-    foreign_author_url = unquote(foreign_author_fqid)
-    try:
-        foreign_uuid = uuid.UUID(foreign_author_url.split("/")[-1])
-    except Exception:
-        return Response({"detail": "Invalid foreign author id."}, status=400)
-    foreign_author = get_object_or_404(Author, id=foreign_uuid)
-    if request.method == "GET":
-        if author in foreign_author.following.all():
-            serializer = AuthorSerializer(foreign_author)
-            return Response(serializer.data)
-        else:
-            return Response(status=404)
-    elif request.method == "PUT":
-        foreign_author.following.add(author)
-        return Response({"detail": "Follower added."}, status=200)
-    elif request.method == "DELETE":
-        foreign_author.following.remove(author)
-        return Response({"detail": "Follower removed."}, status=200)
-
-@api_view(["POST"])
-def inbox(request, author_id):
-    '''
-    API: Inbox endpoint to receive various objects.
-    If the payload has type "follow", create a follow request.
-    '''
-    data = request.data
-    if data.get("type") == "follow":
-        actor_data = data.get("actor")
-        if not actor_data:
-            return Response({"detail": "Missing actor data."}, status=400)
-        sender_id = actor_data.get("id")
-        receiver = get_object_or_404(Author, id=author_id)
-        try:
-            sender_uuid = uuid.UUID(sender_id.split("/")[-1])
-        except Exception:
-            try:
-                sender_uuid = uuid.UUID(sender_id)
-            except Exception:
-                return Response({"detail": "Invalid sender id."}, status=400)
-        sender = get_object_or_404(Author, id=sender_uuid)
-        follow_req, created = FollowRequest.objects.get_or_create(sender=sender, receiver=receiver, defaults={"status": "PENDING"})
-        if created:
-            return Response({"detail": "Follow request created."}, status=201)
-        else:
-            return Response({"detail": "Follow request already exists."}, status=200)
-    else:
-        return Response({"detail": "Unsupported type for inbox."}, status=400)
-
-# ========================== COMMENTS ==========================
-@api_view(["GET"])
-def get_comments(request, post_id, author_id=None):
-    '''
-    API: returns all comments for a post in the form of a "comments" object
-    '''
-    page_number = int(request.GET.get("page", 1))
-    size = int(request.GET.get("size", 5))
-    if author_id:
-        comments = Comment.objects.filter(post_id=post_id)
-    else:
-        comments = Comment.objects.filter(post_id=post_id)
-        author_id = Post.objects.get(id=post_id).author.id
-    paginator = Paginator(comments, size)
-    page = paginator.get_page(page_number)
-    serialized_comments = CommentSerializer(page, many=True).data
-    host = settings.BASE_URL
-    comments_data = {
-        "type": "comments",
-        "page": f"{host}/authors/{author_id}/posts/{post_id}",
-        "id": f"{host}/api/authors/{author_id}/posts/{post_id}/comments",
-        "page_number": page_number,
-        "size": min(len(serialized_comments), size),
-        "count": len(comments),
-        "src": serialized_comments
-    }
-    return Response(comments_data)
-
-@api_view(["GET", "POST"])
-def commented(request, author_id):
-    '''
-    API: returns all comments made by an author, or allows an author to post a comment
-    '''
-    if request.method == "POST":
-        data = request.data.copy()
-        author = get_object_or_404(Author, id=author_id)
-        data["author"] = author.id
-        serializer = CommentSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return redirect(request.META.get('HTTP_REFERER', 'index'))
-        return Response(status=400, data=serializer.errors)
-    else:
-        comments = Comment.objects.filter(author_id=author_id)
-        serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data)
-
-@api_view(["GET"])
-def get_comment(request, comment_id, author_id=None, post_id=None):
-    '''
-    API: returns a specific comment
-    '''
-    if author_id:
-        if post_id:
-            comment = get_object_or_404(Comment, id=comment_id)
-        else:
-            comment = get_object_or_404(Comment, id=comment_id)
-    else:
-        comment = get_object_or_404(Comment, id=comment_id)
-    serializer = CommentSerializer(comment)
-    return Response(serializer.data)
-
-# ========================== LIKES ==========================
-@api_view(["GET"])
-def get_post_likes(request, post_id, author_id=None):
-    '''
-    API: returns all likes for a post
-    '''
-    page_number = int(request.GET.get("page", 1))
-    size = int(request.GET.get("size", 50))
-    if author_id:
-        likes = PostLike.objects.filter(object=post_id)
-    else:
-        likes = PostLike.objects.filter(object=post_id)
-        author_id = Post.objects.get(id=post_id).author.id
-    paginator = Paginator(likes, size)
-    page = paginator.get_page(page_number)
-    serialized_likes = PostLikeSerializer(page, many=True).data
-    host = settings.BASE_URL
-    likes_data = {
-        "type": "likes",
-        "page": f"{host}/authors/{author_id}/posts/{post_id}",
-        "id": f"{host}/api/authors/{author_id}/posts/{post_id}/likes",
-        "page_number": page_number,
-        "size": min(len(serialized_likes), size),
-        "count": len(likes),
-        "src": serialized_likes
-    }
-    return Response(likes_data)
-
-@api_view(["GET"])
-def get_comment_likes(request, author_id, post_id, comment_id):
-    '''
-    API: returns all likes for a comment
-    '''
-    page_number = int(request.GET.get("page", 1))
-    size = int(request.GET.get("size", 50))
-    likes = CommentLike.objects.filter(object=comment_id)
-    paginator = Paginator(likes, size)
-    page = paginator.get_page(page_number)
-    serialized_likes = CommentLikeSerializer(page, many=True).data
-    host = settings.BASE_URL
-    likes_data = {
-        "type": "likes",
-        "page": f"{host}/authors/{author_id}/comments/{comment_id}",
-        "id": f"{host}/api/authors/{author_id}/commented/{comment_id}/likes",
-        "page_number": page_number,
-        "size": min(len(serialized_likes), size),
-        "count": len(likes),
-        "src": serialized_likes
-    }
-    return Response(likes_data)
-
-@api_view(["GET"])
-def get_author_liked(request, author_id):
-    '''
-    API: returns all likes made by an author
-    '''
     page_number = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 50))
     post_likes = PostLike.objects.filter(author=author_id)
