@@ -27,7 +27,7 @@ def index(request):
     if request.user.is_authenticated:
         current_author = get_object_or_404(Author, username=request.user.username)
         # Get posts from authors that current_author follows
-        posts = Post.objects.none()
+        posts = Post.objects.filter(author=current_author, visibility__in=["PUBLIC", "UNLISTED", "FRIENDS"])
         for author in current_author.following.all():
             if current_author in author.following.all():
                 # Mutual follow (friends): include PUBLIC, UNLISTED, and FRIENDS posts
