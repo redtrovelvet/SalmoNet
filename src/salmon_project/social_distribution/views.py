@@ -274,9 +274,9 @@ def edit_post(request, author_id, post_id):
     if serializer.is_valid():
         # If new files are uploaded, attach them.
         if "image" in request.FILES:
-            serializer.validated_data["image"] = request.FILES["image"]
+            serializer.validated_data["image"] = request.FILES["image"] #type:ignore
         if "video" in request.FILES:
-            serializer.validated_data["video"] = request.FILES["video"]
+            serializer.validated_data["video"] = request.FILES["video"] #type:ignore
         serializer.save()
         return redirect("profile", author_id=author_id)
     else:
