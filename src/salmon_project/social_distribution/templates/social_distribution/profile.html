@@ -1,73 +1,20 @@
 {% extends 'social_distribution/base.html' %}
 
-{% block title %}{{ author.username }}'s Profile{% endblock %}
-
 {% block content %}
-{% if author.profile_image %}
-    <img src="{{ author.profile_image.url }}" alt="Profile Picture" width="150">
-{% endif %}
-<h1>{{ author.display_name }}</h1>
 
-{% if author.github %}
-    <p>GitHub: <a href="{{ author.github }}" target="_blank">{{ author.github }}</a></p>
-{% endif %}
+<div class="content">
+    {% block title %}{{ author.username }}'s Profile{% endblock %}
 
-{% if user.is_authenticated and user.author.id == author.id %}
-    <a href="{% url 'edit_profile' author.id %}">Edit Profile</a>
-    <p><a href="{% url 'view_followers' %}">View Followers</a></p>  
-    <p><a href="{% url 'view_following' %}">View Following</a></p>   
-    <p><a href="{% url 'view_friends' %}">View Friends</a></p>       
-{% endif %}
-
-<!-- Post Creation Form -->
-{% if user.is_authenticated and user.author.id == author.id %}
-    <h2>Create a New Post</h2>
-    <form method="post" enctype="multipart/form-data" action="{% url 'create_post' author.id %}">
-        {% csrf_token %}
-
-        <!-- Content type choice: plain vs. markdown -->
-        <div>
-            <label for="content_type">Content Type:</label>
-            <select name="content_type" id="content_type">
-                <option value="text/plain">Plain Text</option>
-                <option value="text/markdown">CommonMark (Markdown)</option>
-            </select>
-        </div>
-
-        <div>
-            <label for="text">Text:</label>
-            <textarea name="text" id="text" rows="4" cols="50"></textarea>
-        </div>
-        <div>
-            <label for="image">Image:</label>
-            <input type="file" name="image" id="image">
-        </div>
-        <div>
-            <label for="video">Video:</label>
-            <input type="file" name="video" id="video">
-        </div>
-        <div>
-            <label for="visibility">Visibility:</label>
-            <select name="visibility" id="visibility">
-                <option value="PUBLIC">Public</option>
-                <option value="UNLISTED">Unlisted</option>
-                <option value="FRIENDS">Friends</option>
-            </select>
-        </div>
-        <button type="submit">Create Post</button>
-    </form>
-
-    {% if serializer.errors %}
-        <p style="color: red;">Please correct the errors below:</p>
-        {% for field, errors in serializer.errors.items %}
-            <p>{{ field }}: {{ errors }}</p>
-        {% endfor %}
+    {% if author.profile_image %}
+        <img src="{{ author.profile_image.url }}" alt="Profile Picture" width="150">
     {% endif %}
-{% endif %}
+    <h1>{{ author.display_name }}</h1>
 
-<!-- Display Posts -->
-<h2>Posts</h2>
+    {% if author.github %}
+        <p>GitHub: <a href="{{ author.github }}" target="_blank">{{ author.github }}</a></p>
+    {% endif %}
 
+<<<<<<< HEAD
 <!-- Container for all posts -->
 <div>
     {% for post in posts %}
@@ -78,44 +25,110 @@
         {% if post.text %}
             <!-- If 'content_type' was text/markdown, post.text is HTML -->
             <div>{{ post.text|safe }}</div>
-        {% endif %}
+=======
+    {% if user.is_authenticated and user.author.id == author.id %}
+        <a href="{% url 'edit_profile' author.id %}">Edit Profile</a>
+        <p><a href="{% url 'view_followers' %}">View Followers</a></p>  
+        <p><a href="{% url 'view_following' %}">View Following</a></p>   
+        <p><a href="{% url 'view_friends' %}">View Friends</a></p>       
+    {% endif %}
 
-        {% if post.image %}
-            <img src="{{ post.image.url }}" alt="Post Image" width="300">
-        {% endif %}
+    <!-- Post Creation Form -->
+    {% if user.is_authenticated and user.author.id == author.id %}
+        <h2>Create a New Post</h2>
+        <form method="post" enctype="multipart/form-data" action="{% url 'create_post' author.id %}">
+            {% csrf_token %}
 
-        {% if post.video %}
-            <video width="300" controls>
-                <source src="{{ post.video.url }}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-        {% endif %}
+            <!-- Content type choice: plain vs. markdown -->
+            <div>
+                <label for="content_type">Content Type:</label>
+                <select name="content_type" id="content_type">
+                    <option value="text/plain">Plain Text</option>
+                    <option value="text/markdown">CommonMark (Markdown)</option>
+                </select>
+            </div>
 
-        {% if user.is_authenticated and author is not None %}
-            <form method="post" action="{% url 'like_post' author.id post.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="type" value="like">
-                <button type="submit" class="btn btn-primary">Like: {{ post.likes.count }}</button>
-            </form>
+            <div>
+                <label for="text">Text:</label>
+                <textarea name="text" id="text" rows="4" cols="50"></textarea>
+            </div>
+            <div>
+                <label for="image">Image:</label>
+                <input type="file" name="image" id="image">
+            </div>
+            <div>
+                <label for="video">Video:</label>
+                <input type="file" name="video" id="video">
+            </div>
+            <div>
+                <label for="visibility">Visibility:</label>
+                <select name="visibility" id="visibility">
+                    <option value="PUBLIC">Public</option>
+                    <option value="UNLISTED">Unlisted</option>
+                    <option value="FRIENDS">Friends</option>
+                </select>
+            </div>
+            <button type="submit">Create Post</button>
+        </form>
+
+        {% if serializer.errors %}
+            <p style="color: red;">Please correct the errors below:</p>
+            {% for field, errors in serializer.errors.items %}
+                <p>{{ field }}: {{ errors }}</p>
+            {% endfor %}
+>>>>>>> development
         {% endif %}
-        
-        {% if post.comments %}
-        <h3>Comments</h3>
-        <ul>
-            {% for comment in post.comments %}
-                <li>{{ comment.author.displayName }}: {{ comment.comment }}</li>
-                {% if user.is_authenticated and author is not None %}
-                    <form method="post" action="{% url 'like_comment' author.id comment.id %}">
+    {% endif %}
+
+    <!-- Display Posts -->
+    <h2>Posts</h2>
+    <!-- Container for all posts -->
+    <div>
+        {% for post in posts %}
+        <!-- Wrap each post in its own block with some spacing -->
+        <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;" class="post">
+            
+            {% if post.text %}
+                <!-- If 'content_type' was text/markdown, post.text is HTML -->
+                <div>{{ post.text|safe }}</div>
+            {% endif %}
+
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="Post Image" width="300">
+            {% endif %}
+
+            {% if post.video %}
+                <video width="300" controls>
+                    <source src="{{ post.video.url }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            {% endif %}
+
+            {% if user.is_authenticated and author is not None %}
+                <form method="post" action="{% url 'like_post' author.id post.id %}">
                     {% csrf_token %}
                     <input type="hidden" name="type" value="like">
-                    <button type="submit" class="btn btn-primary">Like: {{ comment.likes.count }}</button>
-                    </form>
-                {% endif %}
-            {% endfor %}
-        </ul>
-        {% endif %}
+                    <button type="submit" class="btn btn-primary">Like: {{ post.likes.count }}</button>
+                </form>
+            {% endif %}
+
+            {% if post.comments %}
+            <h3>Comments</h3>
+            <ul>
+                {% for comment in post.comments %}
+                    <li>{{ comment.author.displayName }}: {{ comment.comment }}</li>
+                    {% if user.is_authenticated and author is not None %}
+                        <form method="post" action="{% url 'like_comment' author.id comment.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="type" value="like">
+                        <button type="submit" class="btn btn-primary">Like: {{ comment.likes.count }}</button>
+                        </form>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+            {% endif %}
         
-        <p>Posted on {{ post.created_at }}</p>
+            <p>Posted on {{ post.created_at }}</p>
 
         {% if post.visibility == 'PUBLIC' %}
             <!-- Button for copying link to posts -->
@@ -129,28 +142,27 @@
             </button>
         {% endif %}
 
-        {% if user.is_authenticated and author is not None %}
-        <div>
-            <form method="post" action="{% url 'commented' author.id %}">
-            {% csrf_token %}
-            <input type="hidden" name="type" value="comment">
-            <textarea name="comment" rows="3" cols="50"></textarea>
-            <input type="hidden" name="post" value="{{ post.id }}">
-            <input type="hidden" name="contentType" value="text/plain">
-            <button type="submit" class="btn btn-primary">Comment</button>
-            </form>
-        </div>
-        {% endif %}
+            {% if user.is_authenticated and author is not None %}
+            <div>
+                <form method="post" action="{% url 'commented' author.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="type" value="comment">
+                <textarea name="comment" rows="3" cols="50"></textarea>
+                <input type="hidden" name="post" value="{{ post.id }}">
+                <input type="hidden" name="contentType" value="text/plain">
+                <button type="submit" class="btn btn-primary">Comment</button>
+                </form>
+            </div>
+            {% endif %}
 
-        {% if user.is_authenticated and user.author.id == author.id %}
-        <!-- Put Edit and Delete on the same line -->
-        <div>
-            <a href="{% url 'edit_post' author.id post.id %}" style="margin-right: 1em;">Edit</a>
-            <a href="{% url 'delete_post_local' author.id post.id %}" class="btn btn-danger">Delete</a>
-        </div>
-        {% endif %}
+            {% if user.is_authenticated and user.author.id == author.id %}
+                <!-- Put Edit and Delete on the same line -->
+                <div>
+                    <a href="{% url 'edit_post' author.id post.id %}" style="margin-right: 1em;">Edit</a>
+                    <a href="{% url 'delete_post_local' author.id post.id %}" class="btn btn-danger">Delete</a>
+                </div>
+            {% endif %}
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
-
 {% endblock %}

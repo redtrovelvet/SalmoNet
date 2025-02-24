@@ -193,6 +193,27 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
 
+    serialized_post = PostSerializer(post).data
+    html_text = render_markdown_if_needed(post.text, post.content_type)
+    post_comments = serialized_post["comments"]["src"]
+    comments = []
+    for comment in post_comments:
+        comment["id"] = comment["id"].split("/")[-1]
+        comments.append(comment)
+
+    # Convert the post ot a new list with rendered text if needed
+    rendered_post = {
+        "id": post.id,
+        "author": post.author,
+        "text": html_text,
+        "image": post.image,
+        "video": post.video,
+        "visibility": post.visibility,
+        "created_at": post.created_at,
+        "comments": comments,
+        "likes": serialized_post["likes"],
+    }
+
     # Attempt to get author object from current user
     try:
         current_user = request.user.author
@@ -208,7 +229,7 @@ def view_post(request, author_id, post_id):
         if post.visibility == "FRIENDS" and not (current_user == post_author or post_author in current_user.following.all()):
             return HttpResponse(status=403)
         
-    return render(request, "social_distribution/view_post.html", {"post": post})
+    return render(request, "social_distribution/view_post.html", {"post": rendered_post, "current_user": current_user})
 
 def render_markdown_if_needed(text, content_type):
     """

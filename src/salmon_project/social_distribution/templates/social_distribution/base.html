@@ -5,34 +5,15 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{% block title %}SocialDitribution{% endblock %}</title>
-        <link rel="stylesheet" href="{% static 'css/basic_style.css' %}">
+        <title>{% block title %}Social Distribution{% endblock %}</title>
+        <link rel="stylesheet" type="text/css"  href="{% static "css/basic_style.css" %}">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
         <!-- Copy post link script -->
         <script src="{% static 'js/copy-post-link.js' %}" defer></script>
     </head>
+    {% include 'social_distribution/navbar.html' %}
     <body>
-        <header>
-            <h1>SocialDistribution</h1>
-            <nav>
-                <ul>
-                    <li><a href="{% url 'index' %}">Home</a></li>
-                    {% if user.is_authenticated %}
-                        {% if user.author %}
-                            <li><a href="{% url 'profile' user.author.id %}">Profile</a></li>
-                        {% endif %}
-                        <li><a href="{% url 'all_authors' %}">All Authors</a></li>  {# NEW: All Authors link #}
-                        <li><a href="{% url 'view_follow_requests' %}">Follow Requests</a></li>  {# NEW: Follow Requests link #}
-                        <li><a href="{% url 'logout' %}">Logout</a></li>
-            
-                    {% else %}
-                        <li><a href="{% url 'login' %}">Login</a></li>
-                        <li><a href="{% url 'register' %}">Register</a></li>
-                    {% endif %}
-                </ul>
-            </nav>
-        </header>
-        
         {% if messages %}
         <ul class="messages">
             {% for message in messages %}

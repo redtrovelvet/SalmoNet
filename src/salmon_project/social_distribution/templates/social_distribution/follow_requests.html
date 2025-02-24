@@ -1,8 +1,7 @@
 {% extends 'social_distribution/base.html' %}
 
-{% block title %}Follow Requests{% endblock %}
-
 {% block content %}
+<div class="content">
     <h1>Follow Requests</h1>
     {% if follow_requests %}
         <ul>
@@ -25,4 +24,5 @@
     {% else %}
         <p>No follow requests.</p>
     {% endif %}
+</div>
 {% endblock %}
