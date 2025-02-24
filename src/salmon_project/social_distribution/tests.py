@@ -7,6 +7,7 @@ from .serializers import AuthorSerializer, PostSerializer
 import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
+import urllib.parse
 
 # Create your tests here.
 class AuthorTests(TestCase):
@@ -740,3 +741,123 @@ class PostTests(APITestCase):
         url = reverse("get_post_image", args=[self.author.id, self.public_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class FollowerAPITests(TestCase):
+    def setUp(self):
+        # Create users and corresponding authors for Edwards and Bruce
+        self.client = APIClient()
+        self.edwards_user = User.objects.create_user(username="edwards", password="password")
+        self.bruce_user = User.objects.create_user(username="bruce", password="password")
+        self.edwards_author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="edwards",
+            display_name="Edwards",
+            github="https://github.com/edwards",
+            profile_image=SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg"),
+            host="http://127.0.0.1:8000",
+            user=self.edwards_user
+        )
+        self.bruce_author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="bruce",
+            display_name="Bruce Wayne",
+            github="https://github.com/brucewayne",
+            profile_image=SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg"),
+            host="http://127.0.0.1:8000",
+            user=self.bruce_user
+        )
+    
+    def test_get_followers_api(self):
+        """
+        Test GET on the followers API endpoint without a foreign author.
+        """
+        self.bruce_author.following.add(self.edwards_author)
+        self.client.force_authenticate(user=self.edwards_user)
+        url = f"/api/authors/{self.edwards_author.id}/followers/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["type"], "followers")
+        follower_ids = [follower["id"] for follower in response.data["followers"]]
+        expected_id = AuthorSerializer(self.bruce_author).data["id"]
+        self.assertIn(expected_id, follower_ids)
+    
+    def test_get_followers_api_specific(self):
+        """
+        Test GET on the followers API endpoint for a specific foreign author.
+        """
+        self.bruce_author.following.add(self.edwards_author)
+        self.client.force_authenticate(user=self.edwards_user)
+       
+        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.id))
+        url = f"/api/authors/{self.edwards_author.id}/followers/{foreign_id_encoded}/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["username"], self.bruce_author.username)
+    
+    def test_put_followers_api(self):
+        """
+        Test PUT on the followers API endpoint to add a follower.
+        """
+        
+        self.client.force_authenticate(user=self.edwards_user)
+       
+        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.id))
+        url = f"/api/authors/{self.edwards_author.id}/followers/{foreign_id_encoded}/"
+        
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 200)
+        
+        self.assertIn(self.edwards_author, self.bruce_author.following.all())
+    
+    def test_delete_followers_api(self):
+        """
+        Test DELETE on the followers API endpoint to remove a follower.
+        """
+        
+        self.bruce_author.following.add(self.edwards_author)
+        self.client.force_authenticate(user=self.edwards_user)
+        
+        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.id))
+        url = f"/api/authors/{self.edwards_author.id}/followers/{foreign_id_encoded}/"
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 200)
+        
+        self.assertNotIn(self.edwards_author, self.bruce_author.following.all())
+
+class FollowRequestAPITests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.edwards_user = User.objects.create_user(username="edwards", password="password")
+        self.bruce_user = User.objects.create_user(username="bruce", password="password")
+        self.edwards_author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="edwards",
+            display_name="Edwards",
+            github="https://github.com/edwards",
+            profile_image=SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg"),
+            host="http://127.0.0.1:8000",
+            user=self.edwards_user
+        )
+        self.bruce_author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="bruce",
+            display_name="Bruce Wayne",
+            github="https://github.com/brucewayne",
+            profile_image=SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg"),
+            host="http://127.0.0.1:8000",
+            user=self.bruce_user
+        )
+    
+    def test_api_send_follow_request(self):
+        """
+        Test the API endpoint for sending a follow request.
+        """
+        self.client.force_authenticate(user=self.edwards_user)
+        url = f"/api/authors/{self.bruce_author.id}/followrequest/"
+        data = {"type": "follow"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.data["type"], "follow")
+        self.assertIn("actor", response.data)
+        self.assertIn("object", response.data)

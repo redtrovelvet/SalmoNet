@@ -13,7 +13,6 @@ urlpatterns = [
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/edit/", views.edit_post, name="edit_post"),       
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post_local, name="delete_post_local"),
 
-
     # Extra User-Facing Views (from following/friend branch)
     path("authors/", views.all_authors, name="all_authors"),
     path("authors/<uuid:author_id>/follow/", views.send_follow_request, name="send_follow_request"),
@@ -44,16 +43,16 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/update/", views.update_post, name="update_post"),
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post, name="delete_post"),
 
-    # Inbox API
+    # Inbox API (used for follow requests in our API)
     path("api/authors/<uuid:author_id>/inbox/", views.inbox, name="inbox"),
 
     # Comments API
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/comments/", views.get_comments, name="get_author_comments"),
     path("api/posts/<uuid:post_id>/comments/", views.get_comments, name="get_comments"),
-    path("api/authors/<uuid:author_id>/post/<uuid:post_id>/comments/<uuid:comment_id>/", views.get_comment, name="get_remote_comment"), # discrepency on whether it should be comment or comments in the specifcation, {REMOTE_COMMENT_FQID}
+    path("api/authors/<uuid:author_id>/post/<uuid:post_id>/comments/<uuid:comment_id>/", views.get_comment, name="get_remote_comment"),
 
     # Commented API
-    path("api/authors/<uuid:author_id>/commented/", views.commented, name="commented"), # single url for {AUTHOR_SERIAL} and {AUTHOR_FQID}
+    path("api/authors/<uuid:author_id>/commented/", views.commented, name="commented"),
     path("api/authors/<uuid:author_id>/commented/<uuid:comment_id>/", views.get_comment, name="get_author_comment"),
     path("api/commented/<uuid:comment_id>/", views.get_comment, name="get_comment"),
 
@@ -63,10 +62,17 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/comments/<uuid:comment_id>/likes/", views.get_comment_likes, name="get_comment_likes"),
 
     # Liked API
-    path("api/authors/<uuid:author_id>/liked/", views.get_author_liked, name="get_author_liked"), # single url for {AUTHOR_SERIAL} and {AUTHOR_FQID}
-    path("api/authors/<uuid:author_id>/liked/<uuid:like_id>}/", views.get_like, name="get_author_like"),
+    path("api/authors/<uuid:author_id>/liked/", views.get_author_liked, name="get_author_liked"),
+    path("api/authors/<uuid:author_id>/liked/<uuid:like_id>/", views.get_like, name="get_author_like"),
     path("api/liked/<uuid:like_id>/", views.get_like, name="get_like"),
+
     # Extra APIs to like posts and comments (not in the spec)
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/liked/", views.like_post, name="like_post"),
     path("api/authors/<uuid:author_id>/comments/<uuid:comment_id>/liked/", views.like_comment, name="like_comment"),
+
+   
+    path("api/authors/<uuid:author_id>/followers/", views.modify_follower_api, name="get_followers_api"),
+    path("api/authors/<uuid:author_id>/followers/<str:foreign_author_encoded>/", views.modify_follower_api, name="modify_follower_api"),
+    
+    path("api/authors/<uuid:author_id>/followrequest/", views.api_send_follow_request, name="api_send_follow_request"),
 ]
