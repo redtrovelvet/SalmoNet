@@ -67,36 +67,45 @@ class PostLike(models.Model):
     """
     A like on a post by an author
     """
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    object = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    published = models.DateTimeField(auto_now_add=True)
 
     # Ensure that a user can only like a post once
     # https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
     class Meta:
-        unique_together = ['post', 'author']
+        unique_together = ['object', 'author']
 
 class Comment(models.Model):
     """
     A comment on a post by an author
     """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    text = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    comment = models.TextField()
+
+    COMMENT_CONTENT_TYPE_CHOICES = [
+        ('text/plain', 'Plain Text'),
+        ('text/markdown', 'CommonMark'),
+    ]
+    content_type = models.CharField(choices=COMMENT_CONTENT_TYPE_CHOICES, default='text/plain', max_length=100)
+    published = models.DateTimeField(auto_now_add=True)
 
 class CommentLike(models.Model):
     """
     A like on a comment by an author
     """
-    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    object = models.ForeignKey(Comment, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    published = models.DateTimeField(auto_now_add=True)
 
     # Ensure that a user can only like a comment once
     # https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
     class Meta:
-        unique_together = ['comment', 'author']
+        unique_together = ['object', 'author']
 
 
 # NEW: FollowRequest model

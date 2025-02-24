@@ -6,11 +6,13 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APIClient
-from .models import Author, Post
+from rest_framework.test import APIClient, APITestCase
+from rest_framework import status
+from .models import Author, Post, Comment, CommentLike, PostLike
+from .serializers import AuthorSerializer, PostSerializer
 import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
-
+from django.contrib.auth.models import User
 
 # Create your tests here.
 class AuthorTests(TestCase):
@@ -62,13 +64,13 @@ class AuthorTests(TestCase):
 
     def test_update_author(self):
         '''
-        test for POST /api/authors/{AUTHOR_ID}/update/ to update an author
+        test for PUT /api/authors/{AUTHOR_ID}/update/ to update an author
         '''
         data = {
             "display_name":"Updated User",
             "github": "https://github.com/updateduser"
         }
-        response = self.client.post(f"/api/authors/{self.author.id}/update/", data, format="json")
+        response = self.client.put(f"/api/authors/{self.author.id}/update/", data, format="json")
         self.assertEqual(response.status_code, 200)
         self.author.refresh_from_db()
         self.assertEqual(self.author.display_name, "Updated User")
@@ -137,3 +139,471 @@ class AuthorTests(TestCase):
         self.author.refresh_from_db()
         self.assertEqual(self.author.display_name, "Updated Again")
 
+class CommentTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.author = Author.objects.create(
+            id=uuid.uuid4(),
+            username = "testuser",
+            display_name = "Test User",
+            github = "https://github.com/testuser",
+            profile_image = None,
+            host="http://127.0.0.1:8000"
+        )
+
+        self.post = Post.objects.create(
+            id=uuid.uuid4(),
+            author=self.author,
+            text="Test Post",
+            visibility="PUBLIC"
+        )
+
+        self.comment = Comment.objects.create(
+            id=uuid.uuid4(),
+            post=self.post,
+            author=self.author,
+            comment="Test Comment",
+            content_type="text/plain"
+        )
+
+    # Method from Microsoft Copilot, "write a function to ensure an object of the correct format is returned", 2025-02-22
+    def validate_comments_object(self, response):
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json(), "The response should not be empty")
+        self.assertEqual(response.json()['type'], "comments")
+        self.assertEqual(response.json()['page'], f"http://127.0.0.1:8000/authors/{self.author.id}/posts/{self.post.id}")
+        self.assertEqual(response.json()['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/posts/{self.post.id}/comments")
+        self.assertEqual(response.json()['page_number'], 1)
+        self.assertEqual(response.json()['size'], 1)
+        self.assertEqual(response.json()['count'], 1)
+        self.assertEqual(len(response.json()['src']), 1)
+        
+        # Validate each individual comment
+        for comment in response.json()['src']:
+            self.validate_individual_comment(comment)
+
+    # Method from Microsoft Copilot, "write a function to ensure an object of the correct format is returned", 2025-02-22
+    def validate_individual_comment(self, comment):
+        self.assertEqual(comment['type'], "comment")
+        self.assertEqual(comment['author']['type'], "author")
+        self.assertEqual(comment['author']['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}")
+        self.assertEqual(comment['author']['displayName'], "Test User")
+        self.assertEqual(comment['comment'], "Test Comment")
+        self.assertEqual(comment['contentType'], "text/plain")
+        self.assertEqual(comment['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/commented/{self.comment.id}")
+        self.assertEqual(comment['post'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/posts/{self.post.id}")
+        self.assertEqual(comment['page'], f"http://127.0.0.1:8000/authors/{self.author.id}/posts/{self.post.id}")
+        self.assertEqual(comment['likes']['type'], "likes")
+        self.assertEqual(comment['likes']['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/commented/{self.comment.id}/likes")
+        self.assertEqual(comment['likes']['page'], f"http://127.0.0.1:8000/authors/{self.author.id}/comments/{self.comment.id}")
+        self.assertEqual(comment['likes']['page_number'], 1)
+        self.assertEqual(comment['likes']['size'], 0)
+        self.assertEqual(comment['likes']['count'], 0)
+        self.assertEqual(len(comment['likes']['src']), 0)
+
+    def test_get_author_comments(self):
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/comments/ to get all comments on a post
+        '''
+        url = reverse("get_author_comments", args=[self.author.id, self.post.id])
+        response = self.client.get(url)
+        self.validate_comments_object(response)
+
+    def test_get_comments(self):
+        '''
+        test for GET /api/posts/{POST_ID}/comments/ to get all comments on a post
+        '''
+        url = reverse("get_comments", args=[self.post.id])
+        response = self.client.get(url)
+        self.validate_comments_object(response)
+
+    def test_get_remote_comment(self):
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/post/{POST_ID}/comments/{COMMENT_ID}/ to get a specific comment
+        '''
+        url = reverse("get_remote_comment", args=[self.author.id, self.post.id, self.comment.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json(), "The response should not be empty")
+        self.validate_individual_comment(response.json())
+
+    def test_commented(self):
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/commented/ to get all comments by an author
+        and for POST /api/authors/{AUTHOR_ID}/commented/ to create a new comment
+        '''
+        # GET request
+        url = reverse("commented", args=[self.author.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        for comment in response.json():
+            self.validate_individual_comment(comment)
+        
+        # POST request to create a new comment on the post
+        # TODO: make it consistent with the comment json standard
+        data = {
+            "type": "comment",
+            "comment": "New Comment",
+            "post": self.post.id,
+            "contentType": "text/plain",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Comment.objects.count(), 2)
+        comment = Comment.objects.get(comment="New Comment")
+        self.assertEqual(comment.author, self.author)
+
+    def test_get_author_comment(self):
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/commented/{COMMENT_ID}/ to get a specific comment by an author
+        '''
+        url = reverse("get_author_comment", args=[self.author.id, self.comment.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.validate_individual_comment(response.json())
+
+    def test_get_comment(self):
+        '''
+        test for GET /api/commented/{COMMENT_ID}/ to get a specific comment
+        '''
+        url = reverse("get_comment", args=[self.comment.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.validate_individual_comment(response.json())
+
+class LikeTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.author = Author.objects.create(
+            id=uuid.uuid4(),
+            username = "testuser",
+            display_name = "Test User",
+            github = "https://github.com/testuser",
+            profile_image = None,
+            host="http://127.0.0.1:8000"
+        )
+
+        self.post = Post.objects.create(
+            id=uuid.uuid4(),
+            author=self.author,
+            text="Test Post",
+            visibility="PUBLIC"
+        )
+
+        self.comment = Comment.objects.create(
+            id=uuid.uuid4(),
+            post=self.post,
+            author=self.author,
+            comment="Test Comment",
+            content_type="text/plain"
+        )
+
+        self.post_like = PostLike.objects.create(
+            id=uuid.uuid4(),
+            object=self.post,
+            author=self.author
+        )
+
+        self.comment_like = CommentLike.objects.create(
+            id=uuid.uuid4(),
+            object=self.comment,
+            author=self.author
+        )
+
+    # Method from Microsoft Copilot, "write similar functions to ensure likes match this format", 2025-02-22
+    def validate_likes_object(self, response, like_type="post"):
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json(), "The response should not be empty")
+        self.assertEqual(response.json()['type'], "likes")
+        if like_type == "post":
+            self.assertEqual(response.json()['page'], f"http://127.0.0.1:8000/authors/{self.author.id}/posts/{self.post.id}")
+            self.assertEqual(response.json()['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/posts/{self.post.id}/likes")
+        elif like_type == "comment":
+            self.assertEqual(response.json()['page'], f"http://127.0.0.1:8000/authors/{self.author.id}/comments/{self.comment.id}")
+            self.assertEqual(response.json()['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/commented/{self.comment.id}/likes")
+                             
+        self.assertEqual(response.json()['page_number'], 1)
+        self.assertEqual(response.json()['size'], 1)
+        self.assertEqual(response.json()['count'], 1)
+        self.assertEqual(len(response.json()['src']), 1)
+        
+        # Validate each individual like
+        if like_type == "post":
+            for like in response.json()['src']:
+                self.validate_individual_post_like(like)
+        elif like_type == "comment":
+            for like in response.json()['src']:
+                self.validate_individual_comment_like(like)
+
+    # Method from Microsoft Copilot, "write similar functions to ensure likes match this format", 2025-02-22
+    def validate_individual_post_like(self, like):
+        self.assertEqual(like['type'], "like")
+        self.assertEqual(like['author']['type'], "author")
+        self.assertEqual(like['author']['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}")
+        self.assertEqual(like['author']['displayName'], "Test User")
+        self.assertEqual(like['author']['github'], "https://github.com/testuser")
+        self.assertEqual(like['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/liked/{self.post_like.id}")
+        self.assertEqual(like['object'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/posts/{self.post.id}")
+
+    # Method from Microsoft Copilot, "write similar functions to ensure likes match this format", 2025-02-22
+    def validate_individual_comment_like(self, like):
+        self.assertEqual(like['type'], "like")
+        self.assertEqual(like['author']['type'], "author")
+        self.assertEqual(like['author']['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}")
+        self.assertEqual(like['author']['displayName'], "Test User")
+        self.assertEqual(like['author']['github'], "https://github.com/testuser")
+        self.assertEqual(like['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/liked/{self.comment_like.id}")
+        self.assertEqual(like['object'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/commented/{self.comment.id}")
+        
+    
+    def test_get_post_likes(self):
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/likes/ to get all likes on a post
+        '''
+        url = reverse("get_post_likes", args=[self.author.id, self.post.id])
+        response = self.client.get(url)
+        self.validate_likes_object(response, "post")
+
+    def test_get_likes(self):
+        '''
+        test for GET /api/posts/{POST_ID}/likes/ to get all likes on a post
+        '''
+        url = reverse("get_likes", args=[self.post.id])
+        response = self.client.get(url)
+        self.validate_likes_object(response, "post")
+
+    def test_get_comment_likes(self):
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/comments/{COMMENT_ID}/likes/ to get all likes on a comment
+        '''
+        url = reverse("get_comment_likes", args=[self.author.id, self.post.id, self.comment.id])
+        response = self.client.get(url)
+        self.validate_likes_object(response, "comment")
+
+    def test_get_author_liked(self):
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/liked/ to get all likes by an author
+        '''
+        url = reverse("get_author_liked", args=[self.author.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json(), "The response should not be empty")
+        self.assertEqual(response.json()['type'], "likes")
+        self.assertEqual(response.json()['page'], f"http://127.0.0.1:8000/authors/{self.author.id}/likes")
+        self.assertEqual(response.json()['id'], f"http://127.0.0.1:8000/api/authors/{self.author.id}/likes")
+        self.assertEqual(response.json()['page_number'], 1)
+        self.assertEqual(response.json()['size'], 2)
+        self.assertEqual(response.json()['count'], 2)
+        self.assertEqual(len(response.json()['src']), 2)
+
+        # Validate each individual like
+        for like in response.json()['src']:
+            if like['object'] == f"http://127.0.0.1:8000/api/authors/{self.author.id}/posts/{self.post.id}":
+                self.validate_individual_post_like(like)
+            elif like['object'] == f"http://127.0.0.1:8000/api/authors/{self.author.id}/commented/{self.comment.id}":
+                self.validate_individual_comment_like(like)        
+
+    def test_get_author_like(self):
+        '''
+        test for GET /api/authors/{AUTHOR_ID}/liked/{LIKE_ID} to get a specific like by an author
+        '''
+        url = reverse("get_author_like", args=[self.author.id, self.post_like.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.validate_individual_post_like(response.json())
+
+        url = reverse("get_author_like", args=[self.author.id, self.comment_like.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.validate_individual_comment_like(response.json())
+
+    def test_get_like(self):
+        '''
+        test for GET /api/liked/{LIKE_ID}/ to get a specific like
+        '''
+        url = reverse("get_like", args=[self.post_like.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.validate_individual_post_like(response.json())
+
+    def test_like_post(self):
+        '''
+        test for POST /api/authors/{AUTHOR_ID}/posts/{POST_ID}/liked/ to like a post
+        '''
+        # Clear likes before testing
+        PostLike.objects.all().delete()
+
+        self.assertEqual(PostLike.objects.count(), 0)
+        url = reverse("like_post", args=[self.author.id, self.post.id])
+        body = {
+            "type": "like",
+        }
+        response = self.client.post(url, body, format="json")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(PostLike.objects.count(), 1)
+        like = PostLike.objects.get(author=self.author)
+        self.assertEqual(like.object, self.post)
+
+        # Test for liking the same post again
+        response = self.client.post(url, body, format="json")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(PostLike.objects.count(), 0)
+
+    def test_like_comment(self):
+        '''
+        test for POST /api/authors/{AUTHOR_ID}/comments/{COMMENT_ID}/liked/ to like a comment
+        '''
+        # Clear likes before testing
+        CommentLike.objects.all().delete()
+
+        self.assertEqual(CommentLike.objects.count(), 0)
+        url = reverse("like_comment", args=[self.author.id, self.comment.id])
+        body = {
+            "type": "like",
+        }
+        response = self.client.post(url, body, format="json")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(CommentLike.objects.count(), 1)
+        like = CommentLike.objects.get(author=self.author)
+        self.assertEqual(like.object, self.comment)
+
+        # Test for liking the same comment again
+        response = self.client.post(url, body, format="json")
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(CommentLike.objects.count(), 0)
+        
+class PostTests(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.author = Author.objects.create(
+            id=uuid.uuid4(),
+            username="testuser",
+            display_name="Test User",
+            github="https://github.com/testuser",
+            profile_image=None,
+            host="http://127.0.0.1:8000"
+        )
+        # Create a user for authentication
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.author.user = self.user
+        self.author.save()
+
+        self.post = Post.objects.create(
+            id=uuid.uuid4(),
+            author=self.author,
+            text="Test Post",
+            visibility="PUBLIC"
+        )
+        self.image_post = Post.objects.create(
+            id=uuid.uuid4(),
+            author=self.author,
+            text="Test Image Post",
+            visibility="PUBLIC",
+            content_type="image/jpeg",
+            image=SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg")
+        )
+
+    def test_get_post(self):
+        """
+        Test for GET /api/authors/{AUTHOR_ID}/posts/ to retrieve posts
+        """
+        response = self.client.get(f"/api/authors/{self.author.id}/posts/")
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(len(response.json()), 1)
+        
+    def test_create_post(self):
+        """
+        Test POST /api/authors/{AUTHOR_ID}/posts/ to create a new post.
+        """
+        self.client.force_authenticate(user=self.user)
+        url = reverse("create_post", args=[self.author.id])
+        data = {
+            "text": "New Post",
+            "visibility": "PUBLIC"
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertTrue(Post.objects.filter(text="New Post").exists())
+        
+    def test_delete_post(self):
+        """
+        Test for DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ to delete a post
+        """
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(f"/api/authors/{self.author.id}/posts/{self.post.id}/delete/")
+        self.assertEqual(response.status_code, 204)
+        self.assertFalse(Post.objects.filter(id=self.post.id).exists())
+
+    def test_delete_post_unauthorized(self):
+        """
+        Test DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ with unauthorized user.
+        """
+        url = reverse("delete_post", args=[self.author.id, self.post.id])
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_update_post(self):
+        """
+        Test PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ to update a post.
+        """
+        self.client.force_authenticate(user=self.user)
+        url = reverse("update_post", args=[self.author.id, self.post.id])
+        data = {"text": "Edited Post"}
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.post.refresh_from_db()
+        self.assertEqual(self.post.text, "Edited Post")
+
+    def test_update_post_unauthorized(self):
+        """
+        Test PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ with unauthorized user.
+        """
+        url = reverse("update_post", args=[self.author.id, self.post.id])
+        data = {"text": "Edited Post"}
+        response = self.client.put(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        
+    def test_get_post_by_fqid(self):
+        """
+        Test GET /api/posts/{POST_FQID}/ to get a post by its fully qualified ID.
+        """
+        url = reverse("get_post_by_fqid", args=[self.post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['text'], "Test Post")
+        
+    def test_get_author_posts(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/ to get all posts by an author.
+        """
+        url = reverse("get_author_posts", args=[self.author.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)  # Two posts created in setUp
+
+    def test_get_author_posts_authenticated(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/ with authenticated user.
+        """
+        self.client.force_authenticate(user=self.author.user)
+        url = reverse("get_author_posts", args=[self.author.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
+        
+    def test_get_post_image(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/image/ to get an image post.
+        """
+        url = reverse("get_post_image", args=[self.author.id, self.image_post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], "image/jpeg")
+
+    def test_get_post_image_not_found(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/image/ for a non-image post.
+        """
+        url = reverse("get_post_image", args=[self.author.id, self.post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

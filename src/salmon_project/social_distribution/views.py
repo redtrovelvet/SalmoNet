@@ -8,18 +8,19 @@ from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .models import Author, Post, FollowRequest
-from .serializers import AuthorSerializer, PostSerializer
+from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike
+from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
-from django.contrib.auth import login, logout, authenticate, get_user
+from django.contrib.auth import login, logout, authenticate
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
+
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib import messages  
-from django.views.decorators.http import require_POST
-
-import commonmark
+from django.views.decorators.http import require_POST, require_http_methods
+from django.core.paginator import Paginator
+import commonmark, uuid
 
 # Create your views here.
 def index(request):
@@ -33,11 +34,23 @@ def index(request):
         #<END GENERATED></END>
     else:
         posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
+        author = None
+
+    # Serialize posts
+    serialized_posts = PostSerializer(posts, many=True).data.copy()
 
     # Convert posts to a new list with rendered text if needed
     rendered_posts = []
-    for p in posts:
+    for i in range(len(serialized_posts)):
+        p = posts[i]
+        sp = serialized_posts[i]
         html_text = render_markdown_if_needed(p.text, p.content_type)
+        post_comments = sp["comments"]["src"]
+        comments = []
+        for comment in post_comments:
+            comment["id"] = comment["id"].split("/")[-1]
+            comments.append(comment)
+
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
@@ -46,9 +59,12 @@ def index(request):
             "video": p.video,
             "visibility": p.visibility,
             "created_at": p.created_at,
+            "comments": comments,
+            "likes": sp["likes"],
         })
 
-    return render(request, "social_distribution/index.html", {"posts": rendered_posts})
+    
+    return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": author})
 
 def profile(request, author_id):
     '''
@@ -158,6 +174,81 @@ def view_post(request, author_id, post_id):
         
     return render(request, "social_distribution/view_post.html", {"post": post})
 
+def render_markdown_if_needed(text, content_type):
+    """
+    If content_type is 'text/markdown', convert 'text' to HTML using commonmark.
+    Otherwise, return the text as-is (plain text).
+    """
+    if content_type == "text/markdown":
+        return commonmark.commonmark(text or "")
+    return text or "" 
+
+@require_http_methods(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def edit_post(request, author_id, post_id):
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    if post.author.user != request.user:
+        return HttpResponseForbidden("You are not allowed to edit this post.")
+
+    if request.method == "GET":
+        return render(request, "social_distribution/edit_post.html", {"post": post})
+    
+    data = request.POST.copy()
+
+    # If user checked "Remove Image", ensure data contains image as None.
+    if "remove_image" in data:
+        data["image"] = None
+    else:
+        # Only remove the key if no new file is uploaded.
+        image_val = data.get("image", "")
+        if image_val is None or (isinstance(image_val, str) and not image_val.strip()):
+            # Only pop if the remove checkbox was NOT checked.
+            data.pop("image", None)
+
+    # Similarly for video.
+    if "remove_video" in data:
+        data["video"] = None
+    else:
+        video_val = data.get("video", "")
+        if video_val is None or (isinstance(video_val, str) and not video_val.strip()):
+            data.pop("video", None)
+
+    serializer = PostSerializer(post, data=data, partial=True)
+    if serializer.is_valid():
+        # If new files are uploaded, attach them.
+        if "image" in request.FILES:
+            serializer.validated_data["image"] = request.FILES["image"]
+        if "video" in request.FILES:
+            serializer.validated_data["video"] = request.FILES["video"]
+        serializer.save()
+        return redirect("profile", author_id=author_id)
+    else:
+        return render(request, "social_distribution/edit_post.html", {"post": post, "serializer": serializer})
+
+@require_http_methods(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def delete_post_local(request, author_id, post_id):
+    """
+    Local view to delete a post via an HTML confirmation page.
+    GET: Render delete_post.html to confirm deletion, passing rendered_text.
+    POST: Delete the post and redirect to the profile page.
+    """
+    post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    if post.author.user != request.user:
+        return HttpResponseForbidden("You are not allowed to delete this post.")
+
+    if request.method == "GET":
+        rendered_text = render_markdown_if_needed(post.text, post.content_type)
+        return render(request, "social_distribution/delete_post.html", {"post": post,"rendered_text": rendered_text,"author": post.author})
+    
+    # On POST, delete the post and redirect.
+    post.delete()
+    return redirect("profile", author_id=author_id)
+
+
+
+# --- API Endpoints ---
+
 @api_view(["GET"])
 def get_authors(request):
     '''
@@ -188,7 +279,7 @@ def create_author(request):
         return Response(serializer.data, status=201)
     return Response(status=400, data=serializer.errors)
 
-@api_view(["POST"])
+@api_view(["PUT"])
 def update_author(request, author_id):
     '''
     API: updates an author's profile
@@ -325,6 +416,7 @@ def view_friends(request):
     followers = set(Author.objects.filter(following=current_author))
     friends = following.intersection(followers)
     return render(request, "social_distribution/friends.html", {"friends": friends})
+
 def get_post(request, author_id, post_id):
     """
     GET [local, remote] get the public post whose serial is POST_ID
@@ -351,7 +443,7 @@ def delete_post(request, author_id, post_id):
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def edit_post(request, author_id, post_id):
+def update_post(request, author_id, post_id):
     """
     PUT [local] update a post
     must be authenticated locally as the author
@@ -430,11 +522,314 @@ def get_post_image(request, author_id, post_id):
         return Response(status=403)
     return Response(post.image.read(), content_type=post.content_type)
 
-def render_markdown_if_needed(text, content_type):
-    """
-    If content_type is 'text/markdown', convert 'text' to HTML using commonmark.
-    Otherwise, return the text as-is (plain text).
-    """
-    if content_type == "text/markdown":
-        return commonmark.commonmark(text or "")
-    return text or ""    
+@api_view(["POST"])
+def inbox(request, author_id):
+    '''
+    TODO: implement then inbox to handle a variety of API calls
+    '''
+    pass
+
+
+# ========================== COMMENTS ==========================
+@api_view(["GET"])
+def get_comments(request, post_id, author_id=None):
+    '''
+    API: returns all comments for a post in the form of a "comments" object
+    GET [local, remote]: the comments on the post {AUTHOR_SERIAL} {POST_SERIAL}
+    GET [local, remote]: the comments on the post (that our server knows about) {POST_FQID}
+    Body is a "comments" object
+    '''
+    # Get optional query parameters for pagination
+    page_number = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 5))
+
+    # Get the relevant comments based on the post id and optional author id
+    if author_id:
+        # TODO: implement the author serial thing when doing remote node management
+        comments = Comment.objects.filter(post_id=post_id)
+    else:
+        comments = Comment.objects.filter(post_id=post_id)
+        author_id = Post.objects.get(id=post_id).author.id
+
+    # Paginate the comments
+    paginator = Paginator(comments, size)
+    page = paginator.get_page(page_number)
+    serialized_comments = CommentSerializer(page, many=True).data
+
+    # Get the host for the page
+    host = settings.BASE_URL
+
+    # Create the comments object
+    comments_data = {
+        "type": "comments",
+        "page": f"{host}/authors/{author_id}/posts/{post_id}",
+        "id": f"{host}/api/authors/{author_id}/posts/{post_id}/comments",
+        "page_number": page_number,
+        "size": min(len(serialized_comments), size),
+        "count": len(comments),
+        "src": serialized_comments
+    }
+
+    return Response(comments_data)
+
+@api_view(["GET", "POST"])
+def commented(request, author_id):
+    '''
+    API: returns all comments made by an author, or allows an author to post a comment
+    GET [local, remote] get the list of comments author has made on: {AUTHOR_SERIAL}
+        [local] any post
+        [remote] public and unlisted posts
+        paginated
+    POST [local] if you post an object of "type":"comment", it will add your comment to the post whose ID is in the post field
+        Then the node you posted it to is responsible for forwarding it to the correct inbox
+
+    GET [local] get the list of comments author has made on any post (that local node knows about) {AUTHOR_FQID}
+    body is list of "comment" objects
+    '''
+    if request.method == "POST":
+        # Add author id to the serializer data, make a copy of the data because it is immutable
+        data = request.data.copy()
+        author = get_object_or_404(Author, id=author_id)
+        data["author"] = author.id
+
+        # Create the comment
+        serializer = CommentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return redirect("index")
+        return Response(status=400, data=serializer.errors)
+    else: # GET request
+        # Get the comments made by the author
+        comments = Comment.objects.filter(author_id=author_id)
+        serializer = CommentSerializer(comments, many=True)
+        return Response(serializer.data)
+
+@api_view(["GET"])
+def get_comment(request, comment_id, author_id=None, post_id=None):
+    '''
+    API: returns a specific comment
+    GET [local, remote] get the comment {AUTHOR_SERIAL} {POST_SERIAL} {REMOTE_COMMENT_FQID}
+    GET [local, remote] get this comment {AUTHOR_SERIAL} {COMMENT_SERIAL}
+    GET [local] get this comment {COMMENT_FQID}
+    body is a "comment" object
+    '''
+    # Get the comment based on the comment id
+    if author_id:
+        # TODO: implement the author and post serial when doing remote node management
+        if post_id:
+            comment = get_object_or_404(Comment, id=comment_id)
+        else:
+            comment = get_object_or_404(Comment, id=comment_id)
+    else:
+        comment = get_object_or_404(Comment, id=comment_id)
+    
+    # Return the comment 
+    serializer = CommentSerializer(comment)
+    return Response(serializer.data)
+
+
+# ========================== LIKES ==========================
+@api_view(["GET"])
+def get_post_likes(request, post_id, author_id=None):
+    '''
+    API: returns all likes for a post
+    GET [local, remote] a list of likes from other authors on AUTHOR_SERIAL's post POST_SERIAL {AUTHOR_SERIAL} {POST_SERIAL}
+    GET [local] a list of likes from other authors on AUTHOR_SERIAL's post POST_SERIAL {POST_FQID}
+    body is a "likes" object
+    '''
+    # Get optional query parameters for pagination
+    page_number = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 50))
+
+    if author_id:
+        # TODO: implement the author serial thing when doing remote node management
+        likes = PostLike.objects.filter(object=post_id)
+    else:
+        likes = PostLike.objects.filter(object=post_id)
+        author_id = Post.objects.get(id=post_id).author.id
+
+    # Paginate the likes
+    paginator = Paginator(likes, size)
+    page = paginator.get_page(page_number)
+    serialized_likes = PostLikeSerializer(page, many=True).data
+
+    # Get the host for the page
+    host = settings.BASE_URL
+
+    # Create the likes object
+    likes_data = {
+        "type": "likes",
+        "page": f"{host}/authors/{author_id}/posts/{post_id}",
+        "id": f"{host}/api/authors/{author_id}/posts/{post_id}/likes",
+        "page_number": page_number,
+        "size": min(len(serialized_likes), size),
+        "count": len(likes),
+        "src": serialized_likes
+    }
+
+    return Response(likes_data)    
+
+@api_view(["GET"])
+def get_comment_likes(request, author_id, post_id, comment_id):
+    '''
+    API: returns all likes for a comment
+    GET [local, remote] a list of likes from other authors on AUTHOR_SERIAL's post POST_SERIAL comment COMMENT_FQID
+    body is a "likes" object
+    '''
+    # Get optional query parameters for pagination
+    page_number = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 50))
+    
+    # TODO: implement the author and post serial thing when doing remote node management
+    likes = CommentLike.objects.filter(object=comment_id)
+
+    # Paginate the likes
+    paginator = Paginator(likes, size)
+    page = paginator.get_page(page_number)
+    serialized_likes = CommentLikeSerializer(page, many=True).data
+
+    # Get the host for the page
+    host = settings.BASE_URL
+
+    # Create the likes object
+    likes_data = {
+        "type": "likes",
+        "page": f"{host}/authors/{author_id}/comments/{comment_id}", # TODO: maybe change this to user display name
+        "id": f"{host}/api/authors/{author_id}/commented/{comment_id}/likes",
+        "page_number": page_number,
+        "size": min(len(serialized_likes), size),
+        "count": len(likes),
+        "src": serialized_likes
+    }
+
+    return Response(likes_data)
+    
+
+@api_view(["GET"])
+def get_author_liked(request, author_id):
+    '''
+    API: returns all likes made by an author
+    GET [local, remote] a list of likes by AUTHOR_SERIAL {AUTHOR_SERIAL}
+    GET [local] a list of likes by AUTHOR_FQID {AUTHOR_FQID}
+    body is a "likes" object
+    '''
+    # TODO: check if this body should actually be a "likes" object and not a list of "like" objects
+
+    # Get optional query parameters for pagination
+    page_number = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 50))
+
+    # Get the likes made by the author for both posts and comments
+    post_likes = PostLike.objects.filter(author=author_id)
+    comment_likes = CommentLike.objects.filter(author=author_id)
+    likes = list(post_likes) + list(comment_likes)
+
+    # Paginate the likes
+    paginator = Paginator(likes, size)
+    page = paginator.get_page(page_number)
+    serialized_likes = PostLikeSerializer(page, many=True).data
+
+    # Get the host for the page
+    host = settings.BASE_URL
+
+    # Create the likes object
+    likes_data = {
+        "type": "likes",
+        "page": f"{host}/authors/{author_id}/likes", # TODO: maybe change this to user display name
+        "id": f"{host}/api/authors/{author_id}/likes",
+        "page_number": page_number,
+        "size": min(len(serialized_likes), size),
+        "count": len(likes),
+        "src": serialized_likes
+    }
+
+    return Response(likes_data)
+
+
+@api_view(["GET"])
+def get_like(request, like_id, author_id=None):
+    '''
+    API: returns a specific like
+    GET [local, remote] a single like {AUTHOR_SERIAL} {LIKE_SERIAL}
+    GET [local] a single like {LIKE_FQID}
+    body is a "like" object
+    '''
+    # Get the like based on the like id, try both posts and comments
+    if author_id:
+        # TODO: implement the author serial thing when doing remote node management
+        try:
+            like = PostLike.objects.get(id=like_id)
+            post = True
+        except:
+            like = CommentLike.objects.get(id=like_id)
+            post = False
+    else:
+        try:
+            like = PostLike.objects.get(id=like_id)
+            post = True
+        except:
+            like = CommentLike.objects.get(id=like_id)
+            post = False
+    
+    if not like:
+        return Response(status=404)
+
+    if post:
+        serializer = PostLikeSerializer(like)
+    else:
+        serializer = CommentLikeSerializer(like)
+    return Response(serializer.data)
+
+@api_view(["POST"])
+def like_post(request, author_id, post_id):
+    '''
+    API: allows an author to like a post
+    '''
+    # Get the data
+    data = request.data.copy()
+
+    # Ensure that the request is a like request
+    if data.get("type") == "like":
+        # Add the author and post to the data
+        data["author"] = author_id
+        data["object"] = post_id
+
+        # Create the like
+        serializer = PostLikeSerializer(data=data)
+        if serializer.is_valid():
+            # Check if the author has already liked the post, if so, unlike it instead
+            if PostLike.objects.filter(author=author_id, object=post_id).exists():
+                PostLike.objects.filter(author=author_id, object=post_id).delete()
+            else:
+                try:
+                    serializer.save()
+                except Exception as e:
+                    print(e)
+    return redirect("index")
+
+@api_view(["POST"])
+def like_comment(request, author_id, comment_id):
+    '''
+    API: allows an author to like a comment
+    '''
+    # Get the data
+    data = request.data.copy()
+
+    # Ensure that the request is a like request
+    if data.get("type") == "like":
+        # Add the author and comment to the data
+        data["author"] = author_id
+        data["object"] = comment_id
+
+        # Create the like
+        serializer = CommentLikeSerializer(data=data)
+        if serializer.is_valid():
+            # Check if the author has already liked the comment, if so, unlike it instead
+            if CommentLike.objects.filter(author=author_id, object=comment_id).exists():
+                CommentLike.objects.filter(author=author_id, object=comment_id).delete()
+            else:
+                try:
+                    serializer.save()
+                except Exception as e:
+                    print(e)
+    return redirect("index")
