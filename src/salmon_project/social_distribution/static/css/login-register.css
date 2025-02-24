@@ -1,36 +1,111 @@
-/* Sign-In and Sign-Up Forms */
-.signin-form, .signup-form {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    max-width: 400px;
-    margin: 0 auto;
-}
-
-.signin-form h2, .signup-form h2 {
-    margin-bottom: 20px;
-    color: #2c3e50;
-}
-
-.signin-form input, .signup-form input {
+/* Login Form */
+/* Center the login form */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
     width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
     border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Style the form */
+.login-form {
+    width: 100%;
+}
+
+.login-form input {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
     border-radius: 5px;
 }
 
-.signin-form button, .signup-form button {
-    width: 100%;
+/* Style the submit button */
+button {
+    background-color: #007bff;
+    color: white;
     padding: 10px;
-    background-color: #1abc9c;
-    color: #fff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
+    width: 94%;
+    font-size: 16px;
 }
 
-.signin-form button:hover, .signup-form button:hover {
-    background-color: #16a085;
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Style the register link */
+p a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+p a:hover {
+    text-decoration: underline;
+}
+
+
+
+/* Register Form */
+.register-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Style the form */
+.register-form {
+    width: 100%;
+}
+
+.register-form input {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Style the submit button */
+button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 94%;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Style the login link */
+p a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+p a:hover {
+    text-decoration: underline;
 }
