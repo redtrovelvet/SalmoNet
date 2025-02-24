@@ -113,8 +113,8 @@ Replace {author_id} with the actual UUID of the author.
 #### 1st Example
 
 Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/>
-``` json
 Response: A JSON object representing the author's details:
+``` json
 {
     "type": "author",
     "id": "<http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c>",
