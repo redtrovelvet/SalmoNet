@@ -23,6 +23,7 @@ Send a GET request to '/api/authors/'.
 
 Request: GET <http://127.0.0.1:8000/api/authors/>
 Response: A JSON array of author objects is returned
+``` json
 [
     {
         "type": "author",
@@ -43,11 +44,13 @@ Response: A JSON array of author objects is returned
         "host": "http://127.0.0.1:8000"
     }
 ]
+```
 
 #### 2nd Example
 
 Request: GET <http://127.0.0.1:8000/api/authors/>
 Response: A JSON array of author objects is returned
+``` json
 [
     {
         "type": "author",
@@ -77,6 +80,7 @@ Response: A JSON array of author objects is returned
         "host": "http://127.0.0.1:8000"
     }
 ]
+```
 
 #### Explantion of JSON Field
 
@@ -109,6 +113,7 @@ Replace {author_id} with the actual UUID of the author.
 #### 1st Example
 
 Request: GET <http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/>
+``` json
 Response: A JSON object representing the author's details:
 {
     "type": "author",
@@ -119,11 +124,13 @@ Response: A JSON object representing the author's details:
     "profile_image": "images/pexels-pixabay-158063_8FOC3DL.jpg",
     "host": "<http://127.0.0.1:8000>"
 }
+```
 
 #### 2nd Example
 
 Request: GET <http://127.0.0.1:8000/api/authors/22460264-0965-4950-84b9-2a86a4205c0a/>
 Response: A JSON object representing the author's details:
+``` json
 {
     "type": "author",
     "id": "<http://127.0.0.1:8000/api/authors/22460264-0965-4950-84b9-2a86a4205c0a>",
@@ -133,6 +140,7 @@ Response: A JSON object representing the author's details:
     "profile_image": "images/pexels-pixabay-158063.jpg",
     "host": "<http://127.0.0.1:8000>"
 }
+```
 
 #### Explantion of JSON Field
 
@@ -164,11 +172,14 @@ Send a POST request to '/api/authors/create' with the required fields.
 #### 1st Example
 
 Request: POST <http://127.0.0.1:8000/api/authors/create/>
+``` json
 {
     "username": "new_user",
     "host": "<http://127.0.0.1:8000>"
 }
+```
 Response: A JSON object representing the created author's details:
+``` json
 {
     "type": "author",
     "id": "<http://127.0.0.1:8000/api/authors/4f3f038c-f87e-4f54-bc53-f4a213be97d0>",
@@ -178,15 +189,19 @@ Response: A JSON object representing the created author's details:
     "profile_image": "",
     "host": "<http://127.0.0.1:8000>"
 }
+```
 
 #### 2nd Example
 
 Request: POST <http://127.0.0.1:8000/api/authors/create/>
+``` json
 {
     "username": "another_new_user",
     "host": "<http://127.0.0.1:8000>"
 }
+```
 Response: A JSON object representing the created author's details:
+``` json
 {
     "type": "author",
     "id": "<http://127.0.0.1:8000/api/authors/c3f33e5b-c9af-49a1-a2eb-995c00e209d7>",
@@ -196,6 +211,7 @@ Response: A JSON object representing the created author's details:
     "profile_image": "",
     "host": "<http://127.0.0.1:8000>"
 }
+```
 
 #### Explantion of JSON Field
 
@@ -228,10 +244,13 @@ Replace {author_id} with the actual UUID of the author.
 #### 1st Example
 
 Request: POST <http://127.0.0.1:8000/api/authors/4f3f038c-f87e-4f54-bc53-f4a213be97d0/update/>
+``` json
 {
     "display_name": "Updated User"
 }
+```
 Response:  A JSON object representing the updated author's details:
+``` json
 {
     "id": "<http://127.0.0.1:8000/api/authors/4f3f038c-f87e-4f54-bc53-f4a213be97d0>",
     "username": "new_user",
@@ -240,14 +259,18 @@ Response:  A JSON object representing the updated author's details:
     "profile_image": "",
     "host": "<http://127.0.0.1:8000>"
 }
+```
 
 #### 2nd Example
 
 Request: POST <http://127.0.0.1:8000/api/authors/c3f33e5b-c9af-49a1-a2eb-995c00e209d7/update/>
+``` json
 {
     "github": "<http://www.github.com/updated_user/>",
 }
+```
 Response:  A JSON object representing the updated author's details:
+``` json
 {
     "id": "<http://127.0.0.1:8000/api/authors/c3f33e5b-c9af-49a1-a2eb-995c00e209d7>",
     "username": "another_new_user",
@@ -256,6 +279,7 @@ Response:  A JSON object representing the updated author's details:
     "profile_image": "",
     "host": "<http://127.0.0.1:8000>"
 }
+```
 
 #### Explantion of JSON Field
 
