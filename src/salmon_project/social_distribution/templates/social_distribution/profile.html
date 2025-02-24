@@ -14,7 +14,6 @@
         <p>GitHub: <a href="{{ author.github }}" target="_blank">{{ author.github }}</a></p>
     {% endif %}
 
-<<<<<<< HEAD
 <!-- Container for all posts -->
 <div>
     {% for post in posts %}
@@ -22,10 +21,10 @@
     <!-- Wrap each post in its own block with some spacing -->
     <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;">
         
-        {% if post.text %}
-            <!-- If 'content_type' was text/markdown, post.text is HTML -->
-            <div>{{ post.text|safe }}</div>
-=======
+    {% if post.text %}
+        <!-- If 'content_type' was text/markdown, post.text is HTML -->
+        <div>{{ post.text|safe }}</div>
+    {% endif %}
     {% if user.is_authenticated and user.author.id == author.id %}
         <a href="{% url 'edit_profile' author.id %}">Edit Profile</a>
         <p><a href="{% url 'view_followers' %}">View Followers</a></p>  
@@ -76,7 +75,6 @@
             {% for field, errors in serializer.errors.items %}
                 <p>{{ field }}: {{ errors }}</p>
             {% endfor %}
->>>>>>> development
         {% endif %}
     {% endif %}
 
@@ -164,5 +162,6 @@
             {% endif %}
         {% endfor %}
     </div>
+    {% endfor %}
 </div>
 {% endblock %}
