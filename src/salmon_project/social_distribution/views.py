@@ -42,7 +42,7 @@ def index(request):
         posts = (posts | public_posts).distinct().order_by("-created_at")
     else:
         posts = Post.objects.filter(visibility="PUBLIC").exclude(visibility="DELETED").order_by("-created_at")
-        author = None
+        current_author = None
 
     # Serialize posts
     serialized_posts = PostSerializer(posts, many=True).data.copy()
@@ -72,7 +72,7 @@ def index(request):
         })
 
     
-    return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": author})
+    return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": current_author})
 
 def profile(request, author_id):
     '''
@@ -80,9 +80,20 @@ def profile(request, author_id):
     '''
     author = get_object_or_404(Author, id=author_id)
     posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
+    # Serialize posts
+    serialized_posts = PostSerializer(posts, many=True).data.copy()
+
     rendered_posts = []
-    for p in posts:
+    for i in range(len(serialized_posts)):
+        p = posts[i]
+        sp = serialized_posts[i]
         html_text = render_markdown_if_needed(p.text, p.content_type)
+        post_comments = sp["comments"]["src"]
+        comments = []
+        for comment in post_comments:
+            comment["id"] = comment["id"].split("/")[-1]
+            comments.append(comment)
+
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
@@ -91,6 +102,8 @@ def profile(request, author_id):
             "video": p.video,
             "visibility": p.visibility,
             "created_at": p.created_at,
+            "comments": comments,
+            "likes": sp["likes"],
         })
 
     return render(request, "social_distribution/profile.html", {
@@ -616,7 +629,7 @@ def commented(request, author_id):
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return redirect("index")
+            return redirect(request.META.get('HTTP_REFERER', 'index'))
         return Response(status=400, data=serializer.errors)
     else: # GET request
         # Get the comments made by the author
@@ -825,7 +838,7 @@ def like_post(request, author_id, post_id):
                     serializer.save()
                 except Exception as e:
                     print(e)
-    return redirect("index")
+    return redirect(request.META.get("HTTP_REFERER", "index"))
 
 @api_view(["POST"])
 def like_comment(request, author_id, comment_id):
@@ -852,4 +865,4 @@ def like_comment(request, author_id, comment_id):
                     serializer.save()
                 except Exception as e:
                     print(e)
-    return redirect("index")
+    return redirect(request.META.get("HTTP_REFERER", "index"))
