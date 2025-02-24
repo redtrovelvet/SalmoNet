@@ -78,8 +78,23 @@ def profile(request, author_id):
     '''
     renders the profile page for an author
     '''
-    author = get_object_or_404(Author, id=author_id)
-    posts = Post.objects.filter(author=author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
+    post_author = get_object_or_404(Author, id=author_id)
+
+    # Attempt to get author object from current user
+    try:
+        current_user = request.user.author
+
+    # If current user is not signed in
+    except AttributeError:
+        current_user = None
+
+    if current_user is not None and current_user.id == post_author.id:
+        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
+    elif current_user is not None and post_author.is_friends_with(current_user):
+        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "FRIENDS"]).order_by("-created_at")
+    else:
+        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC"]).order_by("-created_at")        
+
     # Serialize posts
     serialized_posts = PostSerializer(posts, many=True).data.copy()
 
@@ -107,7 +122,7 @@ def profile(request, author_id):
         })
 
     return render(request, "social_distribution/profile.html", {
-        "author": author,
+        "author": post_author,
         "posts": rendered_posts
     })
 
