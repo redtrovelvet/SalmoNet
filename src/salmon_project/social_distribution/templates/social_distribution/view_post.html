@@ -19,8 +19,8 @@
 {% endif %}
 
 {% if post.text %}
-    <div>
-        <p>{{ post.text }}</p>
+    <div 
+        class="post-text">{{ post.text|safe }}
     </div>
 {% endif %}
 
