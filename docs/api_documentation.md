@@ -453,11 +453,40 @@ Response: An HTML page is returned listing all followers of the current user.
   curl -X GET http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002/
   ```
 
+  - If user is not logged in:
   Response:
 
   ```json
   {
-    "detail": "Authentication credentials were not provided."
+    "detail": "Authentication required."
+  }
+  ```
+
+  - If user is not a friend:
+  Response:
+
+  ```json
+  {
+    "detail": "You are not friends with the author."
+  }
+  ```
+
+  - If user is a friend:
+  Response:
+
+  ```json
+  {
+    "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "type": "post",
+    "author": {
+      "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+      "displayName": "Test User",
+      "github": "https://github.com/testuser"
+    },
+    "text": "Test Post",
+    "visibility": "PUBLIC",
+    "contentType": "text/plain",
+    "created_at": "2023-10-01T12:00:00Z"
   }
   ```
 

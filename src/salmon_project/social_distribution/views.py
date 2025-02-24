@@ -480,16 +480,33 @@ def view_friends(request):
     friends = following.intersection(followers)
     return render(request, "social_distribution/friends.html", {"friends": friends})
 
+@api_view(['GET'])
 def get_post(request, author_id, post_id):
     """
     GET [local, remote] get the public post whose serial is POST_ID
-    friends-only posts: must be authenticated
+    Friends-only posts: must be authenticated and must be a friend.
     """
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
-    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
-        return Response(status=403)
+    author = post.author
+
+    # If the post is friends-only, enforce friendship check
+    if post.visibility == 'FRIENDS':
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication required."}, status=403)
+
+        # Ensure the authenticated user is an author in your system
+        try:
+            requesting_author = request.user.author
+        except Author.DoesNotExist:
+            return Response({"detail": "Authentication required."}, status=403)
+
+        # Check if the requesting user is actually a friend of the post author
+        if requesting_author not in author.following.all() or author not in requesting_author.following.all():
+            return Response({"detail": "You are not friends with the author."}, status=403)
+        
     serializer = PostSerializer(post)
     return Response(serializer.data)
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -525,13 +542,29 @@ def update_post(request, author_id, post_id):
 def get_post_by_fqid(request, post_fqid):
     """
     GET [local] get the public post whose URL is POST_FQID
-    friends-only posts: must be authenticated
+    Friends-only posts: must be authenticated and must be a friend.
     """
     post = get_object_or_404(Post, id=post_fqid)
-    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
-        return Response(status=403)
+    author = post.author
+
+    # If the post is friends-only, enforce friendship check
+    if post.visibility == 'FRIENDS':
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication required."}, status=403)
+
+        # Ensure the authenticated user is an author in your system
+        try:
+            requesting_author = request.user.author
+        except Author.DoesNotExist:
+            return Response({"detail": "User is not an author."}, status=403)
+
+        # Check if the requesting user is actually a friend of the post author
+        if requesting_author not in author.following.all() or author not in requesting_author.following.all():
+            return Response({"detail": "You are not friends with the author."}, status=403)
+
     serializer = PostSerializer(post)
     return Response(serializer.data)
+
 
 @api_view(['GET'])
 def get_author_posts(request, author_id):
