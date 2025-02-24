@@ -3,6 +3,7 @@
 {% block title %}Following{% endblock %}
 
 {% block content %}
+<div class="content">
     <h1>Who You Follow</h1>
     {% if following %}
         <ul>
@@ -15,4 +16,5 @@
     {% else %}
         <p>You are not following anyone.</p>
     {% endif %}
+</div>
 {% endblock %}
