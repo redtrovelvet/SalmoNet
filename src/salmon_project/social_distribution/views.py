@@ -129,6 +129,8 @@ def edit_profile(request, author_id):
     To allow authors to edit their profile information like display name, github, and profile image
     '''
     author = get_object_or_404(Author, id=author_id)
+    if not request.user.is_authenticated or request.user != author.user:
+        return HttpResponseForbidden("You are not allowed to edit this profile.")
     if request.method == "POST":
         author.display_name = request.POST.get("display_name", author.display_name)
         author.github = request.POST.get("github", author.github)
