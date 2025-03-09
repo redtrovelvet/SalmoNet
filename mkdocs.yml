@@ -1,0 +1,12 @@
+site_name: Social Distribution
+nav:
+  - Home: index.md
+  - APIs:
+    - Authors: author_api.md
+    - Following/Friends: following_friends_api.md
+    - Posts: post_api.md
+    - Comments: comments_api.md
+    - Commented: commented_api.md
+    - Likes: likes_api.md
+    - Liked: liked_api.md
+theme: readthedocs
