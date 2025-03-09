@@ -11,9 +11,9 @@ class PostingTests(APITestCase):
         self.client = APIClient()
 
         # Create users
-        self.user = User.objects.create_user(username='testuser', password='testpass')
-        self.friend_user = User.objects.create_user(username='frienduser', password='friendpass')
-        self.non_friend_user = User.objects.create_user(username='nonfrienduser', password='nonfriendpass')
+        self.user = User.objects.create_user(username="testuser", password="testpass")
+        self.friend_user = User.objects.create_user(username="frienduser", password="friendpass")
+        self.non_friend_user = User.objects.create_user(username="nonfrienduser", password="nonfriendpass")
 
         # Create authors
         self.author = Author.objects.create(
@@ -213,7 +213,7 @@ class PostingTests(APITestCase):
         url = reverse("get_post_image", args=[self.author.id, self.image_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response['Content-Type'], "image/jpeg")
+        self.assertEqual(response["Content-Type"], "image/jpeg")
 
     def test_get_post_image_not_found(self):
         """

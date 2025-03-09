@@ -73,11 +73,11 @@ class ReadingTests(TestCase):
         )
     
     def test_show_public_posts(self):
-        '''
+        """
         The public stream should show only public posts if you are an unauthenticated user
         Testing user story: As an author, I want my stream page to show me all the
         public posts my node knows about, so I can find new people to follow.
-        '''
+        """
         response = self.client.get(reverse("index"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Public Post by Other")
@@ -86,10 +86,10 @@ class ReadingTests(TestCase):
         self.assertNotContains(response, "Deleted Post")
     
     def test_show_friends_and_unlisted_posts(self):
-        '''
+        """
         Testing user story: As an author, I want my stream page to show me all the 
         unlisted and friends-only posts of all the authors I follow.
-        '''
+        """
         self.client.login(username="user", password="userpass")
         response = self.client.get(reverse("index"))
         self.assertEqual(response.status_code, 200)
@@ -98,10 +98,10 @@ class ReadingTests(TestCase):
         self.assertNotContains(response, "Deleted Post")
 
     def test_order_of_stream_if_edit_post(self):
-        '''
+        """
         Testing user story: As an author, I want my stream page to show me the most recent 
         version of a post if it has been edited.
-        '''
+        """
         response_initial = self.client.get(reverse("index"))
         self.assertContains(response_initial, "Public Post by Other")
         self.public_post.text = "Public Post Updated"
@@ -111,18 +111,18 @@ class ReadingTests(TestCase):
         self.assertNotContains(response_updated, "Public Post by Other")
 
     def test_do_not_show_deleted_posts(self):
-        '''
+        """
         Testing user story: As an author, I want my stream page to not show me posts that have been deleted.
-        '''
+        """
         self.client.login(username="user", password="userpass")
         response = self.client.get(reverse("index"))
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Deleted Post")
 
     def test_order_of_stream(self):
-        '''
+        """
         As an author, I want my "stream" page to be sorted with the most recent posts first.
-        '''
+        """
         older_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.other_author,

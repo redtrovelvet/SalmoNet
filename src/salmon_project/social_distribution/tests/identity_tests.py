@@ -25,25 +25,25 @@ class IdentityTests(TestCase):
         )
     
     def test_get_authors(self):
-        '''
+        """
         test for GET /api/authors/ to get all authors
-        '''
+        """
         response = self.client.get("/api/authors/")
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json(), "The response should not be empty")
     
     def test_get_author(self):
-        '''
+        """
         test for GET /api/authors/{AUTHOR_ID}/ to get specific author
-        '''
+        """
         response = self.client.get(f"/api/authors/{self.author.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['username'], "testuser")
+        self.assertEqual(response.json()["username"], "testuser")
 
     def test_create_author(self):
-        '''
+        """
         test for POST /api/authors/create/ to create an author
-        '''
+        """
         data = {
             "username": "newuser",
             "display_name": "New User",
@@ -52,12 +52,12 @@ class IdentityTests(TestCase):
         }
         response = self.client.post("/api/authors/create/", data, format="json")
         self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json()['username'], "newuser")
+        self.assertEqual(response.json()["username"], "newuser")
 
     def test_update_author(self):
-        '''
+        """
         test for PUT /api/authors/{AUTHOR_ID}/update/ to update an author
-        '''
+        """
         data = {
             "display_name": "Updated User",
             "github": "https://github.com/updateduser"
@@ -68,26 +68,26 @@ class IdentityTests(TestCase):
         self.assertEqual(self.author.display_name, "Updated User")
     
     def test_invalid_author(self):
-        '''
+        """
         test for GET /api/authors/{INVALID_ID} to return 404
-        '''
+        """
         response = self.client.get("/api/authors/000000000000/")
         self.assertEqual(response.status_code, 404)
     
     def test_consistent_identity(self):
-        '''
+        """
         testing user story: As an author, I want a consistent identity per node, so 
-        that URLs to me/my posts are predictable and don't stop working.
-        '''
+        that URLs to me/my posts are predictable and don"t stop working.
+        """
         response = self.client.get(f"/api/authors/{self.author.id}/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["id"], f"http://127.0.0.1:8000/api/authors/{self.author.id}")
     
     def test_multiple_authors_on_node(self):
-        '''
+        """
         testing user story: As a node admin, I want to host multiple authors on my node, 
         so I can have a friendly online community.
-        '''
+        """
         another_author = Author.objects.create(
             id=uuid.uuid4(),
             username="anotheruser",
@@ -100,28 +100,28 @@ class IdentityTests(TestCase):
         self.assertGreaterEqual(len(response.json()), 2)  # at least two authors exist
 
     def test_public_page(self):
-        '''
+        """
         testing user story: As an author, I want a public page with my profile information, so that I can link people to it.
-        '''
+        """
         response = self.client.get(reverse("profile", args=[self.author.id]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.author.display_name)
 
     def test_profile_page_public_posts(self):
-        '''
+        """
         Testing user story: As an author, I want my profile page to show my public posts (most recent first), 
         so they can decide if they want to follow me.
-        '''
+        """
         Post.objects.create(author=self.author, text="Test Post", visibility="PUBLIC")
         response = self.client.get(reverse("profile", args=[self.author.id]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Post")
 
     def test_manage_profile_web_browser(self):
-        '''
+        """
         Testing user story: As an author, I want to be able to use my web browser to manage my profile, 
-        so I don't have to use a clunky API.
-        '''
+        so I don"t have to use a clunky API.
+        """
         self.client.login(username="testuser", password="testpass")
         data = {
             "display_name": "Updated Again",
@@ -133,9 +133,9 @@ class IdentityTests(TestCase):
         self.assertEqual(self.author.display_name, "Updated Again")
 
     def test_edit_other_user_profile(self):
-        '''
+        """
         Test to make sure that one user cannot try and edit another user profile infromation
-        '''
+        """
         hacker = User.objects.create_user(username="hacker", password="hackerpassword")
         self.client.login(username="hacker", password="hackerpassword")
 
@@ -143,12 +143,12 @@ class IdentityTests(TestCase):
         response = self.client.post(f"/authors/{self.author.id}/edit/", edit_data)
 
         self.author.refresh_from_db()
-        self.assertNotEqual(self.author.display_name, "Hacked Name", "A user should not be able to edit another user's profile.")
+        self.assertNotEqual(self.author.display_name, "Hacked Name", "A user should not be able to edit another user"s profile.")
 
     def test_unauthorized_user_edit(self):
-        '''
-        Test to make sure that an unauthorized user cannot try and edit anoter person's profile
-        '''
+        """
+        Test to make sure that an unauthorized user cannot try and edit anoter person"s profile
+        """
         hacker = User.objects.create_user(username="hacker", password="hackerpassword")
         edit_data = {"display_name": "Unauthorized Edit", "github": "https://github.com/hacked"}
         response = self.client.post(f"/authors/{self.author.id}/edit/", edit_data)
