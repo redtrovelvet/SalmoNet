@@ -77,7 +77,8 @@
     padding: 15px;
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    border: 1px solid #ccc
+    border: 1px solid #ccc;
+    width: 100%;
 }
 
 .post-text {
@@ -118,6 +119,16 @@
 
 .post-actions .btn-danger {
     background: red;
+}
+
+.btn-primary {
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: red; 
+    color: black;
+    transform: scale(1.05); 
 }
 
 .copy-post-link {
