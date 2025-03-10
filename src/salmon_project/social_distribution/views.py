@@ -500,7 +500,6 @@ def view_following(request):
     current_author = request.user.author  # Current user’s Author profile
     following = current_author.following.all()
     return render(request, "social_distribution/following.html", {"following": following})
-    # ^^^ RENDER following.html with the list of following
 
 def view_friends(request):
     if not request.user.is_authenticated:
@@ -709,8 +708,6 @@ def inbox(request, author_id):
     '''
     API: Inbox endpoint to receive various objects.
     If the payload has type "follow", create a follow request.
-    If the payload has type "like", create a like notification.
-    If the payload has type "comment", create a comment notification.
     '''
     data = request.data
     if data.get("type") == "follow":
@@ -733,7 +730,6 @@ def inbox(request, author_id):
         else:
             return Response({"detail": "Follow request already exists."}, status=200)
     elif data.get("type") == "like":
-        # <BEGIN UPDATED: Process like notification>
         actor_data = data.get("actor")
         if not actor_data:
             return Response({"detail": "Missing actor data."}, status=400)
@@ -758,10 +754,8 @@ def inbox(request, author_id):
             "published": published,
             "post_url": post_url
         }
-        # <END UPDATED>
         return Response({"detail": "Like notification received.", "notification": notification}, status=201)
     elif data.get("type") == "comment":
-        # <BEGIN UPDATED: Process comment notification>
         # Expect payload to include: type, actor, post_id, comment, published
         actor_data = data.get("actor")
         if not actor_data:
@@ -791,7 +785,6 @@ def inbox(request, author_id):
             "published": published,
             "post_url": post_url
         }
-        # <END UPDATED>
         return Response({"detail": "Comment notification received.", "notification": notification}, status=201)
     else:
         return Response({"detail": "Unsupported type for inbox."}, status=400)
@@ -841,7 +834,7 @@ def commented(request, author_id):
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return redirect("view_post", author_id=serializer.instance.post.author.id, post_id=serializer.instance.post.id)
+            return Response(serializer.data, status=201)
         return Response(status=400, data=serializer.errors)
     else:
         comments = Comment.objects.filter(author_id=author_id)
@@ -1008,12 +1001,15 @@ def like_post(request, author_id, post_id):
             return Response(status=400, data={"error": serializer.errors})
     else:
         return Response(status=400, data={"error": "Invalid type."})
+        
     like_count = PostLike.objects.filter(object=post_id).count()
-
-    return redirect(request.META.get("HTTP_REFERER", "index"))
+    return Response({"like_count": like_count}, status=201)
 
 @api_view(["POST"])
 def like_comment(request, author_id, comment_id):
+    '''
+    API: allows an author to like a comment
+    '''
     data = request.data.copy()
     if data.get("type") == "like":
         data["author"] = author_id
@@ -1026,17 +1022,14 @@ def like_comment(request, author_id, comment_id):
                 try:
                     serializer.save()
                 except Exception as e:
-                    messages.error(request, f"Error: {str(e)}")
-                    return redirect(request.META.get("HTTP_REFERER", "index"))
+                    return Response(status=400, data={"error": str(e)})
         else:
-            messages.error(request, f"Error: {serializer.errors}")
-            return redirect(request.META.get("HTTP_REFERER", "index"))
+            return Response(status=400, data={"error": serializer.errors})
     else:
-        messages.error(request, "Invalid type.")
-        return redirect(request.META.get("HTTP_REFERER", "index"))
+        return Response(status=400, data={"error": "Invalid type."})
     
-    return redirect(request.META.get("HTTP_REFERER", "index"))
-
+    like_count = CommentLike.objects.filter(object=comment_id).count()
+    return Response({"like_count": like_count}, status=201)
 
 
 @api_view(["GET", "PUT", "DELETE"])
