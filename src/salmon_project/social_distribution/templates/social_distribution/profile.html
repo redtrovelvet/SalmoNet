@@ -107,7 +107,6 @@
             </form>
             {% endif %}
 
-            {% if post.comments %}
             <h3>Comments</h3>
             <div class="comments comments-list">
                 <ul>
@@ -125,7 +124,6 @@
                 {% endfor %}
                 </ul>
             </div>
-            {% endif %}
 
             <!-- Button for copying link to posts -->
             <button type="button" class="copy-post-link btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">

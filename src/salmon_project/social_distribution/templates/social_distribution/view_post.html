@@ -52,25 +52,23 @@
         </button>
     {% endif %}
 
-    {% if post.comments %}
-      <h3>Comments</h3>
-      <div class="comments">
-        <ul>
-          {% for comment in post.comments %}
-            <li class="comment">
-              <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
-              {% if user.is_authenticated and current_user is not None %}
-                <form method="post" action="{% url 'like_comment' current_user.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ current_user.id }}">
-                  {% csrf_token %}
-                  <input type="hidden" name="type" value="like">
-                  <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ comment.likes.count }}</span></button>
-                </form>
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+    <h3>Comments</h3>
+    <div class="comments">
+      <ul>
+        {% for comment in post.comments %}
+          <li class="comment">
+            <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
+            {% if user.is_authenticated and current_user is not None %}
+              <form method="post" action="{% url 'like_comment' current_user.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ current_user.id }}">
+                {% csrf_token %}
+                <input type="hidden" name="type" value="like">
+                <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ comment.likes.count }}</span></button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
 
     {% if user.is_authenticated and current_user is not None %}
       <div class="add-comment">
@@ -86,7 +84,7 @@
     {% endif %}
 
     <!-- <a href="{% url 'edit_post' post.author.id post.id %}">Edit Post</a>
-    <form action="{% url 'delete_post' post.author.id post.id %}" method="post" style="display:inline;">
+    <form action="{% url 'delete_post_local' post.author.id post.id %}" method="post" style="display:inline;">
         {% csrf_token %}
         <button type="submit">Delete Post</button>
     </form> -->

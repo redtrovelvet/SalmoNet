@@ -37,25 +37,23 @@
       </form>
     {% endif %}
 
-    {% if post.comments %}
-      <h3>Comments</h3>
-      <div class="comments">
-        <ul>
-          {% for comment in post.comments %}
-            <li class="comment">
-              <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
-              {% if user.is_authenticated and author is not None %}
-                <form method="post" action="{% url 'like_comment' author.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ author.id }}">
-                  {% csrf_token %}
-                  <input type="hidden" name="type" value="like">
-                  <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ comment.likes.count }}</span></button>
-                </form>
-              {% endif %}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
+    <h3>Comments</h3>
+    <div class="comments">
+      <ul>
+        {% for comment in post.comments %}
+          <li class="comment">
+            <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
+            {% if user.is_authenticated and author is not None %}
+              <form method="post" action="{% url 'like_comment' author.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ author.id }}">
+                {% csrf_token %}
+                <input type="hidden" name="type" value="like">
+                <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ comment.likes.count }}</span></button>
+              </form>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
 
     {% if post.visibility == 'PUBLIC' %}
         <!-- Button for copying link to posts -->
