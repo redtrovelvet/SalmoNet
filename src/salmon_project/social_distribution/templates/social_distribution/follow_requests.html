@@ -24,5 +24,19 @@
     {% else %}
         <p>No follow requests.</p>
     {% endif %}
+    
+    <h2>Notifications</h2>
+    {% if like_notifications %}
+        <ul>
+            {% for notification in like_notifications %}
+                <li>
+                    {{ notification.author.display_name }} liked <a href="{{ notification.post_url }}">your post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No notifications.</p>
+    {% endif %}
+    
 </div>
 {% endblock %}

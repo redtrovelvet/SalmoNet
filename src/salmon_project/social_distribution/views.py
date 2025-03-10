@@ -13,6 +13,7 @@ from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, Co
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
+from django.utils.html import escape
 
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -53,7 +54,8 @@ def index(request):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        html_text = render_markdown_if_needed(p.text, p.content_type)
+        safe_text = escape(p.text)
+        html_text = render_markdown_if_needed(safe_text, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -106,7 +108,8 @@ def profile(request, author_id):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        html_text = render_markdown_if_needed(p.text, p.content_type)
+        safe_text = escape(p.text)
+        html_text = render_markdown_if_needed(safe_text, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -194,7 +197,8 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
     serialized_post = PostSerializer(post).data
-    html_text = render_markdown_if_needed(post.text, post.content_type)
+    safe_text = escape(post.text)
+    html_text = render_markdown_if_needed(safe_text, post.content_type)
     post_comments = serialized_post["comments"]["src"]
     comments = []
     for comment in post_comments:
@@ -294,7 +298,8 @@ def delete_post_local(request, author_id, post_id):
         return HttpResponseForbidden("You are not allowed to delete this post.")
     
     if request.method == "GET":
-        rendered_text = render_markdown_if_needed(post.text, post.content_type)
+        safe_text = escape(post.text)
+        rendered_text = render_markdown_if_needed(safe_text, post.content_type)
         return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
     post.visibility = "DELETED"
@@ -375,7 +380,13 @@ def view_follow_requests(request):
         return redirect('login')
     current_author = request.user.author
     follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')
-    return render(request, "social_distribution/follow_requests.html", {"follow_requests": follow_requests})
+    # <BEGIN GENERATED: Like Notifications Feature with Link>
+    like_notifications = PostLike.objects.filter(object__author=current_author).order_by('-published')
+    # For each like notification, add a link to the liked post (format similar to the copy link feature)
+    for notification in like_notifications:
+        notification.post_url = f"{settings.BASE_URL}/authors/{notification.object.author.id}/posts/{notification.object.id}/view/"
+    # <END GENERATED: Like Notifications Feature with Link>
+    return render(request, "social_distribution/follow_requests.html", {"follow_requests": follow_requests, "like_notifications": like_notifications})
 
 @require_POST
 def approve_follow_request(request, request_id):
@@ -678,10 +689,11 @@ def commented(request, author_id):
         data = request.data.copy()
         author = get_object_or_404(Author, id=author_id)
         data["author"] = author.id
+
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return redirect(request.META.get('HTTP_REFERER', 'index'))
+            return Response(serializer.data, status=201)
         return Response(status=400, data=serializer.errors)
     else:
         comments = Comment.objects.filter(author_id=author_id)
@@ -778,7 +790,6 @@ def get_author_liked(request, author_id):
     '''
     API: returns all likes made by an author
     '''
-
     # Get optional query parameters for pagination
     page_number = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 50))
@@ -844,8 +855,14 @@ def like_post(request, author_id, post_id):
                 try:
                     serializer.save()
                 except Exception as e:
-                    print(e)
-    return redirect(request.META.get("HTTP_REFERER", "index"))
+                    return Response(status=400, data={"error": str(e)})
+        else:
+            return Response(status=400, data={"error": serializer.errors})
+    else:
+        return Response(status=400, data={"error": "Invalid type."})
+        
+    like_count = PostLike.objects.filter(object=post_id).count()
+    return Response({"like_count": like_count}, status=201)
 
 @api_view(["POST"])
 def like_comment(request, author_id, comment_id):
@@ -864,8 +881,14 @@ def like_comment(request, author_id, comment_id):
                 try:
                     serializer.save()
                 except Exception as e:
-                    print(e)
-    return redirect(request.META.get("HTTP_REFERER", "index"))
+                    return Response(status=400, data={"error": str(e)})
+        else:
+            return Response(status=400, data={"error": serializer.errors})
+    else:
+        return Response(status=400, data={"error": "Invalid type."})
+    
+    like_count = CommentLike.objects.filter(object=comment_id).count()
+    return Response({"like_count": like_count}, status=201)
 
 
 @api_view(["GET", "PUT", "DELETE"])
