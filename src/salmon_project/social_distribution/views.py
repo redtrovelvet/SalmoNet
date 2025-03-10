@@ -98,7 +98,9 @@ def profile(request, author_id):
     if current_user is not None and current_user.id == post_author.id:
         posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
     elif current_user is not None and post_author.is_friends_with(current_user):
-        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "FRIENDS"]).order_by("-created_at")
+        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
+    elif current_user is not None and post_author.is_following(current_user):
+        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "UNLISTED"]).order_by("-created_at")
     else:
         posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC"]).order_by("-created_at")        
 

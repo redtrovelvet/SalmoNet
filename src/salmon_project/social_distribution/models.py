@@ -34,6 +34,9 @@ class Author(models.Model):
     
     def is_friends_with(self, other_author):
         return self in other_author.following.all() and other_author in self.following.all()
+    
+    def is_following(self, other_author):
+        return self in other_author.following.all()
 
 @receiver(post_save, sender=User)
 def create_author_for_admin(sender, instance, created, **kwargs):
