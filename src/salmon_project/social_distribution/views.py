@@ -380,7 +380,72 @@ def view_follow_requests(request):
         return redirect('login')
     current_author = request.user.author
     follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')
-    return render(request, "social_distribution/follow_requests.html", {"follow_requests": follow_requests})
+    
+    notifications = []
+    
+    # Notifications for likes on posts
+    post_like_qs = PostLike.objects.filter(object__author=current_author)
+    for like in post_like_qs:
+        notifications.append({
+            "type": "like",
+            "author": {
+                "display_name": like.author.display_name,
+                "username": like.author.username  # Include username explicitly
+            },
+            "published": like.published,
+            "post_url": f"{like.object.author.host}/authors/{like.object.author.id}/posts/{like.object.id}/view/"
+        })
+    
+    # Notifications for likes on comments on posts owned by the current user.
+    comment_like_qs = CommentLike.objects.filter(object__post__author=current_author)
+    for like in comment_like_qs:
+        notifications.append({
+            "type": "like_comment",
+            "author": {
+                "display_name": like.author.display_name,
+                "username": like.author.username  # Include username explicitly
+            },
+            "published": like.published,
+            "liked_comment": like.object.comment,
+            "post_url": f"{like.object.post.author.host}/authors/{like.object.post.author.id}/posts/{like.object.post.id}/view/"
+        })
+    
+    # Notifications for new comments on posts owned by the current user.
+    comment_qs = Comment.objects.filter(post__author=current_author).exclude(author=current_author)
+    for comment in comment_qs:
+        notifications.append({
+            "type": "comment",
+            "author": {
+                "display_name": comment.author.display_name,
+                "username": comment.author.username  # Include username explicitly
+            },
+            "comment": comment.comment,
+            "published": comment.published,
+            "post_url": f"{comment.post.author.host}/authors/{comment.post.author.id}/posts/{comment.post.id}/view/"
+        })
+    
+    following_notifications = []
+    # Limit to the 5 latest posts by followed authors
+    following_posts = Post.objects.filter(author__in=current_author.following.all()).exclude(author=current_author).order_by("-created_at")[:5]
+    for post in following_posts:
+        following_notifications.append({
+            "type": "following_post",
+            "author": {
+                "display_name": post.author.display_name,
+                "username": post.author.username  # Include username explicitly
+            },
+            "published": post.created_at,
+            "post_url": f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/view/"
+        })
+    
+    # Sort notifications by published date descending (latest first)
+    notifications.sort(key=lambda n: n["published"], reverse=True)
+    
+    return render(request, "social_distribution/follow_requests.html", {
+        "follow_requests": follow_requests,
+        "like_notifications": notifications,
+        "following_notifications": following_notifications  
+    })
 
 @require_POST
 def approve_follow_request(request, request_id):
@@ -644,6 +709,8 @@ def inbox(request, author_id):
     '''
     API: Inbox endpoint to receive various objects.
     If the payload has type "follow", create a follow request.
+    If the payload has type "like", create a like notification.
+    If the payload has type "comment", create a comment notification.
     '''
     data = request.data
     if data.get("type") == "follow":
@@ -665,6 +732,67 @@ def inbox(request, author_id):
             return Response({"detail": "Follow request created."}, status=201)
         else:
             return Response({"detail": "Follow request already exists."}, status=200)
+    elif data.get("type") == "like":
+        # <BEGIN UPDATED: Process like notification>
+        actor_data = data.get("actor")
+        if not actor_data:
+            return Response({"detail": "Missing actor data."}, status=400)
+        sender_id = actor_data.get("id")
+        try:
+            sender_uuid = uuid.UUID(sender_id.split("/")[-1])
+        except Exception:
+            try:
+                sender_uuid = uuid.UUID(sender_id)
+            except Exception:
+                return Response({"detail": "Invalid sender id."}, status=400)
+        sender = get_object_or_404(Author, id=sender_uuid)
+        published = data.get("published")  # expect published time in the payload
+        post_id = data.get("post_id")
+        if not post_id:
+            return Response({"detail": "Missing post id."}, status=400)
+        post_obj = get_object_or_404(Post, id=post_id)
+        post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/view/"
+        notification = {
+            "type": "like_notification",
+            "author": AuthorSerializer(sender).data,
+            "published": published,
+            "post_url": post_url
+        }
+        # <END UPDATED>
+        return Response({"detail": "Like notification received.", "notification": notification}, status=201)
+    elif data.get("type") == "comment":
+        # <BEGIN UPDATED: Process comment notification>
+        # Expect payload to include: type, actor, post_id, comment, published
+        actor_data = data.get("actor")
+        if not actor_data:
+            return Response({"detail": "Missing actor data."}, status=400)
+        sender_id = actor_data.get("id")
+        try:
+            sender_uuid = uuid.UUID(sender_id.split("/")[-1])
+        except Exception:
+            try:
+                sender_uuid = uuid.UUID(sender_id)
+            except Exception:
+                return Response({"detail": "Invalid sender id."}, status=400)
+        sender = get_object_or_404(Author, id=sender_uuid)
+        post_id = data.get("post_id")
+        if not post_id:
+            return Response({"detail": "Missing post id."}, status=400)
+        post_obj = get_object_or_404(Post, id=post_id)
+        comment_text = data.get("comment")
+        if not comment_text:
+            return Response({"detail": "Missing comment text."}, status=400)
+        published = data.get("published")
+        post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/view/"
+        notification = {
+            "type": "comment_notification",
+            "author": AuthorSerializer(sender).data,
+            "comment": comment_text,
+            "published": published,
+            "post_url": post_url
+        }
+        # <END UPDATED>
+        return Response({"detail": "Comment notification received.", "notification": notification}, status=201)
     else:
         return Response({"detail": "Unsupported type for inbox."}, status=400)
 
@@ -713,7 +841,7 @@ def commented(request, author_id):
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=201)
+            return redirect("view_post", author_id=serializer.instance.post.author.id, post_id=serializer.instance.post.id)
         return Response(status=400, data=serializer.errors)
     else:
         comments = Comment.objects.filter(author_id=author_id)
@@ -880,15 +1008,12 @@ def like_post(request, author_id, post_id):
             return Response(status=400, data={"error": serializer.errors})
     else:
         return Response(status=400, data={"error": "Invalid type."})
-        
     like_count = PostLike.objects.filter(object=post_id).count()
-    return Response({"like_count": like_count}, status=201)
+
+    return redirect(request.META.get("HTTP_REFERER", "index"))
 
 @api_view(["POST"])
 def like_comment(request, author_id, comment_id):
-    '''
-    API: allows an author to like a comment
-    '''
     data = request.data.copy()
     if data.get("type") == "like":
         data["author"] = author_id
@@ -901,14 +1026,17 @@ def like_comment(request, author_id, comment_id):
                 try:
                     serializer.save()
                 except Exception as e:
-                    return Response(status=400, data={"error": str(e)})
+                    messages.error(request, f"Error: {str(e)}")
+                    return redirect(request.META.get("HTTP_REFERER", "index"))
         else:
-            return Response(status=400, data={"error": serializer.errors})
+            messages.error(request, f"Error: {serializer.errors}")
+            return redirect(request.META.get("HTTP_REFERER", "index"))
     else:
-        return Response(status=400, data={"error": "Invalid type."})
+        messages.error(request, "Invalid type.")
+        return redirect(request.META.get("HTTP_REFERER", "index"))
     
-    like_count = CommentLike.objects.filter(object=comment_id).count()
-    return Response({"like_count": like_count}, status=201)
+    return redirect(request.META.get("HTTP_REFERER", "index"))
+
 
 
 @api_view(["GET", "PUT", "DELETE"])

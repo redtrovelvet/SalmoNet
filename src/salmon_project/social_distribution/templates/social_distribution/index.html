@@ -5,9 +5,13 @@
 <!-- Container for all posts -->
 <div class="content">
   <h2>Your Stream</h2>
+  <!-- Checkbox to filter friends-only posts -->
+  <label for="friendsOnlyFilter">
+    <input type="checkbox" id="friendsOnlyFilter"> Show Friends Posts Only
+  </label>
   {% for post in posts %}
   <!-- Each post in its own block with margin, border, and padding -->
-  <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;" class="post">
+  <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;" class="post" data-visibility="{{ post.visibility }}">
     
     <p><strong>{{ post.author.display_name }}</strong></p>
 
@@ -94,5 +98,26 @@
   });
 </script>
 {% endif %}
+
+<!-- to filter posts based on friends-only checkbox -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const checkbox = document.getElementById("friendsOnlyFilter");
+  checkbox.addEventListener("change", function() {
+    const posts = document.querySelectorAll(".post");
+    posts.forEach(function(post) {
+      if (checkbox.checked) {
+        if (post.getAttribute("data-visibility") !== "FRIENDS") {
+          post.style.display = "none";
+        } else {
+          post.style.display = "";
+        }
+      } else {
+        post.style.display = "";
+      }
+    });
+  });
+});
+</script>
 
 {% endblock %}
