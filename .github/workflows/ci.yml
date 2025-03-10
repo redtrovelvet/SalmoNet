@@ -28,23 +28,23 @@ jobs:
             mkdocs-material-
       - run: pip install mkdocs-material 
       - run: mkdocs gh-deploy --force
-    test:
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v4
-        
-        # Set up Python environment for Django
-        - name: Set up Python
-          uses: actions/setup-python@v5
-          with:
-            python-version: 3.x
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      # Set up Python environment for Django
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
 
-        # Install Python dependencies
-        - name: Install dependencies
-          working-directory: src/salmon_project
-          run: pip install -r requirements.txt
-        
-        # Run Django tests
-        - name: Run Django tests
-          working-directory: src/salmon_project
-          run: python manage.py test
+      # Install Python dependencies
+      - name: Install dependencies
+        working-directory: src/salmon_project
+        run: pip install -r requirements.txt
+      
+      # Run Django tests
+      - name: Run Django tests
+        working-directory: src/salmon_project
+        run: python manage.py test
