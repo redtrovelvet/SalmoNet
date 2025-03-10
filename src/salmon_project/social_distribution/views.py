@@ -586,7 +586,7 @@ def get_post_by_fqid(request, post_fqid):
     serializer = PostSerializer(post)
     return Response(serializer.data)
 
-@api_view(['GET'])
+@api_view(['GET',"POST"])
 def author_posts(request, author_id):
     """
     GET [local, remote] get the recent posts from author AUTHOR_ID (paginated)
@@ -630,8 +630,8 @@ def author_posts(request, author_id):
         serializer = PostSerializer(data=request.data, context={'author': author})
         if serializer.is_valid():
             serializer.save(author=author)
-            return redirect("profile", author_id=author.id)
-        return render(request, "social_distribution/profile.html")
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
         
     
 @api_view(['POST'])
