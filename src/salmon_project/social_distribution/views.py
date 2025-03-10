@@ -13,6 +13,7 @@ from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, Co
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
+from django.utils.html import escape
 
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -53,7 +54,8 @@ def index(request):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        html_text = render_markdown_if_needed(p.text, p.content_type)
+        safe_text = escape(p.text)
+        html_text = render_markdown_if_needed(safe_text, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -106,7 +108,8 @@ def profile(request, author_id):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        html_text = render_markdown_if_needed(p.text, p.content_type)
+        safe_text = escape(p.text)
+        html_text = render_markdown_if_needed(safe_text, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -194,7 +197,8 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
     serialized_post = PostSerializer(post).data
-    html_text = render_markdown_if_needed(post.text, post.content_type)
+    safe_text = escape(post.text)
+    html_text = render_markdown_if_needed(safe_text, post.content_type)
     post_comments = serialized_post["comments"]["src"]
     comments = []
     for comment in post_comments:
@@ -294,7 +298,8 @@ def delete_post_local(request, author_id, post_id):
         return HttpResponseForbidden("You are not allowed to delete this post.")
     
     if request.method == "GET":
-        rendered_text = render_markdown_if_needed(post.text, post.content_type)
+        safe_text = escape(post.text)
+        rendered_text = render_markdown_if_needed(safe_text, post.content_type)
         return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
     post.visibility = "DELETED"
