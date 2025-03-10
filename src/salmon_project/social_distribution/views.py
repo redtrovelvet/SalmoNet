@@ -860,9 +860,9 @@ def like_post(request, author_id, post_id):
             return Response(status=400, data={"error": serializer.errors})
     else:
         return Response(status=400, data={"error": "Invalid type."})
-        
     like_count = PostLike.objects.filter(object=post_id).count()
-    return Response({"like_count": like_count}, status=201)
+
+    return redirect(request.META.get("HTTP_REFERER", "index"))
 
 @api_view(["POST"])
 def like_comment(request, author_id, comment_id):
