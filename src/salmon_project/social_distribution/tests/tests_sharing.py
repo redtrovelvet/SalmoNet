@@ -55,7 +55,7 @@ class SharingTests(TestCase):
         so I can send it to my friends over email, discord, slack, etc. 
         Testing for public post.
         """
-        url = reverse("get_post", args=[self.author.id, self.public_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_url = f"http://127.0.0.1:8000/api/authors/{self.author.id}/posts/{self.public_post.id}"
@@ -67,7 +67,7 @@ class SharingTests(TestCase):
         so I can send it to my friends over email, discord, slack, etc. 
         Testing for unlisted post.
         """
-        url = reverse("get_post", args=[self.author.id, self.unlisted_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.unlisted_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         expected_url = f"http://127.0.0.1:8000/api/authors/{self.author.id}/posts/{self.unlisted_post.id}"
@@ -89,7 +89,7 @@ class SharingTests(TestCase):
             user=not_owner
         )
 
-        url = reverse("get_post", args=[self.author.id, self.friends_only_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.friends_only_post.id])
         self.client.login(username="notowner", password="notownerpassword")
         response = self.client.get(url)
         self.assertEqual(response.status_code, 403)
@@ -107,7 +107,7 @@ class SharingTests(TestCase):
             visibility="PUBLIC",
             content_type="text/plain"
         )
-        url = reverse("get_author_posts", args=[self.author.id])
+        url = reverse("author_posts", args=[self.author.id])
 
         self.client.logout()
         response_unauth = self.client.get(url)

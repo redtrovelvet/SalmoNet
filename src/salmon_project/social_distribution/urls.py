@@ -23,9 +23,6 @@ urlpatterns = [
     path("profile/followers/", views.view_followers, name="view_followers"),
     path("profile/following/", views.view_following, name="view_following"),
     path("profile/friends/", views.view_friends, name="view_friends"),
-    path("admin/approval/", views.admin_approval, name="admin_approval"),
-    path("admin/approve/<uuid:author_id>/", views.approve_author, name="approve_author"),
-    path("admin/reject/<uuid:author_id>/", views.reject_author, name="reject_author"),
     
     # Authors API
     path("api/authors/", views.get_authors, name="get_authors"),
@@ -34,13 +31,13 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/", views.author_details, name="author_details"),
 
     # Posts API
-    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/", views.get_post, name="get_post"),
+    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/", views.posts_detail, name="posts_detail"),
     path("api/posts/<uuid:post_fqid>/", views.get_post_by_fqid, name="get_post_by_fqid"),
-    path("api/authors/<uuid:author_id>/posts/", views.get_author_posts, name="get_author_posts"),
+    path("api/authors/<uuid:author_id>/posts/", views.author_posts, name="author_posts"),
     path("api/authors/<uuid:author_id>/posts/create/", views.create_post, name="create_post"),
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/image/", views.get_post_image, name="get_post_image"),
-    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/update/", views.update_post, name="update_post"),
-    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post, name="delete_post"),
+    path("api/posts/<uuid:post_id>/image/", views.get_postimage_by_fqid, name="get_postimage_by_fqid"),
+
 
     # Inbox API (used for follow requests in our API)
     path("api/authors/<uuid:author_id>/inbox/", views.inbox, name="inbox"),

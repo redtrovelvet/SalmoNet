@@ -86,7 +86,7 @@ class PostingTests(APITestCase):
         Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ for a public post.
         Should return 200 for anyone.
         """
-        url = reverse("get_post", args=[self.author.id, self.public_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
         response = self.client.get(url)  # No authentication needed
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["text"], "This is a public post.")  # type:ignore
@@ -97,7 +97,7 @@ class PostingTests(APITestCase):
         Should return 200 if the requester is a friend.
         """
         self.client.force_authenticate(user=self.friend_user)  # Authenticate as friend # type:ignore
-        url = reverse("get_post", args=[self.author.id, self.friends_only_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.friends_only_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["text"], "This is a friends-only post.") # type:ignore
@@ -108,7 +108,7 @@ class PostingTests(APITestCase):
         Should return 403 if the requester is NOT a friend.
         """
         self.client.force_authenticate(user=self.non_friend_user)  # Authenticate as non-friend # type:ignore
-        url = reverse("get_post", args=[self.author.id, self.friends_only_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.friends_only_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data["detail"], "You are not friends with the author.") # type:ignore
@@ -118,7 +118,7 @@ class PostingTests(APITestCase):
         Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ for a friends-only post.
         Should return 403 if the requester is NOT authenticated.
         """
-        url = reverse("get_post", args=[self.author.id, self.friends_only_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.friends_only_post.id])
         response = self.client.get(url)  # No authentication
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEqual(response.data["detail"], "Authentication required.") # type:ignore
@@ -142,7 +142,8 @@ class PostingTests(APITestCase):
         Test for DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ to delete a post
         """ 
         self.client.force_authenticate(user=self.user) # type:ignore
-        response = self.client.delete(f"/api/authors/{self.author.id}/posts/{self.public_post.id}/delete/")
+        url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
+        response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.public_post.refresh_from_db()
         self.assertEqual(self.public_post.visibility, "DELETED")
@@ -152,7 +153,7 @@ class PostingTests(APITestCase):
         Test DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ with unauthorized user.
         """
         self.client.force_authenticate(user=self.non_friend_user) # type:ignore
-        url = reverse("delete_post", args=[self.author.id, self.public_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -161,7 +162,7 @@ class PostingTests(APITestCase):
         Test PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ to update a post.
         """
         self.client.force_authenticate(user=self.user) # type:ignore
-        url = reverse("update_post", args=[self.author.id, self.public_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
         data = {"text": "Edited Post"}
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -173,7 +174,7 @@ class PostingTests(APITestCase):
         Test PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/ with unauthorized user.
         """
         self.client.force_authenticate(user=self.non_friend_user) # type:ignore
-        url = reverse("update_post", args=[self.author.id, self.public_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
         data = {"text": "Edited Post"}
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -191,7 +192,7 @@ class PostingTests(APITestCase):
         """
         Test GET /api/authors/{AUTHOR_ID}/posts/ to get all posts by an author.
         """
-        url = reverse("get_author_posts", args=[self.author.id])
+        url = reverse("author_posts", args=[self.author.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)  # Two public posts # type:ignore
@@ -201,7 +202,7 @@ class PostingTests(APITestCase):
         Test GET /api/authors/{AUTHOR_ID}/posts/ with authenticated user.
         """
         self.client.force_authenticate(user=self.author.user) # type:ignore
-        url = reverse("get_author_posts", args=[self.author.id])
+        url = reverse("author_posts", args=[self.author.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3) # Two public posts and one friends-only post # type:ignore

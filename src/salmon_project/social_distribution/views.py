@@ -12,10 +12,8 @@ from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.utils.html import escape
-from django.urls import reverse
 
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -29,7 +27,7 @@ from urllib.parse import unquote
 # Create your views here.
 def index(request):
     if request.user.is_authenticated:
-        current_author = get_object_or_404(Author, username=request.user)
+        current_author = get_object_or_404(Author, username=request.user.username)
         # Get posts from authors that current_author follows
         posts = Post.objects.filter(author=current_author, visibility__in=["PUBLIC", "UNLISTED", "FRIENDS"])
         for author in current_author.following.all():
@@ -167,38 +165,12 @@ def register(request):
                 author.user = user  # type: ignore
                 author.save() # type: ignore
             else:
-                Author.objects.create(user=user, username=user.username, is_approved=False)
-                messages.success(request, "Your account has been created and is pending admin approval.")
-                return redirect("login")
+                Author.objects.create(user=user, username=user.username)
             login(request, user)
             return redirect("index")
     else:
         form = UserCreationForm()
     return render(request, "social_distribution/register.html", {"form": form})
-
-
-@user_passes_test(lambda u: u.is_superuser)  # Restrict to superusers (admins)
-def admin_approval(request):
-    pending_authors = Author.objects.filter(is_approved=False)
-    return render(request, "social_distribution/admin_approval.html", {"pending_authors": pending_authors})
-
-@user_passes_test(lambda u: u.is_superuser)
-def approve_author(request, author_id):
-    author = get_object_or_404(Author, id=author_id)
-    author.is_approved = True
-    author.save()
-    messages.success(request, f"{author.username} has been approved.")
-    return redirect("admin_approval")
-
-@user_passes_test(lambda u: u.is_superuser)
-def reject_author(request, author_id):
-    author = get_object_or_404(Author, id=author_id)
-    author.delete()  # Or deactivate the user instead of deleting
-    messages.success(request, f"{author.username} has been rejected.")
-    return redirect("admin_approval")
-
-def pending_approval(request):
-    return render(request, "social_distribution/pending_approval.html")
 
 def login_view(request):
     '''
@@ -208,13 +180,6 @@ def login_view(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
-            try:
-                author = Author.objects.get(user=user)
-                if not author.is_approved:
-                    return redirect("pending_approval")
-            except Author.DoesNotExist:
-                messages.error(request, "Author profile not found.")
-                return redirect("login")
             login(request, user)
             return redirect("index")
     else:
@@ -482,66 +447,54 @@ def view_friends(request):
     friends = following.intersection(followers)
     return render(request, "social_distribution/friends.html", {"friends": friends})
 
-@api_view(['GET'])
-def get_post(request, author_id, post_id):
+@api_view(['GET', 'DELETE', 'PUT'])
+def posts_detail(request, author_id, post_id):
     """
     GET [local, remote] get the public post whose serial is POST_ID
     Friends-only posts: must be authenticated and must be a friend.
-    """
-    post = get_object_or_404(Post, id=post_id, author_id=author_id)
-
-    # no access to deleted post
-    if post.visibility == "DELETED":
-        return Response({"detail": "Post not found."}, status=403)
-    
-    author = post.author
-
-    # If the post is friends-only, enforce friendship check
-    if post.visibility == 'FRIENDS':
-        if not request.user.is_authenticated:
-            return Response({"detail": "Authentication required."}, status=403)
-        
-        # Ensure the authenticated user is an author in your system
-        try:
-            requesting_author = request.user.author
-        except Author.DoesNotExist:
-            return Response({"detail": "Authentication required."}, status=403)
-        
-        # Check if the requesting user is actually a friend of the post author
-        if requesting_author not in author.following.all() or author not in requesting_author.following.all():
-            return Response({"detail": "You are not friends with the author."}, status=403)
-    serializer = PostSerializer(post)
-    return Response(serializer.data)
-
-@api_view(['DELETE'])
-@permission_classes([IsAuthenticated])
-def delete_post(request, author_id, post_id):
-    """
-    DELETE [local] remove a local post
-    must be authenticated locally as the author
-    """
-    post = get_object_or_404(Post, id=post_id, author_id=author_id)
-    if post.author.user != request.user:
-        return Response(status=403)
-    post.visibility = "DELETED"
-    post.save()
-    return Response(status=204)
-
-@api_view(['PUT'])
-@permission_classes([IsAuthenticated])
-def update_post(request, author_id, post_id):
-    """
+    DELETE [local] remove a local posts: must be authenticated locally as the author
     PUT [local] update a post
-    must be authenticated locally as the author
+    local posts: must be authenticated locally as the author
     """
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
-    if post.author.user != request.user:
-        return Response(status=403)
-    serializer = PostSerializer(post, data=request.data, partial=True)
-    if serializer.is_valid():
-        serializer.save()
+
+    if request.method == "GET":
+        # If post is marked DELETED, don't allow retrieval.
+        if post.visibility == "DELETED":
+            return Response({"detail": "Post not found."}, status=403)
+        
+        # For FRIENDS-only posts, enforce friendship check.
+        if post.visibility == "FRIENDS":
+            if not request.user.is_authenticated:
+                return Response({"detail": "Authentication required."}, status=403)
+            try:
+                requesting_author = request.user.author
+            except Author.DoesNotExist:
+                return Response({"detail": "Authentication required."}, status=403)
+            # Must be mutual friends.
+            if (requesting_author not in post.author.following.all() or
+                    post.author not in requesting_author.following.all()):
+                return Response({"detail": "You are not friends with the author."}, status=403)
+        serializer = PostSerializer(post)
         return Response(serializer.data)
-    return Response(serializer.errors, status=400)
+    
+    elif request.method == "DELETE":
+        # Only the author can delete their post.
+        if post.author.user != request.user:
+            return Response(status=403)
+        post.visibility = "DELETED"
+        post.save()
+        return Response(status=204)
+    
+    elif request.method == "PUT":
+        # Only the author can update their post.
+        if post.author.user != request.user:
+            return Response(status=403)
+        serializer = PostSerializer(post, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
 
 @api_view(['GET'])
 def get_post_by_fqid(request, post_fqid):
@@ -570,39 +523,53 @@ def get_post_by_fqid(request, post_fqid):
     return Response(serializer.data)
 
 @api_view(['GET'])
-def get_author_posts(request, author_id):
+def author_posts(request, author_id):
     """
     GET [local, remote] get the recent posts from author AUTHOR_ID (paginated)
     Not authenticated: only public posts.
     Authenticated locally as author: all posts.
     Authenticated locally as follower of author: public + unlisted posts.
     Authenticated locally as friend of author: all posts.
+    POST [local] create a new post but generate a new ID
+    Authenticated locally as author
     """
     author = get_object_or_404(Author, id=author_id)
-    posts = Post.objects.filter(author=author).exclude(visibility="DELETED")
 
-    if not request.user.is_authenticated:
-        # Not logged in: show only public posts.
-        posts = posts.filter(visibility='PUBLIC')
-    elif request.user.author == author:
-        # Viewing your own profile: show all posts.
-        pass  
-    else:
-        current_author = request.user.author
-        if author in current_author.following.all():
-            # Check if current_author and author are mutual followers (i.e. friends).
-            if current_author in author.following.all() and author in current_author.following.all():
-                # They are friends: allow public, unlisted, and friends-only posts.
-                posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED', 'FRIENDS'])
-            else:
-                # One-way following: show public and unlisted posts.
-                posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED'])
-        else:
-            # Not mutual friends: show only public posts.
+    if request.method == "GET":
+        posts = Post.objects.filter(author=author).exclude(visibility="DELETED")
+        if not request.user.is_authenticated:
+            # Not logged in: show only public posts.
             posts = posts.filter(visibility='PUBLIC')
-    serializer = PostSerializer(posts, many=True)
-    return Response(serializer.data)
-
+        elif request.user.author == author:
+            # Viewing your own profile: show all posts.
+            pass  
+        else:
+            current_author = request.user.author
+            if author in current_author.following.all():
+                # Check if current_author and author are mutual followers (i.e. friends).
+                if current_author in author.following.all() and author in current_author.following.all():
+                    # They are friends: allow public, unlisted, and friends-only posts.
+                    posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED', 'FRIENDS'])
+                else:
+                    # One-way following: show public and unlisted posts.
+                    posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED'])
+            else:
+                # Not mutual friends: show only public posts.
+                posts = posts.filter(visibility='PUBLIC')
+        serializer = PostSerializer(posts, many=True)
+        return Response(serializer.data)
+    
+    elif request.method == "POST":
+        author = get_object_or_404(Author, id=author_id)
+        if author.user != request.user:
+            return Response(status=403)
+        serializer = PostSerializer(data=request.data, context={'author': author})
+        if serializer.is_valid():
+            serializer.save(author=author)
+            return redirect("profile", author_id=author.id)
+        return render(request, "social_distribution/profile.html")
+        
+    
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_post(request, author_id):
@@ -613,14 +580,11 @@ def create_post(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     if author.user != request.user:
         return Response(status=403)
-    data = request.data
-    serializer = PostSerializer(data=data, context={'author': author})
-    if serializer.is_valid() and not (data.get("text") == "" and data.get("image") == "" and data.get("video") == ""):
+    serializer = PostSerializer(data=request.data, context={'author': author})
+    if serializer.is_valid():
         serializer.save(author=author)
         return redirect("profile", author_id=author.id)
-    
-    url = reverse("profile", kwargs={'author_id': author.id})
-    return redirect(f"{url}?message=Error: Post must have text, image, or video.")
+    return render(request, "social_distribution/profile.html")
 
 @api_view(['GET'])
 def get_post_image(request, author_id, post_id):
@@ -633,6 +597,30 @@ def get_post_image(request, author_id, post_id):
         return Response(status=404)
     if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
         return Response(status=403)
+    return Response(post.image.read(), content_type=post.content_type)
+
+@api_view(['GET'])
+def get_postimage_by_fqid(request, post_fqid):
+    """
+    GET [local, remote] get the public post converted to binary as an image
+    return 404 if not an image
+    """
+    post = get_object_or_404(Post, id=post_fqid)
+    if post.content_type not in ['image/png', 'image/jpeg']:
+        return Response(status=404)
+
+    # FRIENDS logic
+    if post.visibility == 'FRIENDS':
+        if not request.user.is_authenticated:
+            return Response(status=403)
+        try:
+            requesting_author = request.user.author
+        except Author.DoesNotExist:
+            return Response({"detail": "User is not an author."}, status=403)
+        if (requesting_author not in post.author.following.all() or
+                post.author not in requesting_author.following.all()):
+            return Response({"detail": "You are not friends with the author."}, status=403)
+
     return Response(post.image.read(), content_type=post.content_type)
 
 # ================= NEW: Followers and Follow Request API Endpoints =================

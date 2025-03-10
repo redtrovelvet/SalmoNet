@@ -113,7 +113,7 @@ class VisibilityTests(TestCase):
         """
         Testing user story: As an author, I want my friends to see my friends-only, unlisted, and public posts in their stream.
         """
-        url = reverse("get_author_posts", args=[self.author.id])
+        url = reverse("author_posts", args=[self.author.id])
         self.client.login(username="friend", password="friendpass")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -128,7 +128,7 @@ class VisibilityTests(TestCase):
         """
         Testing user story: As an author, I want anyone following me to see my unlisted and public posts in their stream.
         """
-        url = reverse("get_author_posts", args=[self.author.id])
+        url = reverse("author_posts", args=[self.author.id])
         self.client.login(username="follower", password="followerpass")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -182,8 +182,8 @@ class VisibilityTests(TestCase):
         if they have a link to it.
         """
         # url from api for posts
-        url_public = reverse("get_post", args=[self.author.id, self.public_post.id])
-        url_unlisted = reverse("get_post", args=[self.author.id, self.unlisted_post.id])
+        url_public = reverse("posts_detail", args=[self.author.id, self.public_post.id])
+        url_unlisted = reverse("posts_detail", args=[self.author.id, self.unlisted_post.id])
 
         # unathenticated user can access
         self.client.logout()
@@ -221,7 +221,7 @@ class VisibilityTests(TestCase):
         Testing user story: As an author, I don't anyone who isn't a friend to be able to see my friends-only posts and images, 
         so I can feel safe about posting.
         """
-        url = reverse("get_post", args=[self.author.id, self.friends_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.friends_post.id])
 
         # friend can access
         self.client.login(username="friend", password="friendpass")
@@ -250,7 +250,7 @@ class VisibilityTests(TestCase):
         """
         Testing user story: As an author, I don't want anyone except the node admin to see my deleted posts.
         """
-        url = reverse("get_post", args=[self.author.id, self.deleted_post.id])
+        url = reverse("posts_detail", args=[self.author.id, self.deleted_post.id])
 
         # I can't see my deleted posts
         self.client.login(username="owner", password="ownerpass")
@@ -286,7 +286,7 @@ class VisibilityTests(TestCase):
         Testing user story: As an author, posts I create should always be visible to me until they are deleted, 
         so I can find them to edit them or review them or get the link or whatever I want to do with them.
         """
-        url = reverse("get_author_posts", args=[self.author.id])
+        url = reverse("author_posts", args=[self.author.id])
         self.client.login(username="owner", password="ownerpass")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
