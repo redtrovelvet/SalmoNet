@@ -27,7 +27,7 @@ from urllib.parse import unquote
 # Create your views here.
 def index(request):
     if request.user.is_authenticated:
-        current_author = get_object_or_404(Author, username=request.user.username)
+        current_author = get_object_or_404(Author, username=request.user)
         # Get posts from authors that current_author follows
         posts = Post.objects.filter(author=current_author, visibility__in=["PUBLIC", "UNLISTED", "FRIENDS"])
         for author in current_author.following.all():
@@ -156,7 +156,8 @@ def register(request):
                 author.save() # type: ignore
             else:
                 Author.objects.create(user=user, username=user.username, is_approved=False)
-                return redirect("pending_approval")
+                messages.success(request, "Your account has been created and is pending admin approval.")
+                return redirect("login")
             login(request, user)
             return redirect("index")
     else:

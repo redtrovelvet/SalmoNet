@@ -9,12 +9,29 @@ admin.site.register(CommentLike)
 admin.site.register(FollowRequest)
 admin.site.register(FeedBlock)
 
-@admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
-    list_display = ('username', 'display_name', 'is_approved')
-    list_filter = ('is_approved',)
+    list_display = ('username', 'display_name', 'is_approved', 'host')
+    list_filter = ('is_approved', 'host')
     search_fields = ('username', 'display_name')
-    actions = ['approve_authors', 'unapprove_authors']
+    ordering = ('username',)
+    readonly_fields = ('id',)
+
+    fieldsets = (
+        (None, {
+            'fields': ('user', 'id', 'username', 'display_name', 'is_approved')
+        }),
+        ('Profile Information', {
+            'fields': ('github', 'profile_image', 'page')
+        }),
+        ('Network Information', {
+            'fields': ('host', 'following')
+        }),
+    )
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # editing an existing object
+            return self.readonly_fields + ('user',)
+        return self.readonly_fields
 
     def approve_authors(self, request, queryset):
         queryset.update(is_approved=True)
@@ -23,3 +40,5 @@ class AuthorAdmin(admin.ModelAdmin):
     def unapprove_authors(self, request, queryset):
         queryset.update(is_approved=False)
     unapprove_authors.short_description = "Unapprove selected authors"
+    
+admin.site.register(Author, AuthorAdmin)

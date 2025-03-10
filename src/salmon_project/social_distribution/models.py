@@ -8,6 +8,8 @@ from django.db import models
 import uuid
 from django.conf import settings
 from django.contrib.auth.models import User  
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.core.validators import FileExtensionValidator
 
 class Author(models.Model):
@@ -32,7 +34,12 @@ class Author(models.Model):
     
     def is_friends_with(self, other_author):
         return self in other_author.following.all() and other_author in self.following.all()
-    
+
+@receiver(post_save, sender=User)
+def create_author_for_admin(sender, instance, created, **kwargs):
+    if created and instance.is_superuser:  # Only create for superusers
+        Author.objects.create(user=instance, username=instance.username, display_name=instance.get_full_name() or instance.username, is_approved=True)
+        
 class Post(models.Model):
     """
     A post by an author with text and/or an image

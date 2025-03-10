@@ -26,7 +26,6 @@ urlpatterns = [
     path("admin/approval/", views.admin_approval, name="admin_approval"),
     path("admin/approve/<uuid:author_id>/", views.approve_author, name="approve_author"),
     path("admin/reject/<uuid:author_id>/", views.reject_author, name="reject_author"),
-    path('pending_approval/', views.pending_approval, name='pending_approval'),
     
     # Authors API
     path("api/authors/", views.get_authors, name="get_authors"),
