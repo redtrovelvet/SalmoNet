@@ -301,7 +301,7 @@ class CommentTests(TestCase):
             "contentType": "text/plain",
         }
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(Comment.objects.count(), 2)
         comment = Comment.objects.get(comment="New Comment")
         self.assertEqual(comment.author, self.author)
@@ -492,14 +492,14 @@ class LikeTests(TestCase):
             "type": "like",
         }
         response = self.client.post(url, body, format="json")
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(PostLike.objects.count(), 1)
         like = PostLike.objects.get(author=self.author)
         self.assertEqual(like.object, self.post)
 
         # Test for liking the same post again
         response = self.client.post(url, body, format="json")
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(PostLike.objects.count(), 0)
 
     def test_like_comment(self):
@@ -515,14 +515,14 @@ class LikeTests(TestCase):
             "type": "like",
         }
         response = self.client.post(url, body, format="json")
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(CommentLike.objects.count(), 1)
         like = CommentLike.objects.get(author=self.author)
         self.assertEqual(like.object, self.comment)
 
         # Test for liking the same comment again
         response = self.client.post(url, body, format="json")
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(CommentLike.objects.count(), 0)
         
 class PostTests(APITestCase):

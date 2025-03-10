@@ -662,10 +662,11 @@ def commented(request, author_id):
         data = request.data.copy()
         author = get_object_or_404(Author, id=author_id)
         data["author"] = author.id
+
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return redirect(request.META.get('HTTP_REFERER', 'index'))
+            return Response(serializer.data, status=201)
         return Response(status=400, data=serializer.errors)
     else:
         comments = Comment.objects.filter(author_id=author_id)
@@ -762,7 +763,6 @@ def get_author_liked(request, author_id):
     '''
     API: returns all likes made by an author
     '''
-
     # Get optional query parameters for pagination
     page_number = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 50))
@@ -828,8 +828,14 @@ def like_post(request, author_id, post_id):
                 try:
                     serializer.save()
                 except Exception as e:
-                    print(e)
-    return redirect(request.META.get("HTTP_REFERER", "index"))
+                    return Response(status=400, data={"error": str(e)})
+        else:
+            return Response(status=400, data={"error": serializer.errors})
+    else:
+        return Response(status=400, data={"error": "Invalid type."})
+        
+    like_count = PostLike.objects.filter(object=post_id).count()
+    return Response({"like_count": like_count}, status=201)
 
 @api_view(["POST"])
 def like_comment(request, author_id, comment_id):
@@ -848,8 +854,14 @@ def like_comment(request, author_id, comment_id):
                 try:
                     serializer.save()
                 except Exception as e:
-                    print(e)
-    return redirect(request.META.get("HTTP_REFERER", "index"))
+                    return Response(status=400, data={"error": str(e)})
+        else:
+            return Response(status=400, data={"error": serializer.errors})
+    else:
+        return Response(status=400, data={"error": "Invalid type."})
+    
+    like_count = CommentLike.objects.filter(object=comment_id).count()
+    return Response({"like_count": like_count}, status=201)
 
 
 @api_view(["GET", "PUT", "DELETE"])

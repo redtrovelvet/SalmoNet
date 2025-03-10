@@ -75,48 +75,52 @@
     <div class="post-container">
         {% for post in posts %}
         <!-- Wrap each post in its own block with some spacing -->
-        <div class="post-card">
-            
+        <div class="post post-card">
+
             {% if post.text %}
-                <!-- If 'content_type' was text/markdown, post.text is HTML -->
-                <div class="post-text">{{ post.text|safe }}</div>
+            <!-- If 'content_type' was text/markdown, post.text is HTML -->
+            <div class="post-text">{{ post.text|safe }}</div>
             {% endif %}
 
             {% if post.image %}
-                <img src="{{ post.image.url }}" alt="Post Image" class="post-image">
+            <img src="{{ post.image.url }}" alt="Post Image" class="post-image">
             {% endif %}
 
             {% if post.video %}
-                <video class="post-video" controls>
-                    <source src="{{ post.video.url }}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>
+            <video class="post-video" controls>
+                <source src="{{ post.video.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
             {% endif %}
 
             <p class="post-meta">Posted on {{ post.created_at }}</p>
 
             {% if user.is_authenticated and author is not None %}
-                <form method="post" action="{% url 'like_post' author.id post.id %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="type" value="like">
-                    <button type="submit" class="btn btn-primary">Like: {{ post.likes.count }}</button>
-                </form>
+            <form method="post" action="{% url 'like_post' author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ author.id }}">
+                {% csrf_token %}
+                <input type="hidden" name="type" value="like">
+                <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ post.likes.count }}</span></button>
+            </form>
             {% endif %}
 
             {% if post.comments %}
-                <h3>Comments</h3>
-                <ul class="comments-list">
-                    {% for comment in post.comments %}
-                        <li>{{ comment.author.displayName }}: {{ comment.comment }}</li>
-                        {% if user.is_authenticated and author is not None %}
-                            <form method="post" action="{% url 'like_comment' author.id comment.id %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="type" value="like">
-                            <button type="submit" class="btn btn-primary">Like: {{ comment.likes.count }}</button>
-                            </form>
-                        {% endif %}
-                    {% endfor %}
+            <h3>Comments</h3>
+            <div class="comments comments-list">
+                <ul>
+                {% for comment in post.comments %}
+                    <li class="comment">
+                    <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
+                    {% if user.is_authenticated and author is not None %}
+                        <form method="post" action="{% url 'like_comment' author.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ author.id }}">
+                        {% csrf_token %}
+                        <input type="hidden" name="type" value="like">
+                        <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ comment.likes.count }}</span></button>
+                        </form>
+                    {% endif %}
+                    </li>
+                {% endfor %}
                 </ul>
+            </div>
             {% endif %}
 
             <!-- Button for copying link to posts -->
@@ -125,16 +129,16 @@
             </button>
 
             {% if user.is_authenticated and author is not None %}
-                <div>
-                    <form method="post" action="{% url 'commented' author.id %}" class="comment-form">
-                    {% csrf_token %}
-                    <input type="hidden" name="type" value="comment">
-                    <textarea name="comment" rows="2" placeholder="Write a comment..."></textarea>
-                    <input type="hidden" name="post" value="{{ post.id }}">
-                    <input type="hidden" name="contentType" value="text/plain">
-                    <button type="submit" class="btn btn-primary">Comment</button>
-                    </form>
-                </div>
+            <div class="add-comment">
+                <form method="post" action="{% url 'commented' author.id %}" class="comment-form">
+                {% csrf_token %}
+                <input type="hidden" name="type" value="comment">
+                <textarea name="comment" rows="2" placeholder="Write a comment..."></textarea>
+                <input type="hidden" name="post" value="{{ post.id }}">
+                <input type="hidden" name="contentType" value="text/plain">
+                <button type="submit" class="btn btn-primary">Comment</button>
+                </form>
+            </div>
             {% endif %}
 
             {% if user.is_authenticated and user.author.id == author.id %}

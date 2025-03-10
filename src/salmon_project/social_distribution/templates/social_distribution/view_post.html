@@ -1,23 +1,13 @@
 {% extends "social_distribution/base.html" %}
 
 {% block content %}
-<div class="content">
+<div class="content post">
     <h2>Post by {{ post.author.username }}</h2>
     <p>Posted on: {{ post.created_at }}</p>
     <p>Last updated: {{ post.updated_at }}</p>
     <p>Visibility: {{ post.visibility }}</p>
 
-    {% if post.visibility == 'PUBLIC' %}
-        <!-- Button for copying link to posts -->
-        <button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
-            <span class="copy-label">Copy Link</span>
-        </button>
-    {% elif user.is_authenticated and user.author.id == author.id %}
-        <!-- Button for copying link to posts -->
-        <button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
-            <span class="copy-label">Copy Link</span>
-        </button>
-    {% endif %}
+
 
     {% if post.text %}
         <div 
@@ -41,40 +31,58 @@
     {% endif %}
 
     {% if user.is_authenticated and current_user is not None %}
-        <form method="post" action="{% url 'like_post' current_user.id post.id %}">
+      <form method="post" action="{% url 'like_post' current_user.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ current_user.id }}">
         {% csrf_token %}
         <input type="hidden" name="type" value="like">
-        <button type="submit" class="btn btn-primary">Like: {{ post.likes.count }}</button>
-        </form>
+        <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ post.likes.count }}</span></button>
+      </form>
+    {% endif %}
+
+    <br>
+
+    {% if post.visibility == 'PUBLIC' %}
+    <!-- Button for copying link to posts -->
+    <button type="button" class="copy-post-link btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+        <span class="copy-label">Copy Link</span>
+    </button>
+    {% elif user.is_authenticated and user.author.id == author.id %}
+        <!-- Button for copying link to posts -->
+        <button type="button" class="copy-post-link" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+            <span class="copy-label">Copy Link</span>
+        </button>
     {% endif %}
 
     {% if post.comments %}
-        <h3>Comments</h3>
+      <h3>Comments</h3>
+      <div class="comments">
         <ul>
-        {% for comment in post.comments %}
-            <li>{{ comment.author.displayName }}: {{ comment.comment }}</li>
-            {% if user.is_authenticated and current_user is not None %}
-            <form method="post" action="{% url 'like_comment' current_user.id comment.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="type" value="like">
-                <button type="submit" class="btn btn-primary">Like: {{ comment.likes.count }}</button>
-            </form>
-            {% endif %}
-        {% endfor %}
+          {% for comment in post.comments %}
+            <li class="comment">
+              <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
+              {% if user.is_authenticated and current_user is not None %}
+                <form method="post" action="{% url 'like_comment' current_user.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ current_user.id }}">
+                  {% csrf_token %}
+                  <input type="hidden" name="type" value="like">
+                  <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ comment.likes.count }}</span></button>
+                </form>
+              {% endif %}
+            </li>
+          {% endfor %}
         </ul>
+      </div>
     {% endif %}
 
     {% if user.is_authenticated and current_user is not None %}
-        <div>
-        <form method="post" action="{% url 'commented' current_user.id %}">
-            {% csrf_token %}
-            <input type="hidden" name="type" value="comment">
-            <textarea name="comment" rows="3" cols="50"></textarea>
-            <input type="hidden" name="post" value="{{ post.id }}">
-            <input type="hidden" name="contentType" value="text/plain">
-            <button type="submit" class="btn btn-primary">Comment</button>
+      <div class="add-comment">
+        <form method="post" action="{% url 'commented' current_user.id %}" class="comment-form">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="comment">
+          <textarea name="comment" rows="2" placeholder="Write a comment..."></textarea>
+          <input type="hidden" name="post" value="{{ post.id }}">
+          <input type="hidden" name="contentType" value="text/plain">
+          <button type="submit" class="btn btn-primary">Comment</button>
         </form>
-        </div>
+      </div>
     {% endif %}
 
     <!-- <a href="{% url 'edit_post' post.author.id post.id %}">Edit Post</a>
