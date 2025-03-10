@@ -28,11 +28,7 @@ urlpatterns = [
     path("api/authors/", views.get_authors, name="get_authors"),
 
     # Single Author API
-    path("api/authors/<uuid:author_id>/", views.get_author, name="get_author"),
-
-    # Other Author API
-    path("api/authors/<uuid:author_id>/update/", views.update_author, name="update_author"),
-    path("api/authors/create/", views.create_author, name="create_author"),
+    path("api/authors/<uuid:author_id>/", views.author_details, name="author_details"),
 
     # Posts API
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/", views.get_post, name="get_post"),
