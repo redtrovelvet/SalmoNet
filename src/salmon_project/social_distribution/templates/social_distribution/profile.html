@@ -66,6 +66,10 @@
                     <p>{{ field }}: {{ errors }}</p>
                 {% endfor %}
             {% endif %}
+            {% if request.GET.message %}
+                <p style="color: red;">Please correct the errors below:</p>
+                <div style="color: red;">{{ request.GET.message }}</div>
+            {% endif %}
         </div>
     {% endif %}
 

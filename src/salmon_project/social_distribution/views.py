@@ -14,6 +14,7 @@ from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.utils.html import escape
+from django.urls import reverse
 
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -578,11 +579,14 @@ def create_post(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     if author.user != request.user:
         return Response(status=403)
-    serializer = PostSerializer(data=request.data, context={'author': author})
-    if serializer.is_valid():
+    data = request.data
+    serializer = PostSerializer(data=data, context={'author': author})
+    if serializer.is_valid() and not (data.get("text") == "" and data.get("image") == "" and data.get("video") == ""):
         serializer.save(author=author)
         return redirect("profile", author_id=author.id)
-    return render(request, "social_distribution/profile.html")
+    
+    url = reverse("profile", kwargs={'author_id': author.id})
+    return redirect(f"{url}?message=Error: Post must have text, image, or video.")
 
 @api_view(['GET'])
 def get_post_image(request, author_id, post_id):
