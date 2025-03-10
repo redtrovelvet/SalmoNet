@@ -143,7 +143,7 @@ class IdentityTests(TestCase):
         response = self.client.post(f"/authors/{self.author.id}/edit/", edit_data)
 
         self.author.refresh_from_db()
-        self.assertNotEqual(self.author.display_name, "Hacked Name", "A user should not be able to edit another user"s profile.")
+        self.assertNotEqual(self.author.display_name, "Hacked Name", "A user should not be able to edit another user's profile.")
 
     def test_unauthorized_user_edit(self):
         """

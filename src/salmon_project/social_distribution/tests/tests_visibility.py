@@ -6,14 +6,11 @@
 
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient
 from rest_framework import status
-from social_distribution.models import Author, Post, Comment, CommentLike, PostLike, FollowRequest
-from social_distribution.serializers import AuthorSerializer, PostSerializer
+from social_distribution.models import Author, Post
 import uuid
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
-import urllib.parse
 
 class VisibilityTests(TestCase):
     def setUp(self):
