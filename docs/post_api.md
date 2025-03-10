@@ -115,7 +115,7 @@
 
 #### **Why to Use**
 
-- To remove a post permanently from the system.
+- This endpoint soft-deletes the post by setting its visibility to "DELETED". The post is no longer visible but remains in the database for potential auditing or recovery.
 
 #### **Request**
 
@@ -328,6 +328,7 @@
     "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
     "text": "New Post",
     "visibility": "PUBLIC",
+    "contentType": "text/plain",
     "created_at": "2023-10-01T12:00:00Z"
   }
 ```
