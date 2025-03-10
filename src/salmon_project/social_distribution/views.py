@@ -374,19 +374,43 @@ def all_authors(request):
 def view_follow_requests(request):
     """
     View incoming follow requests for the logged-in user.
+    Also, retrieve notifications for likes and comments on the user's posts.
     """
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to view follow requests.")
         return redirect('login')
     current_author = request.user.author
     follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')
-    # <BEGIN GENERATED: Like Notifications Feature with Link>
-    like_notifications = PostLike.objects.filter(object__author=current_author).order_by('-published')
-    # For each like notification, add a link to the liked post (format similar to the copy link feature)
-    for notification in like_notifications:
-        notification.post_url = f"{settings.BASE_URL}/authors/{notification.object.author.id}/posts/{notification.object.id}/view/"
-    # <END GENERATED: Like Notifications Feature with Link>
-    return render(request, "social_distribution/follow_requests.html", {"follow_requests": follow_requests, "like_notifications": like_notifications})
+    
+    from .models import PostLike, Comment  # Ensure these models are imported
+    like_notifications_qs = PostLike.objects.filter(object__author=current_author).order_by("-published")[:10]
+    comment_notifications_qs = Comment.objects.filter(post__author=current_author).order_by("-published")[:10]
+    
+    notifications = []
+    for like in like_notifications_qs:
+        notifications.append({
+            "type": "like",
+            "author": like.author,  # Author who liked the post
+            "published": like.published,
+            "post_url": f"{current_author.host}/authors/{current_author.id}/posts/{like.object.id}/view/"
+        })
+    for comment in comment_notifications_qs:
+        notifications.append({
+            "type": "comment",
+            "author": comment.author,  # Author who commented
+            "comment": comment.comment,
+            "published": comment.published,
+            "post_url": f"{current_author.host}/authors/{current_author.id}/posts/{comment.post.id}/view/"
+        })
+    
+    notifications.sort(key=lambda n: n["published"], reverse=True)
+    
+    context = {
+        "follow_requests": follow_requests,
+        "like_notifications": notifications,
+    }
+    return render(request, "social_distribution/follow_requests.html", context)
+
 
 @require_POST
 def approve_follow_request(request, request_id):
@@ -624,6 +648,8 @@ def inbox(request, author_id):
     '''
     API: Inbox endpoint to receive various objects.
     If the payload has type "follow", create a follow request.
+    If the payload has type "like", create a like notification.
+    If the payload has type "comment", create a comment notification.
     '''
     data = request.data
     if data.get("type") == "follow":
@@ -645,6 +671,67 @@ def inbox(request, author_id):
             return Response({"detail": "Follow request created."}, status=201)
         else:
             return Response({"detail": "Follow request already exists."}, status=200)
+    elif data.get("type") == "like":
+        # <BEGIN UPDATED: Process like notification>
+        actor_data = data.get("actor")
+        if not actor_data:
+            return Response({"detail": "Missing actor data."}, status=400)
+        sender_id = actor_data.get("id")
+        try:
+            sender_uuid = uuid.UUID(sender_id.split("/")[-1])
+        except Exception:
+            try:
+                sender_uuid = uuid.UUID(sender_id)
+            except Exception:
+                return Response({"detail": "Invalid sender id."}, status=400)
+        sender = get_object_or_404(Author, id=sender_uuid)
+        published = data.get("published")  # expect published time in the payload
+        post_id = data.get("post_id")
+        if not post_id:
+            return Response({"detail": "Missing post id."}, status=400)
+        post_obj = get_object_or_404(Post, id=post_id)
+        post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/view/"
+        notification = {
+            "type": "like_notification",
+            "author": AuthorSerializer(sender).data,
+            "published": published,
+            "post_url": post_url
+        }
+        # <END UPDATED>
+        return Response({"detail": "Like notification received.", "notification": notification}, status=201)
+    elif data.get("type") == "comment":
+        # <BEGIN UPDATED: Process comment notification>
+        # Expect payload to include: type, actor, post_id, comment, published
+        actor_data = data.get("actor")
+        if not actor_data:
+            return Response({"detail": "Missing actor data."}, status=400)
+        sender_id = actor_data.get("id")
+        try:
+            sender_uuid = uuid.UUID(sender_id.split("/")[-1])
+        except Exception:
+            try:
+                sender_uuid = uuid.UUID(sender_id)
+            except Exception:
+                return Response({"detail": "Invalid sender id."}, status=400)
+        sender = get_object_or_404(Author, id=sender_uuid)
+        post_id = data.get("post_id")
+        if not post_id:
+            return Response({"detail": "Missing post id."}, status=400)
+        post_obj = get_object_or_404(Post, id=post_id)
+        comment_text = data.get("comment")
+        if not comment_text:
+            return Response({"detail": "Missing comment text."}, status=400)
+        published = data.get("published")
+        post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/view/"
+        notification = {
+            "type": "comment_notification",
+            "author": AuthorSerializer(sender).data,
+            "comment": comment_text,
+            "published": published,
+            "post_url": post_url
+        }
+        # <END UPDATED>
+        return Response({"detail": "Comment notification received.", "notification": notification}, status=201)
     else:
         return Response({"detail": "Unsupported type for inbox."}, status=400)
 
@@ -693,7 +780,7 @@ def commented(request, author_id):
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=201)
+            return redirect("view_post", author_id=serializer.instance.post.author.id, post_id=serializer.instance.post.id)
         return Response(status=400, data=serializer.errors)
     else:
         comments = Comment.objects.filter(author_id=author_id)
