@@ -140,15 +140,25 @@ h2 {
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-.btn-primary:hover {
+/* .btn-primary:hover {
     background-color: red; 
     color: black;
     transform: scale(1.05); 
+} */
+
+.btn-liked {
+    background-color: red;
+    color: black;
 }
 
 /* Comment styles */
 .comments {
     margin-top: 20px;
+}
+
+.comments ul {
+    list-style-type: none;
+    padding: 0;
 }
 
 .comment {
@@ -158,7 +168,7 @@ h2 {
     margin-bottom: 10px;
 }
 
-.comment-form {
+.add-comment {
     margin-top: 8px;
 }
 
