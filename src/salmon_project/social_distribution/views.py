@@ -135,6 +135,8 @@ def edit_profile(request, author_id):
     To allow authors to edit their profile information like display name, github, and profile image
     '''
     author = get_object_or_404(Author, id=author_id)
+    if not request.user.is_authenticated or request.user != author.user:
+        return HttpResponseForbidden("You are not allowed to edit this profile.")
     if request.method == "POST":
         author.display_name = request.POST.get("display_name", author.display_name)
         author.github = request.POST.get("github", author.github)
@@ -450,6 +452,11 @@ def get_post(request, author_id, post_id):
     Friends-only posts: must be authenticated and must be a friend.
     """
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
+
+    # no access to deleted post
+    if post.visibility == "DELETED":
+        return Response({"detail": "Post not found."}, status=403)
+    
     author = post.author
 
     # If the post is friends-only, enforce friendship check
@@ -535,7 +542,7 @@ def get_author_posts(request, author_id):
     Authenticated locally as friend of author: all posts.
     """
     author = get_object_or_404(Author, id=author_id)
-    posts = Post.objects.filter(author=author)
+    posts = Post.objects.filter(author=author).exclude(visibility="DELETED")
 
     if not request.user.is_authenticated:
         # Not logged in: show only public posts.
@@ -545,10 +552,14 @@ def get_author_posts(request, author_id):
         pass  
     else:
         current_author = request.user.author
-        # Check if current_author and author are mutual followers (i.e. friends).
-        if current_author in author.following.all() and author in current_author.following.all():
-            # They are friends: allow public, unlisted, and friends-only posts.
-            posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED', 'FRIENDS'])
+        if author in current_author.following.all():
+            # Check if current_author and author are mutual followers (i.e. friends).
+            if current_author in author.following.all() and author in current_author.following.all():
+                # They are friends: allow public, unlisted, and friends-only posts.
+                posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED', 'FRIENDS'])
+            else:
+                # One-way following: show public and unlisted posts.
+                posts = posts.filter(visibility__in=['PUBLIC', 'UNLISTED'])
         else:
             # Not mutual friends: show only public posts.
             posts = posts.filter(visibility='PUBLIC')
