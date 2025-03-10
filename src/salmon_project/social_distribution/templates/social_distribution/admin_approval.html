@@ -1,0 +1,15 @@
+{% extends 'social_distribution/base.html' %}
+{% block content %}
+<div class="content">
+<h1>Pending Author Approvals</h1>
+<ul>
+    {% for author in pending_authors %}
+    <li>
+        {{ author.username }} ({{ author.display_name }})
+        <a href="{% url 'approve_author' author.id %}">Approve</a>
+        <a href="{% url 'reject_author' author.id %}">Reject</a>
+    </li>
+    {% endfor %}
+</ul>
+</div>
+{% endblock %}
