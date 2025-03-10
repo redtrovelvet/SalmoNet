@@ -71,8 +71,14 @@ def index(request):
             "comments": comments,
             "likes": sp["likes"],
         })
+    context = {"posts": rendered_posts, "author": current_author}
 
-    return render(request, "social_distribution/index.html", {"posts": rendered_posts, "author": current_author})
+    # Check for alert message
+    if "homepage_alert_message" in request.session:
+        alert_message = request.session.pop("homepage_alert_message")
+        context["alert_message"] = alert_message
+
+    return render(request, "social_distribution/index.html", context)
 
 def profile(request, author_id):
     '''
@@ -214,12 +220,14 @@ def view_post(request, author_id, post_id):
     except AttributeError:
         current_user = request.user
         if post.visibility == "FRIENDS":
-            return HttpResponse(status=403)
+            request.session["homepage_alert_message"] = "Error: Access denied"
+            return redirect("index")
         
     # If current user is signed in, check access
     else:
-        if post.visibility == "FRIENDS" and not (current_user == post_author or post_author in current_user.following.all()):
-            return HttpResponse(status=403)
+        if post.visibility == "FRIENDS" and not (current_user == post_author or post_author.is_friends_with(current_user)):
+            request.session["homepage_alert_message"] = "Error: Access denied"
+            return redirect("index")
     return render(request, "social_distribution/view_post.html", {"post": rendered_post, "current_user": current_user})
 
 def render_markdown_if_needed(text, content_type):
