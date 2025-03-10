@@ -19,6 +19,7 @@ from django.utils.html import escape
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.contrib import messages  
+from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.http import require_POST, require_http_methods
 from django.core.paginator import Paginator
 import commonmark, uuid
@@ -174,6 +175,30 @@ def register(request):
         form = UserCreationForm()
     return render(request, "social_distribution/register.html", {"form": form})
 
+
+@user_passes_test(lambda u: u.is_superuser)  # Restrict to superusers (admins)
+def admin_approval(request):
+    pending_authors = Author.objects.filter(is_approved=False)
+    return render(request, "social_distribution/admin_approval.html", {"pending_authors": pending_authors})
+
+@user_passes_test(lambda u: u.is_superuser)
+def approve_author(request, author_id):
+    author = get_object_or_404(Author, id=author_id)
+    author.is_approved = True
+    author.save()
+    messages.success(request, f"{author.username} has been approved.")
+    return redirect("admin_approval")
+
+@user_passes_test(lambda u: u.is_superuser)
+def reject_author(request, author_id):
+    author = get_object_or_404(Author, id=author_id)
+    author.delete()  # Or deactivate the user instead of deleting
+    messages.success(request, f"{author.username} has been rejected.")
+    return redirect("admin_approval")
+
+def pending_approval(request):
+    return render(request, "social_distribution/pending_approval.html")
+
 def login_view(request):
     '''
     To handle user login
@@ -182,6 +207,13 @@ def login_view(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            try:
+                author = Author.objects.get(user=user)
+                if not author.is_approved:
+                    return redirect("pending_approval")
+            except Author.DoesNotExist:
+                messages.error(request, "Author profile not found.")
+                return redirect("login")
             login(request, user)
             return redirect("index")
     else:
