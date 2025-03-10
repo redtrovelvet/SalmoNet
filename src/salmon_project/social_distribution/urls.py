@@ -23,6 +23,9 @@ urlpatterns = [
     path("profile/followers/", views.view_followers, name="view_followers"),
     path("profile/following/", views.view_following, name="view_following"),
     path("profile/friends/", views.view_friends, name="view_friends"),
+    path("admin/approval/", views.admin_approval, name="admin_approval"),
+    path("admin/approve/<uuid:author_id>/", views.approve_author, name="approve_author"),
+    path("admin/reject/<uuid:author_id>/", views.reject_author, name="reject_author"),
     
     # Authors API
     path("api/authors/", views.get_authors, name="get_authors"),

@@ -12,6 +12,7 @@ from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.utils.html import escape
 from django.urls import reverse
@@ -28,7 +29,7 @@ from urllib.parse import unquote
 # Create your views here.
 def index(request):
     if request.user.is_authenticated:
-        current_author = get_object_or_404(Author, username=request.user.username)
+        current_author = get_object_or_404(Author, username=request.user)
         # Get posts from authors that current_author follows
         posts = Post.objects.filter(author=current_author, visibility__in=["PUBLIC", "UNLISTED", "FRIENDS"])
         for author in current_author.following.all():
@@ -166,12 +167,38 @@ def register(request):
                 author.user = user  # type: ignore
                 author.save() # type: ignore
             else:
-                Author.objects.create(user=user, username=user.username)
+                Author.objects.create(user=user, username=user.username, is_approved=False)
+                messages.success(request, "Your account has been created and is pending admin approval.")
+                return redirect("login")
             login(request, user)
             return redirect("index")
     else:
         form = UserCreationForm()
     return render(request, "social_distribution/register.html", {"form": form})
+
+
+@user_passes_test(lambda u: u.is_superuser)  # Restrict to superusers (admins)
+def admin_approval(request):
+    pending_authors = Author.objects.filter(is_approved=False)
+    return render(request, "social_distribution/admin_approval.html", {"pending_authors": pending_authors})
+
+@user_passes_test(lambda u: u.is_superuser)
+def approve_author(request, author_id):
+    author = get_object_or_404(Author, id=author_id)
+    author.is_approved = True
+    author.save()
+    messages.success(request, f"{author.username} has been approved.")
+    return redirect("admin_approval")
+
+@user_passes_test(lambda u: u.is_superuser)
+def reject_author(request, author_id):
+    author = get_object_or_404(Author, id=author_id)
+    author.delete()  # Or deactivate the user instead of deleting
+    messages.success(request, f"{author.username} has been rejected.")
+    return redirect("admin_approval")
+
+def pending_approval(request):
+    return render(request, "social_distribution/pending_approval.html")
 
 def login_view(request):
     '''
@@ -181,6 +208,13 @@ def login_view(request):
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
             user = form.get_user()
+            try:
+                author = Author.objects.get(user=user)
+                if not author.is_approved:
+                    return redirect("pending_approval")
+            except Author.DoesNotExist:
+                messages.error(request, "Author profile not found.")
+                return redirect("login")
             login(request, user)
             return redirect("index")
     else:
