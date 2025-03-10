@@ -381,7 +381,6 @@ def view_follow_requests(request):
     current_author = request.user.author
     follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')
     
-    
     notifications = []
     
     # Notifications for likes on posts
@@ -391,7 +390,7 @@ def view_follow_requests(request):
             "type": "like",
             "author": {
                 "display_name": like.author.display_name,
-                "username": like.author.username  
+                "username": like.author.username  # Include username explicitly
             },
             "published": like.published,
             "post_url": f"{like.object.author.host}/authors/{like.object.author.id}/posts/{like.object.id}/view/"
@@ -404,25 +403,39 @@ def view_follow_requests(request):
             "type": "like_comment",
             "author": {
                 "display_name": like.author.display_name,
-                "username": like.author.username   
+                "username": like.author.username  # Include username explicitly
             },
             "published": like.published,
             "liked_comment": like.object.comment,
             "post_url": f"{like.object.post.author.host}/authors/{like.object.post.author.id}/posts/{like.object.post.id}/view/"
         })
     
-    # Notifications for new comments on posts owned by the current user 
+    # Notifications for new comments on posts owned by the current user.
     comment_qs = Comment.objects.filter(post__author=current_author).exclude(author=current_author)
     for comment in comment_qs:
         notifications.append({
             "type": "comment",
             "author": {
                 "display_name": comment.author.display_name,
-                "username": comment.author.username  
+                "username": comment.author.username  # Include username explicitly
             },
             "comment": comment.comment,
             "published": comment.published,
             "post_url": f"{comment.post.author.host}/authors/{comment.post.author.id}/posts/{comment.post.id}/view/"
+        })
+    
+    following_notifications = []
+    # Limit to the 5 latest posts by followed authors
+    following_posts = Post.objects.filter(author__in=current_author.following.all()).exclude(author=current_author).order_by("-created_at")[:5]
+    for post in following_posts:
+        following_notifications.append({
+            "type": "following_post",
+            "author": {
+                "display_name": post.author.display_name,
+                "username": post.author.username  # Include username explicitly
+            },
+            "published": post.created_at,
+            "post_url": f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/view/"
         })
     
     # Sort notifications by published date descending (latest first)
@@ -430,9 +443,9 @@ def view_follow_requests(request):
     
     return render(request, "social_distribution/follow_requests.html", {
         "follow_requests": follow_requests,
-        "like_notifications": notifications
+        "like_notifications": notifications,
+        "following_notifications": following_notifications  
     })
-
 
 @require_POST
 def approve_follow_request(request, request_id):
