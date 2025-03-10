@@ -24,13 +24,60 @@ class IdentityTests(TestCase):
             user=self.owner_user
         )
     
-    def test_get_authors(self):
+    def test_get_authors_no_pagnation(self):
         """
-        test for GET /api/authors/ to get all authors
+        test for GET /api/authors/ to get all authors 
         """
+        Author.objects.create(
+            id=uuid.uuid4(),
+            username="another",
+            display_name="Another",
+            host="http://127.0.0.1:8000",
+        )
         response = self.client.get("/api/authors/")
+        self.assertEqual(response.status_code, 200, "Should successfully retrieve authors.")
+        
+        data = response.json()
+        self.assertEqual(data["type"], "authors", "Response must have type=authors")
+        self.assertIn("authors", data, "Response must contain authors list")
+        authors_list = data["authors"]
+        self.assertGreaterEqual(len(authors_list), 2, "We expect at least 2 authors")
+
+        first_author = authors_list[0]
+        self.assertEqual(first_author["type"], "author")
+        self.assertIn("id", first_author)
+        self.assertIn("host", first_author)
+        self.assertIn("displayName", first_author)
+        self.assertIn("github", first_author)
+        self.assertIn("profileImage", first_author)
+        self.assertIn("page", first_author)
+    
+    def test_get_authors_with_pagnation(self):
+        """
+        test for GET /api/authors/ to get all authors with pagnation
+        """
+        for i in range(5):
+            Author.objects.create(
+                id=uuid.uuid4(),
+                username=f"user{i}",
+                display_name=f"Display Name {i}",
+                host="http://127.0.0.1:8000",
+            )
+        
+        response = self.client.get("/api/authors/?page=1&size=2")
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.json(), "The response should not be empty")
+        data = response.json()
+        self.assertEqual(data["type"], "authors")
+
+        # authors should contain exactly 2
+        self.assertIn("authors", data)
+        self.assertEqual(len(data["authors"]), 2, "Should only return 2 authors on page=1&size=2")
+
+        # Check page=2
+        response_page2 = self.client.get("/api/authors/?page=2&size=2")
+        self.assertEqual(response_page2.status_code, 200)
+        data_page2 = response_page2.json()
+        self.assertEqual(len(data_page2["authors"]), 2, "Should return 2 authors on page=2&size=2")
     
     def test_get_author(self):
         """
@@ -38,31 +85,21 @@ class IdentityTests(TestCase):
         """
         response = self.client.get(f"/api/authors/{self.author.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["username"], "testuser")
-
-    def test_create_author(self):
-        """
-        test for POST /api/authors/create/ to create an author
-        """
-        data = {
-            "username": "newuser",
-            "display_name": "New User",
-            "github": "https://github.com/newuser/",
-            "host": "http://127.0.0.1:8000"
-        }
-        response = self.client.post("/api/authors/create/", data, format="json")
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.json()["username"], "newuser")
+        data = response.json()
+        self.assertEqual(data["type"], "author", "Single author response must have type=author")
+        self.assertEqual(data["id"], f"http://127.0.0.1:8000/api/authors/{self.author.id}")
+        self.assertEqual(data["displayName"], "Test User")
 
     def test_update_author(self):
         """
         test for PUT /api/authors/{AUTHOR_ID}/update/ to update an author
         """
+        self.client.force_login(self.owner_user)
         data = {
             "display_name": "Updated User",
             "github": "https://github.com/updateduser"
         }
-        response = self.client.put(f"/api/authors/{self.author.id}/update/", data, format="json")
+        response = self.client.put(f"/api/authors/{self.author.id}/", data, format="json")
         self.assertEqual(response.status_code, 200)
         self.author.refresh_from_db()
         self.assertEqual(self.author.display_name, "Updated User")
@@ -97,7 +134,9 @@ class IdentityTests(TestCase):
         )
         response = self.client.get("/api/authors/")  # gets all authors
         self.assertEqual(response.status_code, 200)
-        self.assertGreaterEqual(len(response.json()), 2)  # at least two authors exist
+        data = response.json()
+        self.assertIn("authors", data)
+        self.assertGreaterEqual(len(data["authors"]), 2)
 
     def test_public_page(self):
         """
@@ -149,7 +188,6 @@ class IdentityTests(TestCase):
         """
         Test to make sure that an unauthorized user cannot try and edit anoter person"s profile
         """
-        hacker = User.objects.create_user(username="hacker", password="hackerpassword")
         edit_data = {"display_name": "Unauthorized Edit", "github": "https://github.com/hacked"}
         response = self.client.post(f"/authors/{self.author.id}/edit/", edit_data)
 
