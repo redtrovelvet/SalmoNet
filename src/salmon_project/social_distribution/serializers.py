@@ -23,15 +23,15 @@ class AuthorSerializer(serializers.Serializer):
     host = serializers.URLField()
 
     def get_id(self, obj):
-        '''
+        """
         returns full API URL for the author
-        '''
+        """
         return f"{obj.host}/api/authors/{obj.id}"
     
     def create(self, validated_data):
-        '''
-        create and return a new 'Author' instance, given the validated data
-        '''
+        """
+        create and return a new "Author" instance, given the validated data
+        """
         return Author.objects.create(
             username = validated_data["username"],
             display_name = validated_data.get("display_name"),
@@ -41,9 +41,9 @@ class AuthorSerializer(serializers.Serializer):
         ) 
     
     def update(self, instance, validated_data):
-        '''
+        """
         Update and return an existing `Author` instance, given the validated data
-        '''
+        """
         instance.display_name = validated_data.get("display_name", instance.display_name)
         instance.github = validated_data.get("github", instance.github)
         instance.profile_image = validated_data.get("profile_image", instance.profile_image)
@@ -52,7 +52,7 @@ class AuthorSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation['id'] = f"{instance.host}/api/authors/{instance.id}"
+        representation["id"] = f"{instance.host}/api/authors/{instance.id}"
         return {snake_to_camel(key): value for key, value in representation.items()}
 
 class CommentLikeSerializer(serializers.Serializer):
@@ -75,9 +75,9 @@ class CommentLikeSerializer(serializers.Serializer):
         host = settings.BASE_URL
 
         # Add the fields to the representation in the correct format
-        representation['author'] = AuthorSerializer(instance.author).data
-        representation['id'] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
-        representation['object'] = f"{host}/api/authors/{instance.object.author.id}/commented/{instance.object.id}"
+        representation["author"] = AuthorSerializer(instance.author).data
+        representation["id"] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
+        representation["object"] = f"{host}/api/authors/{instance.object.author.id}/commented/{instance.object.id}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
     def to_internal_value(self, data):
@@ -117,10 +117,10 @@ class CommentSerializer(serializers.Serializer):
         # Get the host
         host = settings.BASE_URL
 
-        representation['author'] = AuthorSerializer(instance.author).data
-        representation['id'] = f"{host}/api/authors/{instance.author.id}/commented/{instance.id}"
-        representation['post'] = f"{host}/api/authors/{instance.author.id}/posts/{instance.post.id}"
-        representation['page'] = f"{host}/authors/{instance.author.id}/posts/{instance.post.id}"
+        representation["author"] = AuthorSerializer(instance.author).data
+        representation["id"] = f"{host}/api/authors/{instance.author.id}/commented/{instance.id}"
+        representation["post"] = f"{host}/api/authors/{instance.author.id}/posts/{instance.post.id}"
+        representation["page"] = f"{host}/authors/{instance.author.id}/posts/{instance.post.id}"
         likes = CommentLike.objects.filter(object=instance.id)
         serialized_likes = CommentLikeSerializer(likes, many=True).data
         likes_data = {
@@ -133,7 +133,7 @@ class CommentSerializer(serializers.Serializer):
             "src": serialized_likes
         }
 
-        representation['likes'] = LikesListSerializer(likes_data).data
+        representation["likes"] = LikesListSerializer(likes_data).data
         return {snake_to_camel(key): value for key, value in representation.items()}
 
     def to_internal_value(self, data):
@@ -169,9 +169,9 @@ class PostLikeSerializer(serializers.Serializer):
         host = settings.BASE_URL
 
         # Add the fields to the representation in the correct format
-        representation['author'] = AuthorSerializer(instance.author).data
-        representation['id'] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
-        representation['object'] = f"{host}/api/authors/{instance.object.author.id}/posts/{instance.object.id}"
+        representation["author"] = AuthorSerializer(instance.author).data
+        representation["id"] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
+        representation["object"] = f"{host}/api/authors/{instance.object.author.id}/posts/{instance.object.id}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
     def to_internal_value(self, data):
@@ -185,24 +185,32 @@ class PostSerializer(serializers.ModelSerializer):
     likes = LikesListSerializer(read_only=True)
     class Meta:
         model = Post
-        fields = ['type', 'id', 'author', 'text', 'image', 'video', 'content_type', 'visibility', 'created_at', 'updated_at', 'comments', 'likes']
-        read_only_fields = ['type', 'id', 'author', 'created_at', 'updated_at', 'comments', 'likes']
+        fields = ["type", "id", "author", "text", "image", "video", "content_type", "visibility", "created_at", "updated_at", "comments", "likes"]
+        read_only_fields = ["type", "id", "author", "created_at", "updated_at", "comments", "likes"]
 
     def validate(self, attrs):
-        if 'text' not in attrs and 'image' not in attrs and 'video' not in attrs:
+        if "text" not in attrs and "image" not in attrs and "video" not in attrs:
             raise serializers.ValidationError("A post must contain text, image, or video.")
         return attrs
     
     def create(self, validated_data):
-        validated_data.pop('type', None)
-        validated_data.pop('comments', None)
-        validated_data.pop('likes', None)
+        validated_data.pop("type", None)
+        validated_data.pop("comments", None)
+        validated_data.pop("likes", None)
         return super().create(validated_data)
+    
+    def get_id(self, obj):
+        """
+        returns full API URL for the author
+        """
+        return f"{obj.author.host}/api/authors/{obj.author.id}/posts/{obj.id}"
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
+        representation["id"] = self.get_id(instance)
         representation["type"] = "post"
-        representation['author'] = AuthorSerializer(instance.author).data
+        representation["author"] = AuthorSerializer(instance.author).data
+
 
         # Get the host
         host = settings.BASE_URL
@@ -218,7 +226,7 @@ class PostSerializer(serializers.ModelSerializer):
             "count": len(serialized_comments),
             "src": serialized_comments
         }
-        representation['comments'] = CommentsListSerializer(comments_data).data
+        representation["comments"] = CommentsListSerializer(comments_data).data
         likes = PostLike.objects.filter(object=instance.id)
         serialized_likes = PostLikeSerializer(likes, many=True).data
         likes_data = {
@@ -230,5 +238,5 @@ class PostSerializer(serializers.ModelSerializer):
             "count": len(serialized_likes),
             "src": serialized_likes
         }
-        representation['likes'] = LikesListSerializer(likes_data).data
+        representation["likes"] = LikesListSerializer(likes_data).data
         return {snake_to_camel(key): value for key, value in representation.items()}

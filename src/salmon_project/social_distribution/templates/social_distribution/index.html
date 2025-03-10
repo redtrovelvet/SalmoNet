@@ -2,7 +2,6 @@
 
 {% block content %}
 
-
 <!-- Container for all posts -->
 <div class="content">
   <h2>Your Stream</h2>
@@ -85,5 +84,17 @@
   </div> <!-- end single post container -->
   {% endfor %}
 </div> <!-- end all-posts container -->
+
+<!-- Show alert for failed post viewing -->
+{% if alert_message %}
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      const alertMessage = "{{ alert_message }}";
+      if (alertMessage) {
+          alert(alertMessage);
+      }
+  });
+</script>
+{% endif %}
 
 {% endblock %}
