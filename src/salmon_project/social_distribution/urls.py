@@ -23,6 +23,7 @@ urlpatterns = [
     path("profile/followers/", views.view_followers, name="view_followers"),
     path("profile/following/", views.view_following, name="view_following"),
     path("profile/friends/", views.view_friends, name="view_friends"),
+    path('pending_approval/', views.pending_approval, name='pending_approval'),
     
     # Authors API
     path("api/authors/", views.get_authors, name="get_authors"),
