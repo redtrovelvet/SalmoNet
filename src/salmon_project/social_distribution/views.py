@@ -374,7 +374,6 @@ def all_authors(request):
 def view_follow_requests(request):
     """
     View incoming follow requests for the logged-in user.
-    Also, retrieve notifications for likes and comments on the user's posts.
     """
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to view follow requests.")
@@ -382,34 +381,57 @@ def view_follow_requests(request):
     current_author = request.user.author
     follow_requests = FollowRequest.objects.filter(receiver=current_author, status='PENDING')
     
-    from .models import PostLike, Comment  # Ensure these models are imported
-    like_notifications_qs = PostLike.objects.filter(object__author=current_author).order_by("-published")[:10]
-    comment_notifications_qs = Comment.objects.filter(post__author=current_author).order_by("-published")[:10]
     
     notifications = []
-    for like in like_notifications_qs:
+    
+    # Notifications for likes on posts
+    post_like_qs = PostLike.objects.filter(object__author=current_author)
+    for like in post_like_qs:
         notifications.append({
             "type": "like",
-            "author": like.author,  # Author who liked the post
+            "author": {
+                "display_name": like.author.display_name,
+                "username": like.author.username  
+            },
             "published": like.published,
-            "post_url": f"{current_author.host}/authors/{current_author.id}/posts/{like.object.id}/view/"
+            "post_url": f"{like.object.author.host}/authors/{like.object.author.id}/posts/{like.object.id}/view/"
         })
-    for comment in comment_notifications_qs:
+    
+    # Notifications for likes on comments on posts owned by the current user.
+    comment_like_qs = CommentLike.objects.filter(object__post__author=current_author)
+    for like in comment_like_qs:
+        notifications.append({
+            "type": "like_comment",
+            "author": {
+                "display_name": like.author.display_name,
+                "username": like.author.username   
+            },
+            "published": like.published,
+            "liked_comment": like.object.comment,
+            "post_url": f"{like.object.post.author.host}/authors/{like.object.post.author.id}/posts/{like.object.post.id}/view/"
+        })
+    
+    # Notifications for new comments on posts owned by the current user 
+    comment_qs = Comment.objects.filter(post__author=current_author).exclude(author=current_author)
+    for comment in comment_qs:
         notifications.append({
             "type": "comment",
-            "author": comment.author,  # Author who commented
+            "author": {
+                "display_name": comment.author.display_name,
+                "username": comment.author.username  
+            },
             "comment": comment.comment,
             "published": comment.published,
-            "post_url": f"{current_author.host}/authors/{current_author.id}/posts/{comment.post.id}/view/"
+            "post_url": f"{comment.post.author.host}/authors/{comment.post.author.id}/posts/{comment.post.id}/view/"
         })
     
+    # Sort notifications by published date descending (latest first)
     notifications.sort(key=lambda n: n["published"], reverse=True)
     
-    context = {
+    return render(request, "social_distribution/follow_requests.html", {
         "follow_requests": follow_requests,
-        "like_notifications": notifications,
-    }
-    return render(request, "social_distribution/follow_requests.html", context)
+        "like_notifications": notifications
+    })
 
 
 @require_POST
@@ -627,7 +649,7 @@ def get_post_image(request, author_id, post_id):
         return Response(status=403)
     return Response(post.image.read(), content_type=post.content_type)
 
-# ================= NEW: Followers and Follow Request API Endpoints =================
+
 
 @api_view(["GET"])
 def get_followers_api(request, author_id):
@@ -953,9 +975,6 @@ def like_post(request, author_id, post_id):
 
 @api_view(["POST"])
 def like_comment(request, author_id, comment_id):
-    '''
-    API: allows an author to like a comment
-    '''
     data = request.data.copy()
     if data.get("type") == "like":
         data["author"] = author_id
@@ -968,14 +987,17 @@ def like_comment(request, author_id, comment_id):
                 try:
                     serializer.save()
                 except Exception as e:
-                    return Response(status=400, data={"error": str(e)})
+                    messages.error(request, f"Error: {str(e)}")
+                    return redirect(request.META.get("HTTP_REFERER", "index"))
         else:
-            return Response(status=400, data={"error": serializer.errors})
+            messages.error(request, f"Error: {serializer.errors}")
+            return redirect(request.META.get("HTTP_REFERER", "index"))
     else:
-        return Response(status=400, data={"error": "Invalid type."})
+        messages.error(request, "Invalid type.")
+        return redirect(request.META.get("HTTP_REFERER", "index"))
     
-    like_count = CommentLike.objects.filter(object=comment_id).count()
-    return Response({"like_count": like_count}, status=201)
+    return redirect(request.META.get("HTTP_REFERER", "index"))
+
 
 
 @api_view(["GET", "PUT", "DELETE"])
