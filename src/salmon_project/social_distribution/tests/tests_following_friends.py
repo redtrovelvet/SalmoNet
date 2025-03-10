@@ -124,7 +124,7 @@ class FollowerAPITests(TestCase):
         url = f"/api/authors/{self.edwards_author.id}/followers/{foreign_id_encoded}/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["username"], self.bruce_author.username) # type:ignore
+        self.assertEqual(response.data["displayName"], self.bruce_author.display_name) # type:ignore
     
     def test_put_followers_api(self):
         """

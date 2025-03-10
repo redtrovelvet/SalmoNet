@@ -16,11 +16,11 @@ def camel_to_snake(camel_str):
 class AuthorSerializer(serializers.Serializer):
     type = serializers.CharField(default="author")
     id = serializers.SerializerMethodField()
-    username = serializers.CharField(max_length=100)
+    host = serializers.URLField()
     display_name = serializers.CharField(max_length=100, allow_null=True, required=False, default="Display Name")
     github = serializers.URLField(allow_null=True, required=False)
     profile_image = serializers.URLField(allow_null=True, required=False)
-    host = serializers.URLField()
+    username = serializers.CharField(max_length=100)
 
     def get_id(self, obj):
         """
@@ -52,7 +52,11 @@ class AuthorSerializer(serializers.Serializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["id"] = f"{instance.host}/api/authors/{instance.id}"
+        base_host = instance.host.rstrip('/')
+        representation["id"] = f"{base_host}/api/authors/{instance.id}"
+        representation["host"] = f"{base_host}/api/"
+        representation["page"] = f"{base_host}/authors/{instance.id}"
+        representation.pop("username", None)
         return {snake_to_camel(key): value for key, value in representation.items()}
 
 class CommentLikeSerializer(serializers.Serializer):

@@ -308,41 +308,38 @@ def get_authors(request):
     '''
     API: returns all authors in local node
     '''
-    local_authors = Author.objects.filter(host=settings.BASE_URL)
-    serializer = AuthorSerializer(local_authors, many=True)
-    return Response(serializer.data)
+    page_num = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 5))
 
-@api_view(["GET"])
-def get_author(request, author_id):
+    authors_qs = Author.objects.all().order_by("id")
+    paginator = Paginator(authors_qs, size)
+    page_obj = paginator.get_page(page_num)
+
+    serializer = AuthorSerializer(page_obj, many=True)
+    return Response({
+        "type": "authors",
+        "authors": serializer.data  
+    })
+
+@api_view(["GET", "PUT"])
+def author_details(request, author_id):
     '''
     API: returns specific author profiile
     '''
     author = get_object_or_404(Author, id=author_id)
-    serializer = AuthorSerializer(author)
-    return Response(serializer.data)
-
-@api_view(["POST"])
-def create_author(request):
-    '''
-    API: creates a new author 
-    '''
-    serializer = AuthorSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=201)
-    return Response(status=400, data=serializer.errors)
-
-@api_view(["PUT"])
-def update_author(request, author_id):
-    '''
-    API: updates an author's profile
-    ''' 
-    author = get_object_or_404(Author, id=author_id)
-    serializer = AuthorSerializer(author, data=request.data, partial=True)
-    if serializer.is_valid():
-        serializer.save()
+    if request.method == "GET":
+        serializer = AuthorSerializer(author)
         return Response(serializer.data)
-    return Response(status=400, data=serializer.errors)
+    
+    if request.method == "PUT":
+        if not request.user.is_authenticated or request.user.author != author:
+            return Response({"detail": "Forbidden"}, status=403)
+
+        serializer = AuthorSerializer(author, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
 
 @require_POST
 def send_follow_request(request, author_id):
