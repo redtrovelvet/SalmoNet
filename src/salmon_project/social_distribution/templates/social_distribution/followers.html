@@ -2,10 +2,10 @@
 {% load static %}
 
 {% block title %}Followers{% endblock %}
-<link rel="stylesheet" type="text/css" href="{% static 'css/followers.css' %}">
-
 {% block content %}
-<div class="content">
+<link rel="stylesheet" type="text/css" href="{% static 'css/follows.css' %}">
+
+<div class="content follow">
     <h1>Your Followers</h1>
     {% if followers %}
         <ul>

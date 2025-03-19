@@ -136,12 +136,8 @@ h2 {
     transition: background-color 0.3s;
 }
 
-.btn-primary {
-    transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.btn-liked {
-    background-color: red;
+.btn-primary:hover {
+    background-color: red; 
     color: black;
 }
 
