@@ -49,7 +49,7 @@ body, html {
 /* Navbar styles */
 .navbar {
     width: 250px;
-    background-color: #f0f0f0;
+    background-color: #ffc0b4;
     padding: 20px;
     height: 100%;
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
@@ -76,7 +76,7 @@ body, html {
 }
 
 .navbar a:hover {
-    background-color: #e0e0e0;
+    background-color: #f48d79;
 }
 
 .navbar i {
@@ -94,6 +94,7 @@ body, html {
 h2 {
     color: #333;
     padding-bottom: 10px;
+    text-align: center;
 }
 
 /* Post styles */
@@ -184,7 +185,7 @@ h2 {
 }
 
 .comment-form .btn:hover {
-    background-color: #0056b3; 
+    background-color: #034c52; 
     color: white;
 }
 

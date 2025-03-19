@@ -43,7 +43,7 @@ h1, h2 {
 }
 
 .inbox a {
-    color: #1a73e8;
+    color: #017075;
     text-decoration: none;
 }
 
@@ -63,12 +63,12 @@ button {
 }
 
 button[type="submit"] {
-    background-color: #1a73e8;
+    background-color: #017075;
     color: white;
 }
 
 button[type="submit"]:hover {
-    background-color: #1557b0;
+    background-color: #034c52;
 }
 
 button[type="submit"].deny {

@@ -30,7 +30,7 @@
 
 /* Style the submit button */
 button {
-    background-color: #007bff;
+    background-color: #017075;
     color: white;
     padding: 10px;
     border: none;
@@ -41,12 +41,12 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #034c52;
 }
 
 /* Style the register link */
 p a {
-    color: #007bff;
+    color: #017075;
     text-decoration: none;
 }
 
@@ -87,7 +87,7 @@ p a:hover {
 
 /* Style the submit button */
 button {
-    background-color: #007bff;
+    background-color: #017075;
     color: white;
     padding: 10px;
     border: none;
@@ -97,12 +97,12 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #034c52;
 }
 
 /* Style the login link */
 p a {
-    color: #007bff;
+    color: #017075;
     text-decoration: none;
 }
 

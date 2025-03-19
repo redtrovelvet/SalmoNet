@@ -1,15 +1,15 @@
-h1 {
+.follow h1 {
     color: #333;
     margin-bottom: 20px;
     text-align: center;
 }
 
-ul {
+.follow ul {
     list-style-type: none;
     padding: 0;
 }
 
-li {
+.follow li {
     padding: 15px;
     margin-bottom: 10px;
     background-color: #f9f9f9;
@@ -18,21 +18,22 @@ li {
     transition: background-color 0.3s ease;
 }
 
-li:hover {
+.follow li:hover {
     background-color: #f1f1f1;
 }
 
-a {
-    color: #1a73e8;
+.follow a {
+    color: #017075;
     text-decoration: none;
     font-weight: bold;
 }
 
-a:hover {
+.follow a:hover {
+    color: #034c52;
     text-decoration: underline;
 }
 
-p {
+.follow p {
     color: #777;
     font-style: italic;
     text-align: center;
@@ -40,16 +41,11 @@ p {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .content {
-        padding: 15px;
-        margin: 20px;
-    }
-
-    h1 {
+    .follow h1 {
         font-size: 24px;
     }
 
-    li {
+    .follow li {
         padding: 10px;
     }
 }

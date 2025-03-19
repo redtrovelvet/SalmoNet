@@ -15,7 +15,7 @@
     height: 150px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #007bff;
+    border: 3px solid #017075;
 }
 
 .profile-actions {
@@ -28,14 +28,14 @@
 .profile-actions .btn {
     padding: 8px 15px;
     text-decoration: none;
-    background-color: #007bff;
+    background-color: #017075;
     color: white;
     border-radius: 5px;
     transition: 0.3s;
 }
 
 .profile-actions .btn:hover {
-    background-color: #0056b3;
+    background-color: #034c52;
 }
 
 /* Post Form Styling */
@@ -66,7 +66,7 @@
 }
 
 .post-form .btn:hover {
-    background-color: #0056b3; 
+    background-color: #034c52; 
     color: white;
 }
 
@@ -103,7 +103,7 @@
 
 .post-actions .btn {
     padding: 5px 10px;
-    background: #007bff;
+    background: #017075;
     color: white;
     border-radius: 5px;
     transition: 0.3s;
@@ -183,7 +183,7 @@
 .edit input[type="text"]:focus,
 .edit input[type="url"]:focus,
 .edit input[type="file"]:focus {
-    border-color: #1a73e8;
+    border-color: #017075;
     outline: none;
 }
 
@@ -193,7 +193,7 @@
 
 .edit[type="submit"] {
     padding: 12px;
-    background-color: #1a73e8;
+    background-color: #017075;
     color: white;
     border: none;
     border-radius: 5px;
@@ -203,5 +203,5 @@
 }
 
 .edit[type="submit"]:hover {
-    background-color: #1557b0;
+    background-color: #034c52;
 }

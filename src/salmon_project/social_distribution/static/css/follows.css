@@ -23,13 +23,13 @@
 }
 
 .follow a {
-    color: #1a73e8;
+    color: #017075;
     text-decoration: none;
     font-weight: bold;
 }
 
 .follow a:hover {
-    color: #0056b3;
+    color: #034c52;
     text-decoration: underline;
 }
 
