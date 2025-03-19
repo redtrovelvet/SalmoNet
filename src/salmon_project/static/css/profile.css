@@ -1,7 +1,7 @@
 /* Profile Page Styling */
 .profile-container {
     max-width: 800px;
-    margin: auto;
+    margin: 20px auto;
     padding: 20px;
 }
 
@@ -65,6 +65,11 @@
     width: 100%;
 }
 
+.post-form .btn:hover {
+    background-color: #0056b3; 
+    color: white;
+}
+
 /* Post Styling */
 .post-container {
     display: flex;
@@ -78,20 +83,11 @@
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border: 1px solid #ccc;
-    width: 100%;
 }
 
 .post-text {
     font-size: 16px;
     line-height: 1.6;
-}
-
-.post-image, .post-video {
-    width: 100%;
-    max-height: 300px;
-    object-fit: cover;
-    border-radius: 5px;
-    margin-top: 10px;
 }
 
 .post-meta {
@@ -155,4 +151,54 @@
 
 .comment-form .btn {
     width: 72%;
+}
+
+
+/* Form Styles */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+label {
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="url"],
+input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="url"]:focus,
+input[type="file"]:focus {
+    border-color: #1a73e8;
+    outline: none;
+}
+
+input[type="file"] {
+    padding: 8px;
+}
+
+.edit-save button[type="submit"] {
+    padding: 12px;
+    background-color: #1a73e8;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.edit-save [type="submit"]:hover {
+    background-color: #1557b0;
 }

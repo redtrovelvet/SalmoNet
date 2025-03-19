@@ -1,0 +1,103 @@
+/* General Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f5f5;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.content {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+.inbox ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.inbox li {
+    padding: 15px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inbox li:hover {
+    background-color: #f1f1f1;
+}
+
+.inbox a {
+    color: #1a73e8;
+    text-decoration: none;
+}
+
+.inbox a:hover {
+    text-decoration: underline;
+}
+
+/* Buttons */
+button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"] {
+    background-color: #1a73e8;
+    color: white;
+}
+
+button[type="submit"]:hover {
+    background-color: #1557b0;
+}
+
+button[type="submit"].deny {
+    background-color: #e74c3c;
+}
+
+button[type="submit"].deny:hover {
+    background-color: #c0392b;
+}
+
+/* No Content Messages */
+p {
+    color: #777;
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content {
+        padding: 15px;
+    }
+
+    li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    button {
+        margin: 5px 0;
+        width: 100%;
+    }
+}
