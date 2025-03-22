@@ -21,6 +21,7 @@ class Author(models.Model):
     #<END GENERATED></END>
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=100, unique=True)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     following = models.ManyToManyField('self', symmetrical=False, blank=True)
     display_name = models.CharField(max_length=100, default="Display Name")
     github = models.URLField(null=True, blank=True)
@@ -37,6 +38,11 @@ class Author(models.Model):
     
     def is_following(self, other_author):
         return self in other_author.following.all()
+    
+    def save(self, *args, **kwargs):
+        if not self.fqid:
+            self.fqid = f"{self.host.rstrip('/')}/authors/{self.id}"
+        super().save(*args, **kwargs)
 
 @receiver(post_save, sender=User)
 def create_author_for_admin(sender, instance, created, **kwargs):
@@ -48,6 +54,7 @@ class Post(models.Model):
     A post by an author with text and/or an image
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     text = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to="images/", null=True, blank=True)
@@ -76,6 +83,11 @@ class Post(models.Model):
     
     def __str__(self):
         return f"Post by {self.author.username} at {self.created_at}"
+
+    def save(self, *args, **kwargs):
+        if not self.fqid:
+            self.fqid = f"{self.author.host.rstrip('/')}/authors/{self.author.id}/posts/{self.id}"
+        super().save(*args, **kwargs)
 
 class PostLike(models.Model):
     """
@@ -148,4 +160,3 @@ class FeedBlock(models.Model):
 
     def __str__(self):
         return f"{self.blocker.username} blocks {self.blocked_author.username}"
-

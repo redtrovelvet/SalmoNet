@@ -14,11 +14,11 @@ class AuthorAdmin(admin.ModelAdmin):
     list_filter = ('is_approved', 'host')
     search_fields = ('username', 'display_name')
     ordering = ('username',)
-    readonly_fields = ('id',)
+    readonly_fields = ('id', 'fqid')
 
     fieldsets = (
         (None, {
-            'fields': ('user', 'id', 'username', 'display_name', 'is_approved')
+            'fields': ('user', 'id', 'username', 'display_name', 'is_approved', 'fqid')  # added fqid here
         }),
         ('Profile Information', {
             'fields': ('github', 'profile_image', 'page')
