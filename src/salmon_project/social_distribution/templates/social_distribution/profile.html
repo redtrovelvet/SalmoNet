@@ -128,7 +128,7 @@
             <!-- Button for copying link to posts -->
             {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
                 <!-- Button for copying link to posts -->
-                <button type="button" class="copy-post-link btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+                <button type="button" class="copy-post-link btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/">
                     <span class="copy-label">Copy Link</span>
                 </button>
             {% endif %}
