@@ -108,6 +108,7 @@ class Comment(models.Model):
     A comment on a post by an author
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     comment = models.TextField()
@@ -118,6 +119,11 @@ class Comment(models.Model):
     ]
     content_type = models.CharField(choices=COMMENT_CONTENT_TYPE_CHOICES, default="text/plain", max_length=100)
     published = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.fqid:
+            self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/commented/{self.id}"
+        super().save(*args, **kwargs)
 
 class CommentLike(models.Model):
     """
