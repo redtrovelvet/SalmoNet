@@ -285,8 +285,14 @@ def render_markdown_if_needed(text, content_type):
 def admin_controls(request):
     if not request.user.is_superuser:
         return redirect("index")
+
+    node_info = NodeInfo.objects.first()
+    if node_info:
+        username = node_info.username
+    else:
+        username = ""
     
-    return render(request, "social_distribution/admin_controls.html")
+    return render(request, "social_distribution/admin_controls.html", {"nodes": RemoteNode.objects.all(), "username": username})
 
 @require_http_methods(["GET", "POST"])
 @permission_classes([IsAuthenticated])
@@ -353,7 +359,6 @@ def delete_post_local(request, author_id, post_id):
 
 @api_view(["POST"])
 def set_node_info(request):
-    print(request.user)
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
     
@@ -422,6 +427,7 @@ def connect_node(request):
             
 @api_view(["POST"])
 def remove_connection(request):
+    print(request.user)
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
     
@@ -429,6 +435,7 @@ def remove_connection(request):
         remote_node = RemoteNode.objects.filter(host=request.POST["host"]).first()
         if remote_node:
             remote_node.outgoing = False
+            remote_node.save()
             return Response("Outgoing connection removed", status=200)
         return Response("Connection not found", status=404)
 
