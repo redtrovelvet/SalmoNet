@@ -836,11 +836,16 @@ def get_comments(request, post_id, author_id=None):
     size = int(request.GET.get("size", 5))
 
     # Get the relevant comments based on the post id and optional author id
-    if author_id:
-        comments = Comment.objects.filter(post_id=post_id)
-    else:
-        comments = Comment.objects.filter(post_id=post_id)
-        author_id = Post.objects.get(id=post_id).author.id
+    if author_id: # use author and post serial
+        post_id = uuid.UUID(post_id)
+        author_id = uuid.UUID(author_id)
+        comments = Comment.objects.filter(post_id=post_id, post__author__id=author_id)
+    else: # use post_fqid
+        post_fqid = unquote(post_id)
+        comments = Comment.objects.filter(post__fqid=post_fqid)
+        author_id = Post.objects.get(fqid=post_fqid).author.id
+        post_id = Post.objects.get(fqid=post_fqid).id
+
     paginator = Paginator(comments, size)
     page = paginator.get_page(page_number)
     serialized_comments = CommentSerializer(page, many=True).data
@@ -864,7 +869,12 @@ def commented(request, author_id):
     if request.method == "POST":
         # Add author id to the serializer data, make a copy of the data because it is immutable
         data = request.data.copy()
-        author = get_object_or_404(Author, id=author_id)
+        if ("http" in author_id): # use author fqid
+            author_id = unquote(author_id)
+            author = get_object_or_404(Author, fqid=author_id)
+        else: # use author serial
+            author_id = uuid.UUID(author_id)
+            author = get_object_or_404(Author, id=author_id)
         data["author"] = author.id
 
         serializer = CommentSerializer(data=data)
@@ -872,8 +882,13 @@ def commented(request, author_id):
             serializer.save()
             return Response(serializer.data, status=201)
         return Response(status=400, data=serializer.errors)
-    else:
-        comments = Comment.objects.filter(author_id=author_id)
+    else: # GET based on author fqid
+        if ("http" in author_id):
+            author_id = unquote(author_id)
+            comments = Comment.objects.filter(author__fqid=author_id)
+        else: # GET based on author serial
+            author_id = uuid.UUID(author_id)
+            comments = Comment.objects.filter(author_id=author_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data)
 
@@ -885,12 +900,18 @@ def get_comment(request, comment_id, author_id=None, post_id=None):
 
     # Get the comment based on the comment id
     if author_id:
-        if post_id:
-            comment = get_object_or_404(Comment, id=comment_id)
-        else:
-            comment = get_object_or_404(Comment, id=comment_id)
-    else:
-        comment = get_object_or_404(Comment, id=comment_id)
+        if post_id: # use author and post serial and remote comment fqid
+            post_id = uuid.UUID(post_id)
+            author_id = uuid.UUID(author_id)
+            comment_id = unquote(comment_id)
+            comment = get_object_or_404(Comment, fqid=comment_id, post__author__id=author_id, post_id=post_id)
+        else: # use author and comment serial
+            author_id = uuid.UUID(author_id)
+            comment_id = uuid.UUID(comment_id)
+            comment = get_object_or_404(Comment, id=comment_id, author_id=author_id)
+    else: # use comment fqid
+        comment_id = unquote(comment_id)
+        comment = get_object_or_404(Comment, fqid=comment_id)
     
     # Return the comment
     serializer = CommentSerializer(comment)
@@ -906,11 +927,15 @@ def get_post_likes(request, post_id, author_id=None):
     # Get optional query parameters for pagination
     page_number = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 50))
-    if author_id:
-        likes = PostLike.objects.filter(object=post_id)
-    else:
-        likes = PostLike.objects.filter(object=post_id)
-        author_id = Post.objects.get(id=post_id).author.id
+    if author_id: # use author and post serial
+        post_id = uuid.UUID(post_id)
+        author_id = uuid.UUID(author_id)
+        likes = PostLike.objects.filter(object_id=post_id, object__author__id=author_id)
+    else: # use post_fqid
+        post_fqid = unquote(post_id)
+        likes = PostLike.objects.filter(object__fqid=post_fqid)
+        author_id = Post.objects.get(fqid=post_fqid).author.id
+        post_id = Post.objects.get(fqid=post_fqid).id
     
     # Paginate the likes
     paginator = Paginator(likes, size)
@@ -940,7 +965,13 @@ def get_comment_likes(request, author_id, post_id, comment_id):
     # Get optional query parameters for pagination
     page_number = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 50))
-    likes = CommentLike.objects.filter(object=comment_id)
+
+    comment_fqid = unquote(comment_id)
+    post_id = uuid.UUID(post_id)
+    author_id = uuid.UUID(author_id)
+    comment = get_object_or_404(Comment, fqid=comment_fqid, post_id=post_id, post__author__id=author_id)
+    likes = CommentLike.objects.filter(object_id=comment.id)
+    comment_id = comment.id
 
     # Paginate the likes
     paginator = Paginator(likes, size)
@@ -953,8 +984,8 @@ def get_comment_likes(request, author_id, post_id, comment_id):
     # Create the likes object
     likes_data = {
         "type": "likes",
-        "page": f"{host}/authors/{author_id}/comments/{comment_id}",
-        "id": f"{host}/api/authors/{author_id}/commented/{comment_id}/likes",
+        "page": f"{host}/authors/{comment.author.id}/comments/{comment_id}",
+        "id": f"{host}/api/authors/{comment.author.id}/commented/{comment_id}/likes",
         "page_number": page_number,
         "size": min(len(serialized_likes), size),
         "count": len(likes),
@@ -970,9 +1001,18 @@ def get_author_liked(request, author_id):
     # Get optional query parameters for pagination
     page_number = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 50))
-    post_likes = PostLike.objects.filter(author=author_id)
-    comment_likes = CommentLike.objects.filter(author=author_id)
+
+    if ("http" in author_id):
+        author_fqid = unquote(author_id)
+        post_likes = PostLike.objects.filter(author__fqid=author_fqid)
+        comment_likes = CommentLike.objects.filter(author__fqid=author_fqid)
+        author_id = Author.objects.get(fqid=author_fqid).id
+    else:    
+        author_id = uuid.UUID(author_id)
+        post_likes = PostLike.objects.filter(author_id=author_id)
+        comment_likes = CommentLike.objects.filter(author_id=author_id)
     likes = list(post_likes) + list(comment_likes)
+
     paginator = Paginator(likes, size)
     page = paginator.get_page(page_number)
     serialized_likes = PostLikeSerializer(page, many=True).data
@@ -993,19 +1033,23 @@ def get_like(request, like_id, author_id=None):
     '''
     API: returns a specific like
     '''
-    if author_id:
+    if author_id: # use author and like serial
+        author_id = uuid.UUID(author_id)
+        like_id = uuid.UUID(like_id)
+
         try:
-            like = PostLike.objects.get(id=like_id)
+            like = PostLike.objects.get(author_id=author_id, id=like_id)
             post = True
         except:
-            like = CommentLike.objects.get(id=like_id)
+            like = CommentLike.objects.get(author_id=author_id, id=like_id)
             post = False
-    else:
+    else: # use like fqid
+        like_id = unquote(like_id)
         try:
-            like = PostLike.objects.get(id=like_id)
+            like = PostLike.objects.get(fqid=like_id)
             post = True
         except:
-            like = CommentLike.objects.get(id=like_id)
+            like = CommentLike.objects.get(fqid=like_id)
             post = False
     if not like:
         return Response(status=404)

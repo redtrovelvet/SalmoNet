@@ -44,24 +44,24 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/inbox/", views.inbox, name="inbox"),
 
     # Comments API
-    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/comments/", views.get_comments, name="get_author_comments"),
-    path("api/posts/<uuid:post_id>/comments/", views.get_comments, name="get_comments"),
-    path("api/authors/<uuid:author_id>/post/<uuid:post_id>/comments/<uuid:comment_id>/", views.get_comment, name="get_remote_comment"),
+    path("api/authors/<str:author_id>/posts/<str:post_id>/comments/", views.get_comments, name="get_author_comments"),
+    path("api/posts/<str:post_id>/comments/", views.get_comments, name="get_comments"),
+    path("api/authors/<str:author_id>/post/<str:post_id>/comments/<str:comment_id>/", views.get_comment, name="get_remote_comment"),
 
     # Commented API
-    path("api/authors/<uuid:author_id>/commented/", views.commented, name="commented"),
-    path("api/authors/<uuid:author_id>/commented/<uuid:comment_id>/", views.get_comment, name="get_author_comment"),
-    path("api/commented/<uuid:comment_id>/", views.get_comment, name="get_comment"),
+    path("api/authors/<str:author_id>/commented/", views.commented, name="commented"),
+    path("api/authors/<str:author_id>/commented/<str:comment_id>/", views.get_comment, name="get_author_comment"),
+    path("api/commented/<str:comment_id>/", views.get_comment, name="get_comment"),
 
     # Likes API
-    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/likes/", views.get_post_likes, name="get_post_likes"),
-    path("api/posts/<uuid:post_id>/likes/", views.get_post_likes, name="get_likes"),
-    path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/comments/<uuid:comment_id>/likes/", views.get_comment_likes, name="get_comment_likes"),
+    path("api/authors/<str:author_id>/posts/<str:post_id>/likes/", views.get_post_likes, name="get_post_likes"),
+    path("api/posts/<str:post_id>/likes/", views.get_post_likes, name="get_likes"),
+    path("api/authors/<str:author_id>/posts/<str:post_id>/comments/<str:comment_id>/likes/", views.get_comment_likes, name="get_comment_likes"),
 
     # Liked API
-    path("api/authors/<uuid:author_id>/liked/", views.get_author_liked, name="get_author_liked"),
-    path("api/authors/<uuid:author_id>/liked/<uuid:like_id>/", views.get_like, name="get_author_like"),
-    path("api/liked/<uuid:like_id>/", views.get_like, name="get_like"),
+    path("api/authors/<str:author_id>/liked/", views.get_author_liked, name="get_author_liked"),
+    path("api/authors/<str:author_id>/liked/<str:like_id>/", views.get_like, name="get_author_like"),
+    path("api/liked/<str:like_id>/", views.get_like, name="get_like"),
 
     # Extra APIs to like posts and comments (not in the spec)
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/liked/", views.like_post, name="like_post"),
