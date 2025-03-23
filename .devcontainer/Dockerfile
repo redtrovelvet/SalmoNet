@@ -1,22 +1,31 @@
-# Use a Python image with Node.js pre-installed for frontend needs
-FROM nikolaik/python-nodejs:latest
+# Use an official base image
+FROM python:3.12
 
-# Update package lists and install required tools
-RUN apt-get update && apt-get upgrade -y
-RUN apt-get -y install fish git sudo
+# Set the working directory
+WORKDIR /app
 
-# Define arguments for creating a non-root user
-ARG USERNAME=dev
-ARG USER_UID=1001
-ARG USER_GID=$USER_UID
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1 \
+    PYTHONHASHSEED=random \
+    PIP_NO_CACHE_DIR=on \
+    PIP_DISABLE_PIP_VERSION_CHECK=on
 
-# Create a new user with sudo privileges
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -p "" \
-    && adduser $USERNAME sudo
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
-WORKDIR /workspace
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Switch to non-root user
-USER $USERNAME
+# Copy application files
+COPY . .
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Run Django using gunicorn
+CMD ["gunicorn", "--bind", "[::]:8000", "salmon_project.wsgi:application"]
