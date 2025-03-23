@@ -1,7 +1,8 @@
-version: '3.8'
 services:
   web:
-    build: .
+    build:
+      context: ../
+      dockerfile: .devcontainer/Dockerfile
     ports:
       - "[::]:8000:8000"
     env_file:
@@ -11,8 +12,12 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "python manage.py migrate &&
-             gunicorn --bind [::]:8000 salmon_project.wsgi:application"
+      sh -c "cd /app/salmon_project &&
+            python manage.py makemigrations &&
+            python manage.py migrate &&
+            python manage.py collectstatic --noinput &&
+            gunicorn --bind [::]:8000 salmon_project.wsgi:application"
+
   db:
     image: postgres:16
     restart: always
@@ -23,8 +28,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hello_django"]
+      test: ["CMD-SHELL", "pg_isready -U hello_django -d hello_django"]
       interval: 10s
       retries: 5
+      timeout: 5s
+
 volumes:
   postgres_data:
