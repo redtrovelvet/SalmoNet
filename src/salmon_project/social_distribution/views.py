@@ -8,10 +8,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike
+from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike, NodeInfo, RemoteNode
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.utils.html import escape
 
@@ -281,6 +282,12 @@ def render_markdown_if_needed(text, content_type):
         return commonmark.commonmark(text or "")
     return text or "" 
 
+def admin_controls(request):
+    if not request.user.is_superuser:
+        return redirect("index")
+    
+    return render(request, "social_distribution/admin_controls.html")
+
 @require_http_methods(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def edit_post(request, author_id, post_id):
@@ -343,6 +350,88 @@ def delete_post_local(request, author_id, post_id):
     return redirect("profile", author_id=author_id)
 
 # --- API Endpoints ---
+
+@api_view(["POST"])
+def set_node_info(request):
+    print(request.user)
+    if not request.user.is_superuser:
+        return Response("Forbidden", status=403)
+    
+    if request.method == "POST":
+        node_info = NodeInfo.objects.first()
+        if node_info:
+            node_info.username = request.POST["username"]
+            node_info.password = make_password(request.POST["password"])
+            node_info.save()
+            return Response("Node info updated", status=200)
+        else:
+            NodeInfo.objects.create(
+                host=settings.BASE_URL,
+                username=request.POST["username"],
+                password=make_password(request.POST["password"])
+            )
+            return Response("Node info created", status=201)
+        
+    return Response("GET request not allowed", status=405)
+
+@api_view(["POST"])
+def add_remote_node(request):
+    if not request.user.is_superuser:
+        return Response("Forbidden", status=403)
+    
+    if request.method == "POST":
+        node = RemoteNode.objects.filter(host=request.POST["host"]).first()
+        if node:
+            node.outgoing = True
+            node.save()
+            return Response("Node updated", status=200)
+        else:
+            RemoteNode.objects.create(
+                host=request.POST["host"],
+                outgoing=True,
+                incoming=False
+            )
+            return Response("Node added", status=201)
+    
+    return Response("GET request not allowed", status=405)
+
+@api_view(["POST"])
+def connect_node(request):
+    if request.method == "POST":
+        local_node = NodeInfo.objects.first()
+        if not local_node:
+            return Response("Local node not found", status=404)
+        
+        username = request.POST["username"]
+        password = request.POST["password"]
+
+        if local_node.username == username and check_password(password, local_node.password):
+            remote_node = RemoteNode.objects.filter(host=request.POST["host"]).first()
+            if remote_node:
+                remote_node.incoming = True
+                remote_node.save()
+                return Response("Connected", status=200)
+            else:
+                RemoteNode.objects.create(
+                    host=request.POST["host"],
+                    outgoing=False,
+                    incoming=True
+                )
+                return Response("Connected", status=201)
+        return Response("Unauthorized", status=401)
+            
+@api_view(["POST"])
+def remove_connection(request):
+    if not request.user.is_superuser:
+        return Response("Forbidden", status=403)
+    
+    if request.method == "POST":
+        remote_node = RemoteNode.objects.filter(host=request.POST["host"]).first()
+        if remote_node:
+            remote_node.outgoing = False
+            return Response("Outgoing connection removed", status=200)
+        return Response("Connection not found", status=404)
+
 
 @api_view(["GET"])
 def get_authors(request):

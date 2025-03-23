@@ -1,0 +1,39 @@
+{% extends 'social_distribution/base.html' %}
+{% load static %}
+{% block title %}Admin Controls{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/basic_style.css' %}">
+<script src="{% static 'js/node-admin.js' %}"></script>
+
+<div class="content">
+    <h1>Admin Options</h1>
+    <a href="{% url 'admin:index' %}" target="_blank" class="">Admin Panel</a>
+
+    <br>
+
+    <h2>Set Local Node Login</h2>
+    <form action="{% url 'set_node_info' %}" method="post" id="set-info">
+        {% csrf_token %}
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Set</button>
+    </form>
+
+    <br>
+
+    <h2>Connect to a node</h2>
+    <form action="{% url 'add_remote_node' %}" method="post" id="add-node">
+        {% csrf_token %}
+        <label for="node_address">Address:</label>
+        <input type="text" id="node_address" name="host" required>
+        <label for="node_username">Username:</label>
+        <input type="text" id="node_username" name="username" required>
+        <label for="node_password">Password:</label>
+        <input type="password" id="node_password" name="password" required>
+        <button type="submit">Connect</button>
+    </form>
+</div>
+{% endblock %}

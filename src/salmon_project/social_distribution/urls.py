@@ -12,6 +12,11 @@ urlpatterns = [
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/", views.view_post, name="view_post"),
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/edit/", views.edit_post, name="edit_post"),       
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post_local, name="delete_post_local"),
+    path("admin_controls/", views.admin_controls, name="admin_controls"),
+    path("api/set_node_info/", views.set_node_info, name="set_node_info"),
+    path("api/connect/", views.connect_node, name="connect_node"),
+    path("api/add_remote_node/", views.add_remote_node, name="add_remote_node"),
+    path("api/remove_connection/", views.remove_connection, name="remove_connection"),
 
     # Extra User-Facing Views (from following/friend branch)
     path("authors/", views.all_authors, name="all_authors"),
