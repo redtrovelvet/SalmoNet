@@ -1,36 +1,39 @@
 services:
-  web:
+  salmon_project:
+    image: salmon_project:latest
     build:
       context: ../
       dockerfile: .devcontainer/Dockerfile
-    ports:
-      - "[::]:8000:8000"
-    env_file:
-      - .env
-    restart: always
-    depends_on:
-      db:
-        condition: service_healthy
     command: >
       sh -c "cd salmon_project &&
-            python manage.py migrate &&
-            python manage.py collectstatic --noinput &&
-            gunicorn --bind [::]:8000 --log-level debug salmon_project.wsgi:application"
+          python3 manage.py createsuperuser &&
+          gunicorn salmon_project.wsgi:application --bind 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
 
-  db:
+  postgres:
     image: postgres:16
-    restart: always
     environment:
       POSTGRES_DB: hello_django
       POSTGRES_USER: hello_django
       POSTGRES_PASSWORD: hello_django
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hello_django -d hello_django"]
-      interval: 10s
-      retries: 5
-      timeout: 5s
+
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - salmon_project
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
 
 volumes:
   postgres_data:
