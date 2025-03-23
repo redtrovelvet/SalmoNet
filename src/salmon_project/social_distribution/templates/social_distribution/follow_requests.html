@@ -1,23 +1,28 @@
 {% extends 'social_distribution/base.html' %}
+{% load static %}
 
 {% block content %}
-<div class="content">
+<link rel="stylesheet" type="text/css" href="{% static 'css/follow_requests.css' %}">
+
+<div class="content inbox">
     <h1>Follow Requests</h1>
     {% if follow_requests %}
         <ul>
             {% for req in follow_requests %}
                 <li>
-                    {{ req.sender.display_name }} wants to follow you.
-                    <!-- Approve form -->
-                    <form method="post" action="{% url 'approve_follow_request' req.id %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit">Approve</button>
-                    </form>
-                    <!-- Deny form -->
-                    <form method="post" action="{% url 'deny_follow_request' req.id %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit">Deny</button>
-                    </form>
+                    <span>{{ req.sender.display_name }} wants to follow you.</span>
+                    <div>
+                        <!-- Approve form -->
+                        <form method="post" action="{% url 'approve_follow_request' req.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit">Approve</button>
+                        </form>
+                        <!-- Deny form -->
+                        <form method="post" action="{% url 'deny_follow_request' req.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="deny">Deny</button>
+                        </form>
+                    </div>
                 </li>
             {% endfor %}
         </ul>
@@ -31,15 +36,15 @@
             {% for notification in like_notifications %}
                 {% if notification.type == "like" %}
                     <li>
-                        {{ notification.author.display_name }} liked <a href="{{ notification.post_url }}">your post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.
+                        <span>{{ notification.author.display_name }} liked <a href="{{ notification.post_url }}">your post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.</span>
                     </li>
                 {% elif notification.type == "comment" %}
                     <li>
-                        {{ notification.author.display_name }} commented: "{{ notification.comment|safe }}" on <a href="{{ notification.post_url }}">your post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.
+                        <span>{{ notification.author.display_name }} commented: "{{ notification.comment|safe }}" on <a href="{{ notification.post_url }}">your post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.</span>
                     </li>
                 {% elif notification.type == "like_comment" %}
                     <li>
-                        {{ notification.author.display_name }} liked your comment: "{{ notification.liked_comment|safe }}" on <a href="{{ notification.post_url }}">your post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.
+                        <span>{{ notification.author.display_name }} liked your comment: "{{ notification.liked_comment|safe }}" on <a href="{{ notification.post_url }}">your post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.</span>
                     </li>
                 {% endif %}
             {% endfor %}
@@ -53,13 +58,12 @@
         <ul>
             {% for notification in following_notifications %}
                 <li>
-                    {{ notification.author.display_name }} posted a new post: <a href="{{ notification.post_url }}">new post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.
+                    <span>{{ notification.author.display_name }} posted a new post: <a href="{{ notification.post_url }}">new post</a> on {{ notification.published|date:"F j, Y, g:i a" }}.</span>
                 </li>
             {% endfor %}
         </ul>
     {% else %}
         <p>No new posts from those you follow.</p>
     {% endif %}
-    
 </div>
 {% endblock %}
