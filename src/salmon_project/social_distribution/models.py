@@ -97,11 +97,17 @@ class PostLike(models.Model):
     object = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     published = models.DateTimeField(auto_now_add=True)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
 
     # Ensure that a user can only like a post once
     # https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
     class Meta:
         unique_together = ["object", "author"]
+
+    def save(self, *args, **kwargs):
+            if not self.fqid:
+                self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/liked/{self.id}"
+            super().save(*args, **kwargs)
 
 class Comment(models.Model):
     """
@@ -133,12 +139,17 @@ class CommentLike(models.Model):
     object = models.ForeignKey(Comment, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     published = models.DateTimeField(auto_now_add=True)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
 
     # Ensure that a user can only like a comment once
     # https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
     class Meta:
         unique_together = ["object", "author"]
 
+    def save(self, *args, **kwargs):
+        if not self.fqid:
+            self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/liked/{self.id}"
+        super().save(*args, **kwargs)
 
 
 class FollowRequest(models.Model):
