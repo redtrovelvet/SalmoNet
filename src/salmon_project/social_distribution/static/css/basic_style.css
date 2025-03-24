@@ -277,7 +277,7 @@ h2 {
   
  /*  Responsive layout adjustments for screens smaller than 1024px */
 @media (max-width: 1024px) {
-    /* Make the navbar relative so it takes up space in the document flow */
+    
     .navbar {
       position: relative;
       width: 100%;
@@ -290,7 +290,7 @@ h2 {
     }
   }
   
-  /* Further adjustments for small screens (768px or less) */
+  /* Further adjustments for small screens  */
   @media (max-width: 768px) {
     .navbar {
       position: relative;
@@ -298,7 +298,7 @@ h2 {
       height: auto;
     }
     main {
-      margin-top: 60px; /* Adjust this value if needed */
+      margin-top: 60px; 
     }
   }
 
@@ -312,11 +312,11 @@ h2 {
   }
 
 .avatar {
-    vertical-align: middle;    /* Align with text */
-    width: 50px;               /* Set desired width */
-    height: 50px;              /* Set desired height */
-    border-radius: 50%;        /* Makes the image circular */
-    margin-right: 10px;        /* Space between avatar and username */
-    object-fit: cover;         /* Ensure the image covers the area without distortion */
+    vertical-align: middle;    
+    width: 50px;             
+    height: 50px;             
+    border-radius: 50%;       
+    margin-right: 10px;        
+    object-fit: cover;         
   }
   
