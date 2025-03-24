@@ -120,7 +120,7 @@ class FollowerAPITests(TestCase):
         self.bruce_author.following.add(self.edwards_author)
         self.client.force_authenticate(user=self.edwards_user) # type:ignore
        
-        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.id))
+        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.fqid))
         url = f"/api/authors/{self.edwards_author.id}/followers/{foreign_id_encoded}/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -133,7 +133,7 @@ class FollowerAPITests(TestCase):
         
         self.client.force_authenticate(user=self.edwards_user) # type:ignore
        
-        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.id))
+        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.fqid))
         url = f"/api/authors/{self.edwards_author.id}/followers/{foreign_id_encoded}/"
         
         response = self.client.put(url)
@@ -149,7 +149,7 @@ class FollowerAPITests(TestCase):
         self.bruce_author.following.add(self.edwards_author)
         self.client.force_authenticate(user=self.edwards_user) # type:ignore
         
-        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.id))
+        foreign_id_encoded = urllib.parse.quote(str(self.bruce_author.fqid))
         url = f"/api/authors/{self.edwards_author.id}/followers/{foreign_id_encoded}/"
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 200)
