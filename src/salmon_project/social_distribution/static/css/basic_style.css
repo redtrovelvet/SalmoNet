@@ -245,3 +245,8 @@ h2 {
         font-size: 14px;
     }
 }
+
+.post img.post-image,.post video.post-video {
+    display: block;
+    margin: 0 auto;
+}
