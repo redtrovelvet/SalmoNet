@@ -8,3 +8,5 @@ whitenoise==6.7.0
 commonmark==0.9.1
 drf-yasg==1.21.9
 mkdocs==1.6.1
+gunicorn==23.0.0
+psycopg2==2.9.10
