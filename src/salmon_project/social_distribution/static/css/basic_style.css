@@ -319,4 +319,52 @@ h2 {
     margin-right: 10px;        
     object-fit: cover;         
   }
+
+
+.like-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    vertical-align: middle;
+  }
   
+  .like-icon {
+    width: 24px;
+    height: 24px;
+    transition: filter 0.3s ease;
+  }
+  
+  
+  .like-icon-btn:hover .like-icon {
+    filter: invert(45%) sepia(56%) saturate(1500%) hue-rotate(355deg) brightness(95%) contrast(105%);
+  }
+  
+  
+  .like-text {
+    vertical-align: middle;
+    font-size: 14px;
+    margin-left: 8px;
+  }
+  
+  
+@keyframes bubbly {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.3);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  
+  .like-icon-btn.bubbly-animate {
+    animation: bubbly 0.7s ease-out;
+  }
+  
+.like-text, .like-count {
+    font-weight: bold;
+}

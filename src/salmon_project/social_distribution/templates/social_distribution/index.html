@@ -48,9 +48,15 @@
       <form method="post" action="{% url 'like_post' author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ author.id }}">
         {% csrf_token %}
         <input type="hidden" name="type" value="like">
-        <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ post.likes.count }}</span></button>
+        <!-- Icon button for liking -->
+        <button type="submit" class="like-icon-btn">
+          <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
+        </button>
+        <!-- Non-clickable text for like count -->
+        <span class="like-text">Like: <span class="like-count">{{ post.likes.count }}</span></span>
       </form>
     {% endif %}
+
 
     <h3>Comments</h3>
     <div class="comments">
