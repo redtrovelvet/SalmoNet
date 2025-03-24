@@ -362,22 +362,25 @@ def set_node_info(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
     
-    if request.method == "POST":
-        node_info = NodeInfo.objects.first()
-        if node_info:
-            node_info.username = request.POST["username"]
-            node_info.password = make_password(request.POST["password"])
-            node_info.save()
-            return Response("Node info updated", status=200)
-        else:
-            NodeInfo.objects.create(
-                host=settings.BASE_URL,
-                username=request.POST["username"],
-                password=make_password(request.POST["password"])
-            )
-            return Response("Node info created", status=201)
-        
-    return Response("GET request not allowed", status=405)
+    data = request.data 
+    username = data.get("username")
+    password = data.get("password")
+    if not username or not password:
+        return Response({"detail": "username and password are required"}, status=400)
+    
+    node_info = NodeInfo.objects.first()
+    if node_info:
+        node_info.username = request.POST["username"]
+        node_info.password = make_password(request.POST["password"])
+        node_info.save()
+        return Response("Node info updated", status=200)
+    else:
+        NodeInfo.objects.create(
+            host=settings.BASE_URL,
+            username=request.POST["username"],
+            password=make_password(request.POST["password"])
+        )
+        return Response("Node info created", status=201)
 
 @api_view(["POST"])
 def add_remote_node(request):
