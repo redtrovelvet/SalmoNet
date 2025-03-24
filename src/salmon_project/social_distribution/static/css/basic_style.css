@@ -250,3 +250,63 @@ h2 {
     display: block;
     margin: 0 auto;
 }
+
+/* Smooth transition and initial state for post animations */
+.post {
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    opacity: 0;
+  }
+  
+  /* When a post is visible in the viewport */
+  .post.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  /* When a post is exiting at the top, slide up and fade out */
+  .post.exit-top {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  
+  /* When a post is exiting at the bottom, slide down and fade out */
+  .post.exit-bottom {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  
+ /*  Responsive layout adjustments for screens smaller than 1024px */
+@media (max-width: 1024px) {
+    /* Make the navbar relative so it takes up space in the document flow */
+    .navbar {
+      position: relative;
+      width: 100%;
+      height: auto;
+      box-shadow: none; 
+    }
+    
+    main {
+      margin-top: 80px; 
+    }
+  }
+  
+  /* Further adjustments for small screens (768px or less) */
+  @media (max-width: 768px) {
+    .navbar {
+      position: relative;
+      width: 100%;
+      height: auto;
+    }
+    main {
+      margin-top: 60px; /* Adjust this value if needed */
+    }
+  }
+
+  /* For laptop screens, adjust layouted to prevent navbar overlap */
+  @media (max-width: 1366px) and (min-width: 1025px) {
+    .content,
+    .profile-container {
+      margin-left: 320px; 
+      margin-right: 20px; 
+    }
+  }

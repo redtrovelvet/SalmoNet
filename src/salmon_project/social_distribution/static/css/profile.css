@@ -258,3 +258,12 @@
 .dropdown-menu a:hover {
     background: #f0f0f0;
 }
+
+/* For laptop screens, adjusted profile container margins to avoid navbar overlap */
+@media (max-width: 1366px) and (min-width: 1025px) {
+    .profile-container {
+        margin-left: 320px;  
+        margin-right: 20px; 
+    }
+}
+
