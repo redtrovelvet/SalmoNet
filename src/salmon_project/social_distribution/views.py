@@ -801,7 +801,7 @@ def create_post(request, author_id):
 @api_view(['GET'])
 def get_post_image(request, author_id, post_id):
     """
-    GET [local, remote]: get the public post converted to binary as an image.
+    GET [local]: get the public post converted to binary as an image.
     Return 404 if not an image.
     """
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
@@ -840,7 +840,7 @@ def get_post_image(request, author_id, post_id):
 @api_view(['GET'])
 def get_postimage_by_fqid(request, post_fqid):
     """
-    GET [local, remote]: get the public post converted to binary as an image.
+    GET [remote]: get the public post converted to binary as an image.
     Return 404 if not an image.
     """
     decoded_fqid = unquote(post_fqid)
