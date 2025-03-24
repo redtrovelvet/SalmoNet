@@ -157,6 +157,9 @@ h2 {
     border-radius: 5px;
     padding: 10px;
     margin-bottom: 10px;
+    display: flex;             /* Added to enable Flexbox */
+    justify-content: space-between;  /* Pushes child elements apart */
+    align-items: center; 
 }
 
 .add-comment {
