@@ -7,9 +7,12 @@
 <div class="content">
   <h2>Your Stream</h2>
   <!-- Checkbox to filter friends-only posts -->
-  <label for="friendsOnlyFilter">
-    <input type="checkbox" id="friendsOnlyFilter"> Show Friends Posts Only
-  </label>
+  <div class="tabs-container">
+    <!-- "For You" tab: Shows all posts. -->
+    <button class="tablink" id="defaultTab" onclick="filterPosts('all', this)">For You</button>
+    <!-- "Friends-Only" tab: Shows only posts where data-visibility is FRIENDS -->
+    <button class="tablink" onclick="filterPosts('friends', this)">Friends-Only</button>
+  </div>
   {% for post in posts %}
   <!-- Each post in its own block with margin, border, and padding -->
   <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;" class="post" data-visibility="{{ post.visibility }}">
@@ -145,5 +148,38 @@ document.addEventListener("DOMContentLoaded", function() {
   });
 });
 </script>
+
+<script>
+  // 'filterType' is either 'to show all posts or to show only FRIENDS posts.
+  function filterPosts(filterType, elmnt) {
+    
+    let tablinks = document.getElementsByClassName("tablink");
+    for (let i = 0; i < tablinks.length; i++) {
+      tablinks[i].classList.remove("active");
+    }
+    // Add 'active' class to the clicked tab.
+    elmnt.classList.add("active");
+  
+    // Loop through all posts and show/hide based on filterType.
+    let posts = document.getElementsByClassName("post");
+    for (let i = 0; i < posts.length; i++){
+      if (filterType === 'all') {
+        posts[i].style.display = "block"; 
+      } else if (filterType === 'friends') {
+        // Check if the post's data-visibility attribute equals "FRIENDS"
+        if (posts[i].getAttribute("data-visibility") === "FRIENDS") {
+          posts[i].style.display = "block";
+        } else {
+          posts[i].style.display = "none";
+        }
+      }
+    }
+  }
+  
+  // When the page loads, simulate a click on the default tab.
+  document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("defaultTab").click();
+  });
+  </script>
 
 {% endblock %}

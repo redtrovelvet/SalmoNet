@@ -400,3 +400,35 @@ h2 {
     margin-left: 4px;
     font-weight: bold;
 }
+
+/* Tab container styling */
+.tabs-container {
+    width: 100%;
+    max-width: 800px; 
+    margin: 0 auto 20px auto; 
+    display: flex;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .tablink {
+    flex: 1;
+    padding: 14px 16px;
+    font-size: 17px;
+    border: none;
+    cursor: pointer;
+    background-color: #f1f1f1;
+    transition: background-color 0.3s;
+    text-align: center;
+  }
+  
+  .tablink:hover {
+    background-color: #ddd;
+  }
+  
+
+  .tablink.active {
+    background-color: #ffc0b4;
+    color: #000;
+    font-weight: bold;
+  }
+  
