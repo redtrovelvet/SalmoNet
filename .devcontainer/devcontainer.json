@@ -4,6 +4,9 @@
         "dockerfile": "Dockerfile",
         "context": "../"
     },
+    "runArgs": [
+        "--env-file", ".devcontainer/.env"
+    ], 
     "portsAttributes": {
         "8000": {
             "label": "Django",
