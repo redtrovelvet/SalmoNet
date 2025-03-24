@@ -9,7 +9,11 @@
     <div class="profile-header">
         {% if author.profile_image %}
             <img src="{{ author.profile_image.url }}" alt="Profile Picture" class="profile-pic" width="150">
+        {% else %}
+            <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="profile-pic" width="150">
         {% endif %}
+
+
         <h1>{{ author.display_name }}</h1>
 
         {% if author.github %}
@@ -99,13 +103,29 @@
 
             <p class="post-meta">Posted on {{ post.created_at }}</p>
 
-            {% if user.is_authenticated and author is not None %}
-            <form method="post" action="{% url 'like_post' author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ author.id }}">
+            {% if user.is_authenticated %}
+            <form method="post" action="{% url 'like_post' user.author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ user.author.id }}">
                 {% csrf_token %}
                 <input type="hidden" name="type" value="like">
-                <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ post.likes.count }}</span></button>
+                <!-- Icon button for liking -->
+                <button type="submit" class="like-icon-btn">
+                <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
+                </button>
+                <!-- Non-clickable text for like count -->
+                <span class="like-text">Likes: <span class="like-count">{{ post.likes.count }}</span></span>
+            <!-- Button for copying link to posts -->
+                {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
+                
+                    <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+                        <img src="{% static 'img/share.png' %}" alt="Share" class="share-icon">
+                    </button>
+                    
+                    <span class="share-text"><strong>Share Link</strong></span>
+                {% endif %}
             </form>
             {% endif %}
+
+            
 
             <h3>Comments</h3>
             <div class="comments comments-list">
@@ -114,24 +134,23 @@
                     <li class="comment">
                     <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
                     {% if user.is_authenticated and author is not None %}
-                        <form method="post" action="{% url 'like_comment' author.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ author.id }}">
+                    <form method="post" action="{% url 'like_comment' author.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ author.id }}">
                         {% csrf_token %}
                         <input type="hidden" name="type" value="like">
-                        <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ comment.likes.count }}</span></button>
-                        </form>
+                        <!-- Icon button for liking the comment -->
+                        <button type="submit" class="like-icon-btn">
+                        <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
+                        </button>
+                        <!-- Non-clickable like text with bold styling -->
+                        <span class="like-text"><strong> <strong class="like-count">{{ comment.likes.count }}</strong></strong></span>
+                    </form>
                     {% endif %}
+
                     </li>
                 {% endfor %}
                 </ul>
             </div>
 
-            <!-- Button for copying link to posts -->
-            {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
-                <!-- Button for copying link to posts -->
-                <button type="button" class="copy-post-link btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/">
-                    <span class="copy-label">Copy Link</span>
-                </button>
-            {% endif %}
 
             {% if user.is_authenticated and author is not None %}
             <div class="add-comment">
@@ -147,14 +166,19 @@
             {% endif %}
 
             {% if user.is_authenticated and user.author.id == author.id %}
-                <!-- Put Edit and Delete on the same line -->
-                <div class="post-actions">
-                    <a href="{% url 'edit_post' author.id post.id %}" class="btn">Edit</a>
-                    <a href="{% url 'delete_post_local' author.id post.id %}" class="btn btn-danger">Delete</a>
+                <!-- Dropdown for Edit/Delete options -->
+                <div class="dropdown">
+                    <button class="dropdown-toggle">&#8942;</button>
+                    <div class="dropdown-menu">
+                        <a href="{% url 'edit_post' author.id post.id %}">Edit</a>
+                        <a href="{% url 'delete_post_local' author.id post.id %}">Delete</a>
+                    </div>
                 </div>
             {% endif %}
+
         </div>
         {% endfor %}
     </div>
 </div>
+<script src="{% static 'js/dropdown-toggle.js' %}"></script>
 {% endblock %}
