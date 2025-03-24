@@ -709,7 +709,7 @@ def get_post_by_fqid(request, post_fqid):
     GET [local] get the public post whose URL is POST_FQID
     Friends-only posts: must be authenticated and must be a friend.
     """
-    post = get_object_or_404(Post, id=post_fqid)
+    post = get_object_or_404(Post, fqid=post_fqid)
     author = post.author
 
     # If the post is friends-only, enforce friendship check
