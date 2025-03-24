@@ -5,70 +5,82 @@
 {% block content %}
 <div class="content">
     <h2>Edit Post</h2>
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-        <!-- Content Type: Only allow Plain Text or CommonMark -->
-        <div>
-            <label for="content_type">Content Type:</label>
-            <select name="content_type" id="content_type">
-                <option value="text/plain" {% if post.content_type == 'text/plain' %}selected{% endif %}>Plain Text</option>
-                <option value="text/markdown" {% if post.content_type == 'text/markdown' %}selected{% endif %}>CommonMark (Markdown)</option>
-            </select>
-        </div>
-        
-        <!-- Text area for post content -->
-        <div>
-            <label for="text">Text:</label>
-            <textarea name="text" id="text" rows="5" cols="40">{{ post.text }}</textarea>
-        </div>
-        
-        <!-- Optional image upload and removal option -->
-        <div>
-            <label for="image">Image:</label>
-            <input type="file" name="image" id="image">
+    <!-- New container for form styling -->
+    <div class="form-container">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
             
-            {% if post.image %}
-                <p>Current Image: <img src="{{ post.image.url }}" alt="Current Image" width="100"></p>
-                <!-- Remove image checkbox -->
-                <label>
-                    <input type="checkbox" name="remove_image">
-                    Remove current image
-                </label>
-            {% endif %}
-        </div>
-        
-        <!-- Optional video upload and removal option -->
-        <div>
-            <label for="video">Video:</label>
-            <input type="file" name="video" id="video">
+            <!-- Content Type -->
+            <div class="form-group">
+                <label for="content_type">Content Type:</label>
+                <select name="content_type" id="content_type">
+                    <option value="text/plain" {% if post.content_type == 'text/plain' %}selected{% endif %}>Plain Text</option>
+                    <option value="text/markdown" {% if post.content_type == 'text/markdown' %}selected{% endif %}>CommonMark (Markdown)</option>
+                </select>
+            </div>
             
-            {% if post.video %}
-                <p>Current Video:
-                    <video width="100" controls>
-                        <source src="{{ post.video.url }}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                </p>
-                <!-- Remove video checkbox -->
-                <label>
-                    <input type="checkbox" name="remove_video">
-                    Remove current video
-                </label>
-            {% endif %}
-        </div>
-        
-        <!-- Visibility selection -->
-        <div>
-            <label for="visibility">Visibility:</label>
-            <select name="visibility" id="visibility">
-                <option value="PUBLIC" {% if post.visibility == 'PUBLIC' %}selected{% endif %}>Public</option>
-                <option value="UNLISTED" {% if post.visibility == 'UNLISTED' %}selected{% endif %}>Unlisted</option>
-                <option value="FRIENDS" {% if post.visibility == 'FRIENDS' %}selected{% endif %}>Friends</option>
-            </select>
-        </div>
-        
-        <button type="submit">Save Changes</button>
-    </form>
+            <!-- Text Content -->
+            <div class="form-group">
+                <label for="text">Text:</label>
+                <textarea name="text" id="text" rows="5" cols="40">{{ post.text }}</textarea>
+            </div>
+            
+            <!-- Image Upload and Removal -->
+            <div class="form-group">
+                <label for="image">Image:</label>
+                <input type="file" name="image" id="image">
+                {% if post.image %}
+                    <div class="current-media">
+                        <p>Current Image:</p>
+                        <img src="{{ post.image.url }}" alt="Current Image" width="100">
+                    </div>
+
+                    <div class="remove-media">
+                        <label>
+                            <input type="checkbox" name="remove_image">
+                            Remove current image
+                        </label>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Video Upload and Removal -->
+            <div class="form-group">
+                <label for="video">Video:</label>
+                <input type="file" name="video" id="video">
+                {% if post.video %}
+                    <div class="current-media">
+                        <p>Current Video:</p>
+                        <video width="100" controls>
+                            <source src="{{ post.video.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                    <div class="remove-media">
+                        <label>
+                            <input type="checkbox" name="remove_video">
+                            Remove current video
+                        </label>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Visibility Selection -->
+            <div class="form-group">
+                <label for="visibility">Visibility:</label>
+                <select name="visibility" id="visibility">
+                    <option value="PUBLIC" {% if post.visibility == 'PUBLIC' %}selected{% endif %}>Public</option>
+                    <option value="UNLISTED" {% if post.visibility == 'UNLISTED' %}selected{% endif %}>Unlisted</option>
+                    <option value="FRIENDS" {% if post.visibility == 'FRIENDS' %}selected{% endif %}>Friends</option>
+                </select>
+            </div>
+            
+            <!-- Submit Button -->
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
 </div>
+
 {% endblock %}

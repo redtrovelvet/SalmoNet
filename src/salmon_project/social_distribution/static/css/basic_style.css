@@ -431,4 +431,13 @@ h2 {
     color: #000;
     font-weight: bold;
   }
+
+.remove-media label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+  
+  
   
