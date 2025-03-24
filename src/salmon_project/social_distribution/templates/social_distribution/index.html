@@ -1,4 +1,5 @@
 {% extends 'social_distribution/base.html' %}
+{% load static %}
 
 {% block content %}
 
@@ -13,7 +14,17 @@
   <!-- Each post in its own block with margin, border, and padding -->
   <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;" class="post" data-visibility="{{ post.visibility }}">
     
-    <p><strong>{{ post.author.display_name }}</strong></p>
+    <p>
+      {% if post.author.profile_image and post.author.profile_image.url %}
+        <!-- Author has an uploaded profile image -->
+        <img src="{{ post.author.profile_image.url }}" alt="Profile Picture" class="avatar">
+      {% else %}
+        <!-- Author does not have a profile image: show default avatar -->
+        <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="avatar">
+      {% endif %}
+      <strong>{{ post.author.display_name }}</strong>
+    </p>
+    
 
     {% if post.text %}
       <!-- If 'content_type' was text/markdown, post.text is HTML -->

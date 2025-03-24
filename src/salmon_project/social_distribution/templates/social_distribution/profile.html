@@ -9,7 +9,11 @@
     <div class="profile-header">
         {% if author.profile_image %}
             <img src="{{ author.profile_image.url }}" alt="Profile Picture" class="profile-pic" width="150">
+        {% else %}
+            <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="profile-pic" width="150">
         {% endif %}
+
+
         <h1>{{ author.display_name }}</h1>
 
         {% if author.github %}

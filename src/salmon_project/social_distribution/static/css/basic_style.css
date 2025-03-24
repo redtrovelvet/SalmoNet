@@ -310,3 +310,13 @@ h2 {
       margin-right: 20px; 
     }
   }
+
+.avatar {
+    vertical-align: middle;    /* Align with text */
+    width: 50px;               /* Set desired width */
+    height: 50px;              /* Set desired height */
+    border-radius: 50%;        /* Makes the image circular */
+    margin-right: 10px;        /* Space between avatar and username */
+    object-fit: cover;         /* Ensure the image covers the area without distortion */
+  }
+  
