@@ -371,3 +371,31 @@ h2 {
 .like-text, .like-count {
     font-weight: bold;
 }
+
+.share-icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin: 0 5px 0 10px;
+    vertical-align: middle;
+}
+
+.share-icon {
+    width: 24px;
+    height: 24px;
+    transition: filter 0.3s ease;
+}
+
+
+.share-icon-btn:hover .share-icon {
+    filter: invert(45%) sepia(56%) saturate(1500%) hue-rotate(200deg) brightness(95%) contrast(105%);
+}
+
+
+.share-text {
+    vertical-align: middle;
+    font-size: 13px;
+    margin-left: 4px;
+    font-weight: bold;
+}
