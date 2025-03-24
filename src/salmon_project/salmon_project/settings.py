@@ -86,7 +86,7 @@ WSGI_APPLICATION = 'salmon_project.wsgi.application'
 
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.postgresql"),
+        "ENGINE": os.environ.get("DB_ENGINE", "django.db.backends.sqlite3"),
         "NAME": os.environ.get("DB_DATABASE", "hello_django"),
         "USER": os.environ.get("DB_USER", "hello_django"),
         "PASSWORD": os.environ.get("DB_PASSWORD", "hello_django"),

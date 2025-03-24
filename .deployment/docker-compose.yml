@@ -3,10 +3,10 @@ services:
     image: salmon_project:latest
     build:
       context: ../
-      dockerfile: .devcontainer/Dockerfile
+      dockerfile: .deployment/Dockerfile
     command: >
       sh -c "cd salmon_project &&
-          python3 manage.py createsuperuser &&
+          python3 manage.py migrate &&
           gunicorn salmon_project.wsgi:application --bind 0.0.0.0:8000"
     ports:
       - "8000:8000"
@@ -26,7 +26,6 @@ services:
 
   caddy:
     image: caddy:latest
-    container_name: caddy
     ports:
       - "80:80"
       - "443:443"
