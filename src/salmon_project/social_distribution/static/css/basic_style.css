@@ -249,10 +249,11 @@ h2 {
     }
 }
 
-.post img.post-image,.post video.post-video {
+.post img.post-image, .post video.post-video {
     display: block;
-    margin: 0 auto;
+    margin: 20px auto 0 auto;  
 }
+
 
 /* Smooth transition and initial state for post animations */
 .post {
