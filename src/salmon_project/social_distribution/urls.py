@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
@@ -12,6 +12,11 @@ urlpatterns = [
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/", views.view_post, name="view_post"),
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/edit/", views.edit_post, name="edit_post"),       
     path("authors/<uuid:author_id>/posts/<uuid:post_id>/delete/", views.delete_post_local, name="delete_post_local"),
+    path("admin_controls/", views.admin_controls, name="admin_controls"),
+    path("api/set_node_info/", views.set_node_info, name="set_node_info"),
+    path("api/connect/", views.connect_node, name="connect_node"),
+    path("api/add_remote_node/", views.add_remote_node, name="add_remote_node"),
+    path("api/remove_connection/", views.remove_connection, name="remove_connection"),
 
     # Extra User-Facing Views (from following/friend branch)
     path("authors/", views.all_authors, name="all_authors"),
@@ -33,11 +38,11 @@ urlpatterns = [
 
     # Posts API
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/", views.posts_detail, name="posts_detail"),
-    path("api/posts/<uuid:post_fqid>/", views.get_post_by_fqid, name="get_post_by_fqid"),
+    re_path(r'^api/posts/(?P<post_fqid>https?://.+)/$', views.get_post_by_fqid, name="get_post_by_fqid"),
     path("api/authors/<uuid:author_id>/posts/", views.author_posts, name="author_posts"),
     path("api/authors/<uuid:author_id>/posts/create/", views.create_post, name="create_post"),
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/image/", views.get_post_image, name="get_post_image"),
-    path("api/posts/<uuid:post_id>/image/", views.get_postimage_by_fqid, name="get_postimage_by_fqid"),
+    re_path(r'^api/posts/(?P<post_fqid>https?://.+)/image/$',views.get_postimage_by_fqid,name="get_postimage_by_fqid"),
 
 
     # Inbox API (used for follow requests in our API)
@@ -45,31 +50,37 @@ urlpatterns = [
 
     # Comments API
     path("api/authors/<str:author_id>/posts/<str:post_id>/comments/", views.get_comments, name="get_author_comments"),
-    path("api/posts/<str:post_id>/comments/", views.get_comments, name="get_comments"),
-    path("api/authors/<str:author_id>/post/<str:post_id>/comments/<str:comment_id>/", views.get_comment, name="get_remote_comment"),
+    re_path(r'^api/posts/(?P<post_id>https?://.+)/comments/$', views.get_comments, name="get_comments"),
+    re_path(r'^api/authors/(?P<author_id>[0-9a-f-]+)/post/(?P<post_id>[0-9a-f-]+)/comment/(?P<comment_id>https?://.+)/$',views.get_comment, name="get_remote_comment"),
 
     # Commented API
     path("api/authors/<str:author_id>/commented/", views.commented, name="commented"),
+    re_path(r'^api/authors/(?P<author_id>https?://.+)/commented/$', views.commented, name="commented"),
     path("api/authors/<str:author_id>/commented/<str:comment_id>/", views.get_comment, name="get_author_comment"),
-    path("api/commented/<str:comment_id>/", views.get_comment, name="get_comment"),
+    re_path(r'^api/commented/(?P<comment_id>https?://.+)/$', views.get_comment, name="get_comment"),
 
     # Likes API
     path("api/authors/<str:author_id>/posts/<str:post_id>/likes/", views.get_post_likes, name="get_post_likes"),
-    path("api/posts/<str:post_id>/likes/", views.get_post_likes, name="get_likes"),
-    path("api/authors/<str:author_id>/posts/<str:post_id>/comments/<str:comment_id>/likes/", views.get_comment_likes, name="get_comment_likes"),
+    re_path(r'^api/posts/(?P<post_id>https?://.+)/likes/$', views.get_post_likes, name="get_post_likes"),
+    re_path(r'^api/authors/(?P<author_id>[0-9a-f-]+)/posts/(?P<post_id>[0-9a-f-]+)/comments/(?P<comment_id>https?://.+)/likes/$', views.get_comment_likes, name="get_comment_likes"),
 
     # Liked API
     path("api/authors/<str:author_id>/liked/", views.get_author_liked, name="get_author_liked"),
     path("api/authors/<str:author_id>/liked/<str:like_id>/", views.get_like, name="get_author_like"),
-    path("api/liked/<str:like_id>/", views.get_like, name="get_like"),
+    re_path(r'^api/authors/(?P<author_id>https?://.+)/liked/$', views.get_author_liked, name="get_author_liked"),
+    re_path(r'^api/liked/(?P<like_id>https?://.+)/$', views.get_like, name="get_like"),
 
     # Extra APIs to like posts and comments (not in the spec)
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/liked/", views.like_post, name="like_post"),
     path("api/authors/<uuid:author_id>/comments/<uuid:comment_id>/liked/", views.like_comment, name="like_comment"),
 
    
-    path("api/authors/<uuid:author_id>/followers/", views.modify_follower_api, name="get_followers_api"),
-    path("api/authors/<uuid:author_id>/followers/<str:foreign_author_encoded>/", views.modify_follower_api, name="modify_follower_api"),
-    
+    path("api/authors/<uuid:author_id>/followers/", views.get_followers_api, name="get_followers_api"),
+    re_path(r'^api/authors/(?P<author_id>[0-9a-f-]+)/followers/(?P<foreign_author_encoded>https?://.+)/$', views.modify_follower_api, name="modify_follower_api"),
     path("api/authors/<uuid:author_id>/followrequest/", views.api_send_follow_request, name="api_send_follow_request"),
+
+    #---DO NOT CHANGE POSTITION OF THIS OR ELSE IT MESSES UP THE CODE PLEASE MAKE SURE THIS PATH IS ALWAYS THE LAST PATH---#
+    #<BEGIN GENERATED model='gpt-4' date=2025-03-23 prompt: when i use fqid, the url path doesnt work becuase im using str:author_fqid, but when i use path:author_fqid it overrides the path of other urls, what do id?>
+    re_path(r'^api/authors/(?P<author_fqid>https?://.+)/$', views.fqid_author_details, name="fqid_author_details"),
+    #<END GENERATED></END>.
 ]

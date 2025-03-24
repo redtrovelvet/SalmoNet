@@ -41,7 +41,7 @@ class Author(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"{self.host.rstrip('/')}/authors/{self.id}"
+            self.fqid = f"{self.host.rstrip('/')}/api/authors/{self.id}"
         super().save(*args, **kwargs)
 
 @receiver(post_save, sender=User)
@@ -86,7 +86,7 @@ class Post(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"{self.author.host.rstrip('/')}/authors/{self.author.id}/posts/{self.id}"
+            self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/posts/{self.id}"
         super().save(*args, **kwargs)
 
 class PostLike(models.Model):
@@ -177,3 +177,20 @@ class FeedBlock(models.Model):
 
     def __str__(self):
         return f"{self.blocker.username} blocks {self.blocked_author.username}"
+    
+
+class NodeInfo(models.Model):
+    """
+    Information about the local node
+    """
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    host = models.URLField(unique=True)
+
+class RemoteNode(models.Model):
+    """
+    A node that can be connected to from our node
+    """
+    host = models.URLField(unique=True)
+    outgoing = models.BooleanField()
+    incoming = models.BooleanField()
