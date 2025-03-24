@@ -1,4 +1,5 @@
 {% extends "social_distribution/base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="content post">
@@ -30,13 +31,19 @@
         </div>
     {% endif %}
 
-    {% if user.is_authenticated and current_user is not None %}
-      <form method="post" action="{% url 'like_post' current_user.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ current_user.id }}">
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'like_post' user.author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ user.author.id }}">
         {% csrf_token %}
         <input type="hidden" name="type" value="like">
-        <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ post.likes.count }}</span></button>
+        <!-- Icon button for liking the post -->
+        <button type="submit" class="like-icon-btn">
+          <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
+        </button>
+        <!-- Display only the like count (bold) next to the icon -->
+        <span class="like-text"><strong class="like-count">{{ post.likes.count }}</strong></span>
       </form>
     {% endif %}
+
 
     <br>
 
@@ -53,13 +60,19 @@
         {% for comment in post.comments %}
           <li class="comment">
             <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
-            {% if user.is_authenticated and current_user is not None %}
-              <form method="post" action="{% url 'like_comment' current_user.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ current_user.id }}">
+            {% if user.is_authenticated %}
+              <form method="post" action="{% url 'like_comment' user.author.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ user.author.id }}">
                 {% csrf_token %}
                 <input type="hidden" name="type" value="like">
-                <button type="submit" class="btn btn-primary">Like: <span class="like-count">{{ comment.likes.count }}</span></button>
+                <!-- Icon button for liking the comment -->
+                <button type="submit" class="like-icon-btn">
+                  <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
+                </button>
+                <!-- Display only the like count (bold) next to the icon -->
+                <span class="like-text"><strong class="like-count">{{ comment.likes.count }}</strong></span>
               </form>
             {% endif %}
+
           </li>
         {% endfor %}
       </ul>
