@@ -101,3 +101,13 @@ p {
         width: 100%;
     }
 }
+
+/*  For laptop screens, adjusted the notifications container */
+@media (min-width: 1025px) and (max-width: 1366px) {
+    .content.inbox {
+        margin-top: 80px;  
+        margin-left: 320px; 
+        margin-right: 20px; 
+        
+    }
+}

@@ -58,54 +58,74 @@ function create_comment(event) {
     })
     .then(response => response.json())
     .then(data => {
-        author_id = data.author.id.split("/").slice(-1)[0];
-        comment_id = data.id.split("/").slice(-1)[0];
+        const author_id = data.author.id.split("/").slice(-1)[0];
+        const comment_id = data.id.split("/").slice(-1)[0];
         const commentList = this.closest(".post").querySelector(".comments ul");
+        
         const newComment = document.createElement("li");
         newComment.classList.add("comment");
+        
         const commentSpan = document.createElement("span");
         commentSpan.innerText = `${data.author.displayName}: ${data.comment}`;
         newComment.appendChild(commentSpan);
-
+        
         const likeForm = document.createElement("form");
         likeForm.method = "post";
         likeForm.action = `/api/authors/${author_id}/comments/${comment_id}/liked/`;
         likeForm.classList.add("like-comment");
-
+        
         const csrfToken = document.createElement("input");
         csrfToken.type = "hidden";
         csrfToken.name = "csrfmiddlewaretoken";
         csrfToken.value = formData.get('csrfmiddlewaretoken');
         likeForm.appendChild(csrfToken);
-
-        const type = document.createElement("input");
-        type.type = "hidden";
-        type.name = "type";
-        type.value = "like";
-        likeForm.appendChild(type);
-
+        
+        const typeInput = document.createElement("input");
+        typeInput.type = "hidden";
+        typeInput.name = "type";
+        typeInput.value = "like";
+        likeForm.appendChild(typeInput);
+        
+        // Create the icon button for liking
         const likeButton = document.createElement("button");
         likeButton.type = "submit";
-        likeButton.classList.add("btn");
-        likeButton.classList.add("btn-primary");
-        likeButton.innerText = "Like: ";
+        likeButton.classList.add("like-icon-btn");
         
-        const likeSpan = document.createElement("span");
-        likeSpan.classList.add("like-count");
-        likeSpan.innerText = "0";
-        likeButton.appendChild(likeSpan);
+        
+        const likeIcon = document.createElement("img");
+        // Use the static path for the heart icon:
+        likeIcon.src = "/static/img/heart.png"; 
+        likeIcon.alt = "Like";
+        likeIcon.classList.add("like-icon");
+        likeButton.appendChild(likeIcon);
+        
+        // Append the like button to the like form
         likeForm.appendChild(likeButton);
+        
+        // Create the span for the like text and count (non-clickable)
+        const likeText = document.createElement("span");
+        likeText.classList.add("like-text");
+        // Set inner HTML to bold "Likes:" and the count
+        likeText.innerHTML = ' <strong class="like-count">0</strong>';
+        likeForm.appendChild(likeText);
+        
+        // Add event listener to the like form for the bubbly animation and like functionality
         likeForm.addEventListener("submit", send_comment_like);
-
+        
+        
         newComment.appendChild(likeForm);
         
+        // Append the new comment to the comment list
         commentList.appendChild(newComment);
+        
+        // Clear the comment textarea
         this.querySelector("textarea").value = "";
     })
     .catch(error => {
         console.error("Error:", error);
     });
 }
+
 
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll(".like-comment").forEach(function(form) {

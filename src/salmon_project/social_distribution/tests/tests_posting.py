@@ -183,7 +183,7 @@ class PostingTests(APITestCase):
         """
         Test GET /api/posts/{POST_FQID}/ to get a post by its fully qualified ID.
         """
-        url = reverse("get_post_by_fqid", args=[self.public_post.id])
+        url = reverse("get_post_by_fqid", args=[self.public_post.fqid])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["text"], "This is a public post.") # type:ignore

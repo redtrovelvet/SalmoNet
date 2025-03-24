@@ -276,7 +276,7 @@ class LikeTests(TestCase):
         test for GET /api/posts/{POST_FQID}/likes/ to get all likes on a post
         """
         assert self.post.fqid
-        url = reverse("get_likes", args=[quote_plus(self.post.fqid)])
+        url = reverse("get_post_likes", args=[quote_plus(self.post.fqid)])
         response = self.client.get(url)
         self.validate_likes_object(response, "post")
 
