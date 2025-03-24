@@ -181,6 +181,7 @@ class IdentityTests(TestCase):
         edit_data = {"display_name": "Hacked Name", "github": "https://github.com/hacked"}
         response = self.client.post(f"/authors/{self.author.id}/edit/", edit_data)
 
+        self.assertEqual(response.status_code, 403)
         self.author.refresh_from_db()
         self.assertNotEqual(self.author.display_name, "Hacked Name", "A user should not be able to edit another user's profile.")
 
@@ -191,6 +192,7 @@ class IdentityTests(TestCase):
         edit_data = {"display_name": "Unauthorized Edit", "github": "https://github.com/hacked"}
         response = self.client.post(f"/authors/{self.author.id}/edit/", edit_data)
 
+        self.assertEqual(response.status_code, 403)
         self.author.refresh_from_db()
         self.assertNotEqual(self.author.display_name, "Unauthorized Edit", "An unauthorized user should not be able to edit a profile.")
     
