@@ -6,12 +6,12 @@ services:
       dockerfile: .deployment/Dockerfile
     command: >
       sh -c "cd salmon_project &&
-          python3 manage.py createsuperuser &&
+          python3 manage.py migrate &&
           gunicorn salmon_project.wsgi:application --bind 0.0.0.0:8000"
     ports:
       - "8000:8000"
     env_file:
-      - .deployment/.env
+      - .env
     depends_on:
       - postgres
 
@@ -26,7 +26,6 @@ services:
 
   caddy:
     image: caddy:latest
-    container_name: caddy
     ports:
       - "80:80"
       - "443:443"
