@@ -147,14 +147,19 @@
             {% endif %}
 
             {% if user.is_authenticated and user.author.id == author.id %}
-                <!-- Put Edit and Delete on the same line -->
-                <div class="post-actions">
-                    <a href="{% url 'edit_post' author.id post.id %}" class="btn">Edit</a>
-                    <a href="{% url 'delete_post_local' author.id post.id %}" class="btn btn-danger">Delete</a>
+                <!-- Dropdown for Edit/Delete options -->
+                <div class="dropdown">
+                    <button class="dropdown-toggle">&#8942;</button>
+                    <div class="dropdown-menu">
+                        <a href="{% url 'edit_post' author.id post.id %}">Edit</a>
+                        <a href="{% url 'delete_post_local' author.id post.id %}">Delete</a>
+                    </div>
                 </div>
             {% endif %}
+
         </div>
         {% endfor %}
     </div>
 </div>
+<script src="{% static 'js/dropdown-toggle.js' %}"></script>
 {% endblock %}

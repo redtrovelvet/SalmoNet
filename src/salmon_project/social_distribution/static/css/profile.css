@@ -205,3 +205,56 @@
 .edit[type="submit"]:hover {
     background-color: #034c52;
 }
+
+/* Ensure each post card can position its dropdown */
+.post-card {
+    position: relative;
+}
+
+/* Container for the dropdown */
+.dropdown {
+    position: absolute;
+    top: 10px;   /* Adjust vertical position as needed */
+    right: 10px; /* Adjust horizontal position as needed */
+}
+
+/* Styling for the three-dots toggle button */
+.dropdown-toggle {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Dropdown menu (hidden by default) */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 30px;   
+    right: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    z-index: 100;
+    min-width: 100px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* When active, show the dropdown */
+.dropdown-menu.show {
+    display: block;
+}
+
+/* Style the links inside the dropdown menu */
+.dropdown-menu a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    transition: background 0.3s;
+}
+
+.dropdown-menu a:hover {
+    background: #f0f0f0;
+}
