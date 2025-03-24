@@ -4,7 +4,7 @@
 4. Clone repository on instance
 5. Switch to deployment branch
 6. Change IPV6 addresses in [environment variables file](.devcontainer/.env)
-7. cd into .devcontainer
+7. cd into .deployment
 8. run ```sudo docker compose up --build```
 9. Open new terminal
 10. cd into .devcontainer
