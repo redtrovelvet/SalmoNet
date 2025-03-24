@@ -60,7 +60,7 @@
         
         {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
         
-            <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+            <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/">
                 <img src="{% static 'img/share.png' %}" alt="Share" class="share-icon">
             </button>
             <!-- Bold text next to the share icon -->
