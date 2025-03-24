@@ -41,7 +41,7 @@ class Author(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"{self.host.rstrip('/')}/authors/{self.id}"
+            self.fqid = f"{self.host.rstrip('/')}/api/authors/{self.id}"
         super().save(*args, **kwargs)
 
 @receiver(post_save, sender=User)
@@ -86,7 +86,7 @@ class Post(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.fqid:
-            self.fqid = f"{self.author.host.rstrip('/')}/authors/{self.author.id}/posts/{self.id}"
+            self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/posts/{self.id}"
         super().save(*args, **kwargs)
 
 class PostLike(models.Model):
