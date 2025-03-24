@@ -12,20 +12,21 @@
         <!-- Copy post link script -->
         <script src="{% static 'js/copy-post-link.js' %}" defer></script>
         <script src="{% static 'js/like-comment.js' %}" defer></script>
-
     </head>
-    {% include 'social_distribution/navbar.html' %}
+    
     <body>
+        {% include 'social_distribution/navbar.html' %}
         {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
         {% endif %}
-
         <main>
             {% block content %}{% endblock %}
         </main>
+        <script src="{% static 'js/post-intersection.js' %}" defer></script>
+        <script src="{% static 'js/like-animation.js' %}" defer></script>
     </body>
 </html>

@@ -123,8 +123,8 @@ class CommentSerializer(serializers.Serializer):
 
         representation["author"] = AuthorSerializer(instance.author).data
         representation["id"] = f"{host}/api/authors/{instance.author.id}/commented/{instance.id}"
-        representation["post"] = f"{host}/api/authors/{instance.author.id}/posts/{instance.post.id}"
-        representation["page"] = f"{host}/authors/{instance.author.id}/posts/{instance.post.id}"
+        representation["post"] = f"{host}/api/authors/{instance.post.author.id}/posts/{instance.post.id}"
+        representation["page"] = f"{host}/authors/{instance.post.author.id}/posts/{instance.post.id}"
         likes = CommentLike.objects.filter(object=instance.id)
         serialized_likes = CommentLikeSerializer(likes, many=True).data
         likes_data = {

@@ -21,6 +21,7 @@ class Author(models.Model):
     #<END GENERATED></END>
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     username = models.CharField(max_length=100, unique=True)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     following = models.ManyToManyField('self', symmetrical=False, blank=True)
     display_name = models.CharField(max_length=100, default="Display Name")
     github = models.URLField(null=True, blank=True)
@@ -37,6 +38,11 @@ class Author(models.Model):
     
     def is_following(self, other_author):
         return self in other_author.following.all()
+    
+    def save(self, *args, **kwargs):
+        if not self.fqid:
+            self.fqid = f"{self.host.rstrip('/')}/api/authors/{self.id}"
+        super().save(*args, **kwargs)
 
 @receiver(post_save, sender=User)
 def create_author_for_admin(sender, instance, created, **kwargs):
@@ -48,6 +54,7 @@ class Post(models.Model):
     A post by an author with text and/or an image
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     text = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to="images/", null=True, blank=True)
@@ -77,6 +84,11 @@ class Post(models.Model):
     def __str__(self):
         return f"Post by {self.author.username} at {self.created_at}"
 
+    def save(self, *args, **kwargs):
+        if not self.fqid:
+            self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/posts/{self.id}"
+        super().save(*args, **kwargs)
+
 class PostLike(models.Model):
     """
     A like on a post by an author
@@ -85,17 +97,24 @@ class PostLike(models.Model):
     object = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     published = models.DateTimeField(auto_now_add=True)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
 
     # Ensure that a user can only like a post once
     # https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
     class Meta:
         unique_together = ["object", "author"]
 
+    def save(self, *args, **kwargs):
+            if not self.fqid:
+                self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/liked/{self.id}"
+            super().save(*args, **kwargs)
+
 class Comment(models.Model):
     """
     A comment on a post by an author
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     comment = models.TextField()
@@ -106,6 +125,11 @@ class Comment(models.Model):
     ]
     content_type = models.CharField(choices=COMMENT_CONTENT_TYPE_CHOICES, default="text/plain", max_length=100)
     published = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.fqid:
+            self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/commented/{self.id}"
+        super().save(*args, **kwargs)
 
 class CommentLike(models.Model):
     """
@@ -115,12 +139,17 @@ class CommentLike(models.Model):
     object = models.ForeignKey(Comment, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     published = models.DateTimeField(auto_now_add=True)
+    fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
 
     # Ensure that a user can only like a comment once
     # https://docs.djangoproject.com/en/5.1/ref/models/options/#unique-together
     class Meta:
         unique_together = ["object", "author"]
 
+    def save(self, *args, **kwargs):
+        if not self.fqid:
+            self.fqid = f"{self.author.host.rstrip('/')}/api/authors/{self.author.id}/liked/{self.id}"
+        super().save(*args, **kwargs)
 
 
 class FollowRequest(models.Model):
@@ -148,4 +177,20 @@ class FeedBlock(models.Model):
 
     def __str__(self):
         return f"{self.blocker.username} blocks {self.blocked_author.username}"
+    
 
+class NodeInfo(models.Model):
+    """
+    Information about the local node
+    """
+    username = models.CharField(max_length=100)
+    password = models.CharField(max_length=100)
+    host = models.URLField(unique=True)
+
+class RemoteNode(models.Model):
+    """
+    A node that can be connected to from our node
+    """
+    host = models.URLField(unique=True)
+    outgoing = models.BooleanField()
+    incoming = models.BooleanField()

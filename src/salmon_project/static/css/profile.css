@@ -1,7 +1,7 @@
 /* Profile Page Styling */
 .profile-container {
     max-width: 800px;
-    margin: auto;
+    margin: 20px auto;
     padding: 20px;
 }
 
@@ -15,7 +15,7 @@
     height: 150px;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #007bff;
+    border: 3px solid #017075;
 }
 
 .profile-actions {
@@ -28,14 +28,14 @@
 .profile-actions .btn {
     padding: 8px 15px;
     text-decoration: none;
-    background-color: #007bff;
+    background-color: #017075;
     color: white;
     border-radius: 5px;
     transition: 0.3s;
 }
 
 .profile-actions .btn:hover {
-    background-color: #0056b3;
+    background-color: #034c52;
 }
 
 /* Post Form Styling */
@@ -65,6 +65,11 @@
     width: 100%;
 }
 
+.post-form .btn:hover {
+    background-color: #034c52; 
+    color: white;
+}
+
 /* Post Styling */
 .post-container {
     display: flex;
@@ -78,20 +83,11 @@
     border-radius: 10px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     border: 1px solid #ccc;
-    width: 100%;
 }
 
 .post-text {
     font-size: 16px;
     line-height: 1.6;
-}
-
-.post-image, .post-video {
-    width: 100%;
-    max-height: 300px;
-    object-fit: cover;
-    border-radius: 5px;
-    margin-top: 10px;
 }
 
 .post-meta {
@@ -107,18 +103,23 @@
 
 .post-actions .btn {
     padding: 5px 10px;
-    background: #007bff;
+    background: #017075;
     color: white;
     border-radius: 5px;
     transition: 0.3s;
+    text-decoration: none;
 }
 
 .post-actions .btn:hover {
-    background: #0056b3;
+    background: #034c52;
 }
 
 .post-actions .btn-danger {
     background: red;
+}
+
+.post-actions .btn-danger:hover {
+    background: #c82333;
 }
 
 .btn-primary {
@@ -128,7 +129,6 @@
 .btn-primary:hover {
     background-color: red; 
     color: black;
-    transform: scale(1.05); 
 }
 
 .copy-post-link {
@@ -141,7 +141,6 @@
 }
 
 .comments-list li {
-    background: #f1f1f1;
     padding: 10px;
     border-radius: 5px;
     margin-top: 5px;
@@ -156,3 +155,115 @@
 .comment-form .btn {
     width: 72%;
 }
+
+
+/* Form Styles */
+.edit form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.edit label {
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.edit input[type="text"],
+.edit input[type="url"],
+.edit input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+.edit input[type="text"]:focus,
+.edit input[type="url"]:focus,
+.edit input[type="file"]:focus {
+    border-color: #017075;
+    outline: none;
+}
+
+.edit input[type="file"] {
+    padding: 8px;
+}
+
+.edit[type="submit"] {
+    padding: 12px;
+    background-color: #017075;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.edit[type="submit"]:hover {
+    background-color: #034c52;
+}
+
+/* Ensure each post card can position its dropdown */
+.post-card {
+    position: relative;
+}
+
+/* Container for the dropdown */
+.dropdown {
+    position: absolute;
+    top: 10px;   /* Adjust vertical position as needed */
+    right: 10px; /* Adjust horizontal position as needed */
+}
+
+/* Styling for the three-dots toggle button */
+.dropdown-toggle {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Dropdown menu (hidden by default) */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 30px;   
+    right: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    z-index: 100;
+    min-width: 100px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* When active, show the dropdown */
+.dropdown-menu.show {
+    display: block;
+}
+
+/* Style the links inside the dropdown menu */
+.dropdown-menu a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    transition: background 0.3s;
+}
+
+.dropdown-menu a:hover {
+    background: #f0f0f0;
+}
+
+/* For laptop screens, adjusted profile container margins to avoid navbar overlap */
+@media (max-width: 1366px) and (min-width: 1025px) {
+    .profile-container {
+        margin-left: 320px;  
+        margin-right: 20px; 
+    }
+}
+

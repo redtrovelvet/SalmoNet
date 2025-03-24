@@ -16,6 +16,11 @@
             {% endif %}
             <li><a href="{% url 'all_authors' %}"><i class="fas fa-users"></i> All Authors</a></li>  
             <li><a href="{% url 'view_follow_requests' %}"><i class="fa-solid fa-bell"></i> Inbox </a></li>  
+            
+            {% if user.is_superuser %}
+            <li><a href="{% url 'admin_controls' %}"><i class="fas fa-user-shield"></i> Admin</a></li>
+            {% endif %}
+
             <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
 
         {% else %}

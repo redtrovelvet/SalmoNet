@@ -1,9 +1,11 @@
 {% extends 'social_distribution/base.html' %}
+{% load static %}
 
 {% block title %}Followers{% endblock %}
-
 {% block content %}
-<div class="content">
+<link rel="stylesheet" type="text/css" href="{% static 'css/follows.css' %}">
+
+<div class="content follow">
     <h1>Your Followers</h1>
     {% if followers %}
         <ul>

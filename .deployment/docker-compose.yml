@@ -1,0 +1,38 @@
+services:
+  salmon_project:
+    image: salmon_project:latest
+    build:
+      context: ../
+      dockerfile: .deployment/Dockerfile
+    command: >
+      sh -c "cd salmon_project &&
+          python3 manage.py migrate &&
+          gunicorn salmon_project.wsgi:application --bind 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: hello_django
+      POSTGRES_USER: hello_django
+      POSTGRES_PASSWORD: hello_django
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  caddy:
+    image: caddy:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - salmon_project
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+
+volumes:
+  postgres_data:
