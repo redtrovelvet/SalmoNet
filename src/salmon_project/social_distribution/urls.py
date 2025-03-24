@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from . import views
 
 urlpatterns = [
@@ -35,7 +35,13 @@ urlpatterns = [
 
     # Single Author API
     path("api/authors/<uuid:author_id>/", views.author_details, name="author_details"),
-    path("api/authors/<path:author_fqid>/", views.fqid_author_details, name="fqid_author_details"),
+    #<BEGIN GENERATED model='gpt-4' date=2025-03-23 prompt: when i use fqid, the url path doesnt work becuase im using str:author_fqid, but when i use path:author_fqid it overrides the path of other urls, what do id?>
+    re_path(
+        r'^api/authors/(?P<author_fqid>https?://.+)/$',
+        views.fqid_author_details,
+        name="fqid_author_details"
+    ),
+    #<END GENERATED></END>.
 
     # Posts API
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/", views.posts_detail, name="posts_detail"),
@@ -74,8 +80,7 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/comments/<uuid:comment_id>/liked/", views.like_comment, name="like_comment"),
 
    
-    path("api/authors/<uuid:author_id>/followers/", views.modify_follower_api, name="get_followers_api"),
+    path("api/authors/<uuid:author_id>/followers/", views.get_followers_api, name="get_followers_api"),
     path("api/authors/<uuid:author_id>/followers/<str:foreign_author_encoded>/", views.modify_follower_api, name="modify_follower_api"),
-    
     path("api/authors/<uuid:author_id>/followrequest/", views.api_send_follow_request, name="api_send_follow_request"),
 ]

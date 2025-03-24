@@ -957,7 +957,7 @@ def modify_follower_api(request, author_id, foreign_author_encoded=None):
         if foreign_author_encoded:
             foreign_author_id = urllib.parse.unquote(foreign_author_encoded)
             try:
-                foreign_author = Author.objects.get(id=foreign_author_id)
+                foreign_author = Author.objects.get(fqid=foreign_author_id)
             except Author.DoesNotExist:
                 return Response({"detail": "Foreign author not found."}, status=404)
             if author in foreign_author.following.all():
@@ -976,7 +976,7 @@ def modify_follower_api(request, author_id, foreign_author_encoded=None):
             return Response({"detail": "Foreign author id required."}, status=400)
         foreign_author_id = urllib.parse.unquote(foreign_author_encoded)
         try:
-            foreign_author = Author.objects.get(id=foreign_author_id)
+            foreign_author = Author.objects.get(fqid=foreign_author_id)
         except Author.DoesNotExist:
             return Response({"detail": "Foreign author not found."}, status=404)
         if request.user.author != author:
@@ -989,7 +989,7 @@ def modify_follower_api(request, author_id, foreign_author_encoded=None):
             return Response({"detail": "Foreign author id required."}, status=400)
         foreign_author_id = urllib.parse.unquote(foreign_author_encoded)
         try:
-            foreign_author = Author.objects.get(id=foreign_author_id)
+            foreign_author = Author.objects.get(fqid=foreign_author_id)
         except Author.DoesNotExist:
             return Response({"detail": "Foreign author not found."}, status=404)
         if request.user.author != author:
