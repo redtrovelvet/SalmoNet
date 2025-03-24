@@ -94,3 +94,11 @@
         font-size: 18px;
     }
 }
+
+/* Adjust spacing for authors list on laptop screens */
+@media (max-width: 1366px) and (min-width: 1025px) {
+    .authors-list {
+        margin-left: 320px;  
+        margin-right: 20px; 
+    }
+}
