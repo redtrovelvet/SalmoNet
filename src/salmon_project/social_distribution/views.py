@@ -477,6 +477,17 @@ def author_details(request, author_id):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
+    
+@api_view(["GET"])
+def fqid_author_details(request, author_fqid):
+    '''
+    API: returns specific author detaisl using fqid.
+    works for both local and remote (percent encoded path)
+    '''
+    decoded_fqid = unquote(author_fqid)
+    author = get_object_or_404(Author, fqid=decoded_fqid)
+    serializer = AuthorSerializer(author)
+    return Response(serializer.data)
 
 @require_POST
 def send_follow_request(request, author_id):

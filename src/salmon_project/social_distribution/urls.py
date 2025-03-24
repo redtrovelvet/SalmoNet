@@ -35,6 +35,7 @@ urlpatterns = [
 
     # Single Author API
     path("api/authors/<uuid:author_id>/", views.author_details, name="author_details"),
+    path("api/authors/<path:author_fqid>/", views.fqid_author_details, name="fqid_author_details"),
 
     # Posts API
     path("api/authors/<uuid:author_id>/posts/<uuid:post_id>/", views.posts_detail, name="posts_detail"),
