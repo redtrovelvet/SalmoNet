@@ -25,6 +25,7 @@ from django.views.decorators.http import require_POST, require_http_methods
 from django.core.paginator import Paginator
 import commonmark, uuid
 from urllib.parse import unquote
+import mimetypes
 
 # Create your views here.
 def index(request):
@@ -664,6 +665,7 @@ def posts_detail(request, author_id, post_id):
     local posts: must be authenticated locally as the author
     """
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
+    author = post.author
 
     if request.method == "GET":
         # If post is marked DELETED, don't allow retrieval.
@@ -679,15 +681,15 @@ def posts_detail(request, author_id, post_id):
             except Author.DoesNotExist:
                 return Response({"detail": "Authentication required."}, status=403)
             # Must be mutual friends.
-            if (requesting_author not in post.author.following.all() or
-                    post.author not in requesting_author.following.all()):
+            if (requesting_author not in author.following.all() or
+                    author not in requesting_author.following.all()):
                 return Response({"detail": "You are not friends with the author."}, status=403)
         serializer = PostSerializer(post)
         return Response(serializer.data)
     
     elif request.method == "DELETE":
         # Only the author can delete their post.
-        if post.author.user != request.user:
+        if author.user != request.user:
             return Response(status=403)
         post.visibility = "DELETED"
         post.save()
@@ -695,7 +697,7 @@ def posts_detail(request, author_id, post_id):
     
     elif request.method == "PUT":
         # Only the author can update their post.
-        if post.author.user != request.user:
+        if author.user != request.user:
             return Response(status=403)
         serializer = PostSerializer(post, data=request.data, partial=True)
         if serializer.is_valid():
@@ -706,25 +708,28 @@ def posts_detail(request, author_id, post_id):
 @api_view(['GET'])
 def get_post_by_fqid(request, post_fqid):
     """
-    GET [local] get the public post whose URL is POST_FQID
+    GET [remote] get the public post whose URL is POST_FQID
     Friends-only posts: must be authenticated and must be a friend.
     """
-    post = get_object_or_404(Post, fqid=post_fqid)
+    decoded_fqid = unquote(post_fqid)
+    post = get_object_or_404(Post, fqid=decoded_fqid)
     author = post.author
 
-    # If the post is friends-only, enforce friendship check
+    # If post is marked DELETED, don't allow retrieval.
+    if post.visibility == "DELETED":
+        return Response({"detail": "Post not found."}, status=403)
+    
+    # For FRIENDS-only posts, enforce friendship check.
     if post.visibility == 'FRIENDS':
         if not request.user.is_authenticated:
             return Response({"detail": "Authentication required."}, status=403)
-        
-        # Ensure the authenticated user is an author in your system
         try:
             requesting_author = request.user.author
         except Author.DoesNotExist:
             return Response({"detail": "User is not an author."}, status=403)
-        
-        # Check if the requesting user is actually a friend of the post author
-        if requesting_author not in author.following.all() or author not in requesting_author.following.all():
+        # Check mutual friendship
+        if (requesting_author not in author.following.all() or
+                author not in requesting_author.following.all()):
             return Response({"detail": "You are not friends with the author."}, status=403)
     serializer = PostSerializer(post)
     return Response(serializer.data)
@@ -796,39 +801,81 @@ def create_post(request, author_id):
 @api_view(['GET'])
 def get_post_image(request, author_id, post_id):
     """
-    GET [local, remote] get the public post converted to binary as an image
-    return 404 if not an image
+    GET [local, remote]: get the public post converted to binary as an image.
+    Return 404 if not an image.
     """
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
-    if post.content_type not in ['image/png', 'image/jpeg']:
-        return Response(status=404)
-    if post.visibility == 'FRIENDS' and not request.user.is_authenticated:
-        return Response(status=403)
-    return Response(post.image.read(), content_type=post.content_type)
 
-@api_view(['GET'])
-def get_postimage_by_fqid(request, post_fqid):
-    """
-    GET [local, remote] get the public post converted to binary as an image
-    return 404 if not an image
-    """
-    post = get_object_or_404(Post, id=post_fqid)
-    if post.content_type not in ['image/png', 'image/jpeg']:
-        return Response(status=404)
+    # Check DELETED visibility
+    if post.visibility == "DELETED":
+        return Response({"detail": "Post not found."}, status=403)
 
-    # FRIENDS logic
+    # Check if the post has an image
+    if not post.image:
+        return Response({"detail": "Post does not have an image."}, status=404)
+
+    # FRIENDS-only visibility logic
     if post.visibility == 'FRIENDS':
         if not request.user.is_authenticated:
-            return Response(status=403)
+            return Response({"detail": "Authentication required."}, status=403)
         try:
             requesting_author = request.user.author
         except Author.DoesNotExist:
             return Response({"detail": "User is not an author."}, status=403)
+
         if (requesting_author not in post.author.following.all() or
                 post.author not in requesting_author.following.all()):
             return Response({"detail": "You are not friends with the author."}, status=403)
 
-    return Response(post.image.read(), content_type=post.content_type)
+    # Dynamically detect image content type
+    mime_type, _ = mimetypes.guess_type(post.image.url)
+    if mime_type not in ["image/png", "image/jpeg"]:
+        return Response({"detail": "Not a valid image type."}, status=404)
+
+    with post.image.open('rb') as image_file:
+        binary_image_data = image_file.read()
+
+    return HttpResponse(binary_image_data, content_type=mime_type)
+
+@api_view(['GET'])
+def get_postimage_by_fqid(request, post_fqid):
+    """
+    GET [local, remote]: get the public post converted to binary as an image.
+    Return 404 if not an image.
+    """
+    decoded_fqid = unquote(post_fqid)
+    post = get_object_or_404(Post, fqid=decoded_fqid)
+
+    # Check DELETED visibility
+    if post.visibility == "DELETED":
+        return Response({"detail": "Post not found."}, status=403)
+
+    # Check if the post has an image
+    if not post.image:
+        return Response({"detail": "Post does not have an image."}, status=404)
+
+    # FRIENDS-only visibility logic
+    if post.visibility == 'FRIENDS':
+        if not request.user.is_authenticated:
+            return Response({"detail": "Authentication required."}, status=403)
+        try:
+            requesting_author = request.user.author
+        except Author.DoesNotExist:
+            return Response({"detail": "User is not an author."}, status=403)
+
+        if (requesting_author not in post.author.following.all() or
+                post.author not in requesting_author.following.all()):
+            return Response({"detail": "You are not friends with the author."}, status=403)
+
+    # Dynamically detect image content type
+    mime_type, _ = mimetypes.guess_type(post.image.url)
+    if mime_type not in ["image/png", "image/jpeg"]:
+        return Response({"detail": "Not a valid image type."}, status=404)
+
+    with post.image.open('rb') as image_file:
+        binary_image_data = image_file.read()
+
+    return HttpResponse(binary_image_data, content_type=mime_type)
 
 # ================= NEW: Followers and Follow Request API Endpoints =================
 
