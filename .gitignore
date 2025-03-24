@@ -321,3 +321,5 @@ tests/coverage_html/
 tests/report/
 tests/screenshots/
 MANIFEST
+
+*.pem
