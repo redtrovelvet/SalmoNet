@@ -1023,7 +1023,6 @@ def inbox(request, id):
 
         else:
             return Response({"detail": "Unsupported type for inbox."}, status=400)
-
     # Else treat it as an FQID
     except ValueError:
         author_fqid = unquote(id)
@@ -1043,8 +1042,14 @@ def inbox(request, id):
             follow_req, created = FollowRequest.objects.get_or_create(
                 sender=sender, receiver=receiver, defaults={"status": "PENDING"}
             )
+
+            notification = {
+                "type": "follow_notification",
+                "author": AuthorSerializer(sender).data,
+            }
+
             return Response(
-                {"detail": "Follow request created." if created else "Follow request already exists."},
+                {"detail": "Follow request created." if created else "Follow request already exists.", "notification": notification},
                 status=201 if created else 200
             )
 
@@ -1069,25 +1074,39 @@ def inbox(request, id):
             object_path = parsed.path
 
             if "/commented/" in object_path:
-                # CommentLike
+                # CommentLike — store it silently
                 try:
                     comment = Comment.objects.get(fqid=object_fqid)
-                    CommentLike.objects.get_or_create(object=comment,author=sender,defaults={"published": parse_datetime(published), "fqid": like_fqid})
+                    CommentLike.objects.get_or_create(
+                        object=comment,
+                        author=sender,
+                        defaults={"published": parse_datetime(published), "fqid": like_fqid}
+                    )
                 except Comment.DoesNotExist:
                     return Response({"detail": "Target comment not found."}, status=404)
 
                 return Response({"detail": "Comment like stored."}, status=201)
 
             elif "/posts/" in object_path:
-                # PostLike
+                # PostLike — store + notify
                 try:
                     post = Post.objects.get(fqid=object_fqid)
-                    PostLike.objects.get_or_create(object=post,author=sender,defaults={"published": parse_datetime(published), "fqid": like_fqid}
-            )
+                    PostLike.objects.get_or_create(
+                        object=post,
+                        author=sender,
+                        defaults={"published": parse_datetime(published), "fqid": like_fqid}
+                    )
                 except Post.DoesNotExist:
                     return Response({"detail": "Target post not found."}, status=404)
 
-                return Response({"detail": "Post like stored."}, status=201)
+                post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
+                notification = {
+                    "type": "like_notification",
+                    "author": AuthorSerializer(sender).data,
+                    "published": published,
+                    "post_url": post_url
+                }
+                return Response({"detail": "Post like stored.", "notification": notification}, status=201)
 
             else:
                 return Response({"detail": "Unrecognized object type for like."}, status=400)
@@ -1119,9 +1138,17 @@ def inbox(request, id):
                 post = Post.objects.get(fqid=post_fqid)
             except Post.DoesNotExist:
                 return Response({"detail": "Target post not found."}, status=404)
-            
-            comment = Comment.objects.create(post=post,author=sender,comment=comment_text,content_type=content_type,published=parse_datetime(published) if published else None,fqid=comment_fqid)
-            # Handle embedded comment likes
+
+            comment = Comment.objects.create(
+                post=post,
+                author=sender,
+                comment=comment_text,
+                content_type=content_type,
+                published=parse_datetime(published) if published else None,
+                fqid=comment_fqid
+            )
+
+            # Handle embedded comment likes (stored silently)
             likes_data = data.get("likes", {}).get("src", [])
             for like in likes_data:
                 like_author_data = like.get("author")
@@ -1140,7 +1167,15 @@ def inbox(request, id):
                     }
                 )
 
-            return Response({"detail": "Comment and embedded likes stored."}, status=201)
+            post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
+            notification = {
+                "type": "comment_notification",
+                "author": AuthorSerializer(sender).data,
+                "comment": comment.comment,
+                "published": comment.published,
+                "post_url": post_url
+            }
+            return Response({"detail": "Comment and embedded likes stored.", "notification": notification}, status=201)
 
         # === UNSUPPORTED TYPE ===
         else:
