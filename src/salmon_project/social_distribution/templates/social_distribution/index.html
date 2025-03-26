@@ -60,7 +60,7 @@
         
         {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
         
-            <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/view/">
+            <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/">
                 <img src="{% static 'img/share.png' %}" alt="Share" class="share-icon">
             </button>
             <!-- Bold text next to the share icon -->
@@ -129,7 +129,7 @@
 {% endif %}
 
 <!-- to filter posts based on friends-only checkbox -->
-<script>
+<!-- <script>
 document.addEventListener("DOMContentLoaded", function() {
   const checkbox = document.getElementById("friendsOnlyFilter");
   checkbox.addEventListener("change", function() {
@@ -147,7 +147,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 });
-</script>
+</script> -->
 
 <script>
   // 'filterType' is either 'to show all posts or to show only FRIENDS posts.

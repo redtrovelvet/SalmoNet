@@ -278,6 +278,7 @@ dist
 
 # Ignore SQLite databases (already included but ensure it's correct)
 *.sqlite3
+hello_django
 
 
 # Installer logs
