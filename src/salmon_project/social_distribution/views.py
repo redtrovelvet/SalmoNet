@@ -1067,7 +1067,7 @@ def inbox(request, id):
 
         # === FOLLOW REQUEST ===
         if data.get("type") == "follow":
-            actor_data = data.get("author")
+            actor_data = data.get("actor")
             if not actor_data:
                 return Response({"detail": "Missing actor data."}, status=400)
 
@@ -1093,7 +1093,7 @@ def inbox(request, id):
 
         # === LIKE (POST or COMMENT) ===
         elif data.get("type") == "like":
-            actor_data = data.get("author")
+            actor_data = data.get("actor")
             if not actor_data:
                 return Response({"detail": "Missing author data."}, status=400)
 
@@ -1152,7 +1152,7 @@ def inbox(request, id):
 
         # === COMMENT ===
         elif data.get("type") == "comment":
-            actor_data = data.get("author")
+            actor_data = data.get("actor")
             if not actor_data:
                 return Response({"detail": "Missing author data."}, status=400)
 
