@@ -6,9 +6,15 @@ document.addEventListener("DOMContentLoaded", function () {
     buttons.forEach(button => {
         button.addEventListener("click", function () {
             let textToCopy = button.getAttribute("data-copy");
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert("Link to post copied!");
-            });
+            const textArea = document.createElement("textarea")
+            textArea.value = textToCopy
+            textArea.style.position = "absolute";
+            textArea.style.left = "-999999px";
+            document.body.prepend(textArea);
+            textArea.select()
+            document.execCommand('copy')
+            textArea.remove()
+            alert("Link to post copied!");
         });
     });
 });
