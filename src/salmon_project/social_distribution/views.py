@@ -1041,6 +1041,48 @@ def inbox(request, id):
             }
             return Response({"detail": "Comment notification received.", "notification": notification}, status=201)
 
+        # === POST ===
+        elif data.get("type") == "post":
+            # Expect payload to include: title, id, page, description, contentType, content, author, comments, likes, published, visibility
+
+            # Iterate through fields
+            data_dict = {}
+            for field in ["title", "id", "page", "description", "contentType", "content", "author", "comments", "likes", "published", "visibility"]:
+                field_data = data.get(field)
+                if not field_data:
+                    return Response({"detail": "Missing %s" % field}, status=400)
+                else:
+                    data_dict[field] = field_data
+
+            # Check post id
+            try:
+                data_dict["id"] = uuid.UUID(data_dict["id"].split("/"))
+            except Exception:
+                try:
+                    data_dict["id"] = uuid.UUID(data_dict["id"])
+                except Exception:
+                    return Response({"detail": "Invalid post id."}, status=400)
+
+            # Check author id
+            try:
+                data_dict["author"] = uuid.UUID(data_dict["author"].split("/"))
+            except Exception:
+                try:
+                    data_dict["author"] = uuid.UUID(data_dict["author"])
+                except Exception:
+                    return Response({"detail": "Invalid author id."}, status=400)
+                
+            # Create new or get existing post object with id
+            author = get_object_or_404(Author, id=data_dict["author"])
+            post = Post.objects.get_or_create(
+                author=author,
+                text=data_dict["content"],
+                created_at=data_dict["published"],
+                content_type=data_dict["contentType"],
+                visibility=data_dict["visibility"]
+            )
+
+
         else:
             return Response({"detail": "Unsupported type for inbox."}, status=400)
         # Else treat it as an FQID
