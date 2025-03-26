@@ -502,9 +502,28 @@ def send_follow_request(request, author_id):
     if current_author.sent_requests.filter(receiver=target_author, status='PENDING').exists():
         messages.info(request, "You already sent a follow request to this author.")
         return redirect('profile', author_id=target_author.id)
-    FollowRequest.objects.create(sender=current_author, receiver=target_author)
-    messages.success(request, f"Follow request sent to {target_author.display_name}.")
-    return redirect('profile', author_id=target_author.id)
+    
+    if target_author.host != settings.BASE_URL:
+        follow_request_data = {
+            "type": "follow",
+            "summary": f"{current_author.display_name} wants to follow {target_author.display_name}"
+            "actor": AuthorSerializer(current_author).data,
+        }
+
+        try:
+            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+            response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10)
+            if response.status_code in [200, 201]:
+                messages.success(request, f"Follow request sent to remote author {target_author.display_name}.")
+            else:
+                messages.error(request, f"Failed to send follow request to remote author: {response.text}")
+        except Exception as e:
+            messages.error(request, f"Error sending follow request to remote author: {str(e)}")
+        return redirect('profile', author_id=target_author.id)
+    else:
+        FollowRequest.objects.create(sender=current_author, receiver=target_author)
+        messages.success(request, f"Follow request sent to {target_author.display_name}.")
+        return redirect('profile', author_id=target_author.id)
 
 def all_authors(request):
     """
