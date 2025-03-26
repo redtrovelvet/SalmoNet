@@ -367,6 +367,7 @@ def set_node_info(request):
         if node_info:
             node_info.username = request.POST["username"]
             node_info.password = make_password(request.POST["password"])
+            node_info.host = settings.BASE_URL
             node_info.save()
             return Response("Node info updated", status=200)
         else:
@@ -406,6 +407,9 @@ def connect_node(request):
         local_node = NodeInfo.objects.first()
         if not local_node:
             return Response("Local node not found", status=404)
+
+        if request.META.get("HTTP_ORIGIN") == local_node.host:
+            return Response("Forbidden", status=403)
         
         username = request.POST["username"]
         password = request.POST["password"]
