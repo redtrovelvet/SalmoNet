@@ -23,9 +23,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.http import require_POST, require_http_methods
 from django.core.paginator import Paginator
-import commonmark, uuid
+import commonmark, uuid, mimetypes, requests
 from urllib.parse import unquote
-import mimetypes
 
 # Create your views here.
 def index(request):
@@ -511,7 +510,37 @@ def all_authors(request):
     """
     Retrieve and display all authors.
     """
-    authors = Author.objects.all()
+    authors = Author.objects.filter(host=settings.BASE_URL)
+    authors = list(authors)
+    
+    for author in authors:
+        author.page = f"/authors/{author.id}/"
+
+    remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True)
+    for node in remote_nodes:
+        response = requests.get(f"{node.host}/api/authors/")
+        if response.status_code == 200:
+            remote_authors = response.json()["authors"]
+            for remote_author in remote_authors:
+                remote_author["host"] = node.host
+                remote_author["fqid"] = remote_author["id"]
+                remote_author["id"] = uuid.UUID(remote_author["id"].split("/")[-1])
+                remote_author["display_name"] = remote_author["displayName"]
+                remote_author["username"] = remote_author["displayName"]
+
+                if not Author.objects.filter(fqid=remote_author["fqid"]).exists():
+                    Author.objects.create(
+                        id = remote_author["id"],
+                        username=remote_author["displayName"],
+                        fqid=remote_author["fqid"],
+                        display_name=remote_author["displayName"],
+                        host=node.host,
+                        is_approved=False
+                    )
+                    
+                authors.append(remote_author)
+
+
     return render(request, "social_distribution/all_authors.html", {"authors": authors})
 
 def view_follow_requests(request):

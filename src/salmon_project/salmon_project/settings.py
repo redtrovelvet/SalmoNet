@@ -37,6 +37,9 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(",")
 BASE_URL ="http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]"
 # Application definition
 
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = tuple(f"http://{host}" for host in os.environ.get("ALLOWED_HOSTS", "localhost").split(","))
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -47,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'social_distribution',
     'drf_yasg',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'salmon_project.urls'
