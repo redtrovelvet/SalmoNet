@@ -31,13 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     addNodeForm.addEventListener("submit", function(event) {
         event.preventDefault();
         let address = document.getElementById("node_address").value;
-        if (!address.startsWith("http://") && !address.startsWith("https://")) {
-            address = "http://" + address;
-            this.querySelector("#node_address").value = address;
-        }
-
-        // TODO: make sure the port is included in the address
-        let fetch_url = address + ":8000/api/connect/";
+        let fetch_url = address + "/api/connect/";
         
         fetch(fetch_url, {
             method: "POST",
