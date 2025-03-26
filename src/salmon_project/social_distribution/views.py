@@ -263,13 +263,13 @@ def view_post(request, author_id, post_id):
     except AttributeError:
         current_user = request.user
         if post.visibility == "FRIENDS":
-            request.session["homepage_alert_message"] = "Error: Access denied"
+            request.session["homepage_alert_message"] = "403 Error: Access denied due to not being signed-in"
             return redirect("index")
         
     # If current user is signed in, check access
     else:
         if post.visibility == "FRIENDS" and not (current_user == post_author or post_author.is_friends_with(current_user)):
-            request.session["homepage_alert_message"] = "Error: Access denied"
+            request.session["homepage_alert_message"] = "403 Error: Access denied due to not being friends with post's author"
             return redirect("index")
     return render(request, "social_distribution/view_post.html", {"post": rendered_post, "current_user": current_user})
 
