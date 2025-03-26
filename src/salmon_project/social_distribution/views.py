@@ -520,7 +520,12 @@ def send_follow_request(request, author_id):
         messages.error(request, "Please log in to follow authors.")
         return redirect('login')
     current_author = request.user.author
-    target_author = get_object_or_404(Author, id=author_id)
+
+    try:
+        target_author = Author.objects.get(id=author_id)
+    except Author.DoesNotExist:
+        target_author = get_object_or_404(Author, fqid=author_id)
+
     if current_author == target_author:
         messages.error(request, "You cannot follow yourself.")
         return redirect('profile', author_id=target_author.id)
@@ -536,7 +541,7 @@ def send_follow_request(request, author_id):
         }
 
         try:
-            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.fqid}/inbox/"
             response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10)
             if response.status_code in [200, 201]:
                 current_author.following.add(target_author)
@@ -551,6 +556,7 @@ def send_follow_request(request, author_id):
         current_author.following.add(target_author)
         messages.success(request, f"Follow request sent to {target_author.display_name}.")
         return redirect('profile', author_id=target_author.id)
+        
     
 def all_authors(request):
     """
