@@ -411,14 +411,14 @@ def connect_node(request):
         password = request.POST["password"]
 
         if local_node.username == username and check_password(password, local_node.password):
-            remote_node = RemoteNode.objects.filter(host=request.POST["host"]).first()
+            remote_node = RemoteNode.objects.filter(host=request.META.get("HTTP_ORIGIN")).first()
             if remote_node:
                 remote_node.incoming = True
                 remote_node.save()
                 return Response("Connected", status=200)
             else:
                 RemoteNode.objects.create(
-                    host=request.POST["host"],
+                    host=request.META.get("HTTP_ORIGIN"),
                     outgoing=False,
                     incoming=True
                 )
