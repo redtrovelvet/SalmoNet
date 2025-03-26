@@ -969,7 +969,7 @@ def inbox(request, author_id):
         if not post_id:
             return Response({"detail": "Missing post id."}, status=400)
         post_obj = get_object_or_404(Post, id=post_id)
-        post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/view/"
+        post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/"
         notification = {
             "type": "like_notification",
             "author": AuthorSerializer(sender).data,
