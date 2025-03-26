@@ -526,6 +526,7 @@ def all_authors(request):
                 remote_author["fqid"] = remote_author["id"]
                 remote_author["id"] = uuid.UUID(remote_author["id"].split("/")[-1])
                 remote_author["display_name"] = remote_author["displayName"]
+                remote_author["username"] = remote_author["displayName"]
                 authors.append(remote_author)
 
 
