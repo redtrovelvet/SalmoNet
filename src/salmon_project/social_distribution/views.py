@@ -527,6 +527,7 @@ def send_follow_request(request, author_id):
         return redirect('profile', author_id=target_author.id)
     else:
         FollowRequest.objects.create(sender=current_author, receiver=target_author)
+        current_author.following.add(target_author)
         messages.success(request, f"Follow request sent to {target_author.display_name}.")
         return redirect('profile', author_id=target_author.id)
 
