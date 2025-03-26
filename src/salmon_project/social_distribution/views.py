@@ -445,12 +445,11 @@ def remove_connection(request):
             return Response("Outgoing connection removed", status=200)
         return Response("Connection not found", status=404)
 
-
+'''
 @api_view(["GET"])
 def get_authors(request):
-    '''
     API: returns all authors in local node
-    '''
+    
     page_num = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 5))
 
@@ -462,6 +461,25 @@ def get_authors(request):
     return Response({
         "type": "authors",
         "authors": serializer.data  
+    })
+'''
+
+@api_view(["GET"])
+def get_authors(request):
+    """
+    API: returns all authors on this local node
+    """
+    page_num = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 5))
+
+    authors_qs = Author.objects.filter(host=settings.BASE_URL).order_by("id")
+    paginator = Paginator(authors_qs, size)
+    page_obj = paginator.get_page(page_num)
+
+    serializer = AuthorSerializer(page_obj, many=True)
+    return Response({
+        "type": "authors",
+        "authors": serializer.data
     })
 
 @api_view(["GET", "PUT"])
@@ -533,7 +551,7 @@ def send_follow_request(request, author_id):
         current_author.following.add(target_author)
         messages.success(request, f"Follow request sent to {target_author.display_name}.")
         return redirect('profile', author_id=target_author.id)
-
+    
 def all_authors(request):
     """
     Retrieve and display all authors.
@@ -544,7 +562,7 @@ def all_authors(request):
     for author in authors:
         author.page = f"/authors/{author.id}/"
 
-    remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True)
+    remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True).exclude(host=settings.BASE_URL)
     for node in remote_nodes:
         response = requests.get(f"{node.host}/api/authors/")
         if response.status_code == 200:
@@ -552,21 +570,20 @@ def all_authors(request):
             for remote_author in remote_authors:
                 remote_author["host"] = node.host
                 remote_author["fqid"] = remote_author["id"]
-                remote_author["id"] = uuid.UUID(remote_author["id"].split("/")[-1])
                 remote_author["display_name"] = remote_author["displayName"]
                 remote_author["username"] = remote_author["displayName"]
 
-                if not Author.objects.filter(fqid=remote_author["fqid"]).exists():
-                    Author.objects.create(
-                        id = remote_author["id"],
-                        username=remote_author["displayName"],
-                        fqid=remote_author["fqid"],
-                        display_name=remote_author["displayName"],
-                        host=node.host,
-                        is_approved=False
-                    )    
-                authors.append(remote_author)
-
+                remote_author_obj, _  = Author.objects.get_or_create(
+                fqid=remote_author["fqid"],
+                defaults={
+                    "username": remote_author["displayName"],
+                    "display_name": remote_author["displayName"],
+                    "host": node.host,
+                    "is_approved": False,
+                    "user": None,  # no associated Django user
+                }
+                )   
+                authors.append(remote_author_obj)
 
     return render(request, "social_distribution/all_authors.html", {"authors": authors})
 
