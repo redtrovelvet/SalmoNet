@@ -553,18 +553,15 @@ def all_authors(request):
                 remote_author["display_name"] = remote_author["displayName"]
                 remote_author["username"] = remote_author["displayName"]
 
-                #<BEGIN GENERATED model='gpt-4' date=2025-03-26 prompt: here is my all_authors functions, it looks likes it keeps duplicating the keys, can you help me figure out why and how to fix?>
-                author_obj, created = Author.objects.get_or_create(
-                    id=remote_author["id"],
-                    defaults={
-                        "username": remote_author["displayName"],
-                        "fqid": remote_author["fqid"],
-                        "display_name": remote_author["displayName"],
-                        "host": node.host,
-                        "is_approved": False,
-                    }
-                )
-                #<END GENERATED></END>
+                if not Author.objects.filter(fqid=remote_author["fqid"]).exists():
+                    Author.objects.create(
+                        id = remote_author["id"],
+                        username=remote_author["displayName"],
+                        fqid=remote_author["fqid"],
+                        display_name=remote_author["displayName"],
+                        host=node.host,
+                        is_approved=False
+                    )    
                 authors.append(remote_author)
 
 
