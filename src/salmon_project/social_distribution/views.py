@@ -1043,7 +1043,7 @@ def inbox(request, id):
 
         else:
             return Response({"detail": "Unsupported type for inbox."}, status=400)
-    # Else treat it as an FQID
+        # Else treat it as an FQID
     except ValueError:
         author_fqid = unquote(id)
         receiver = get_object_or_404(Author, fqid=author_fqid)
@@ -1055,9 +1055,10 @@ def inbox(request, id):
                 return Response({"detail": "Missing actor data."}, status=400)
 
             sender_fqid = actor_data.get("id")
-            sender, error, status_code = get_or_create_remote_author(sender_fqid)
-            if error:
-                return Response(error, status=status_code)
+            try:
+                sender = Author.objects.get(fqid=sender_fqid)
+            except Author.DoesNotExist:
+                return Response({"detail": "Sender author not found in database."}, status=404)
 
             follow_req, created = FollowRequest.objects.get_or_create(
                 sender=sender, receiver=receiver, defaults={"status": "PENDING"}
@@ -1080,9 +1081,10 @@ def inbox(request, id):
                 return Response({"detail": "Missing author data."}, status=400)
 
             sender_fqid = actor_data.get("id")
-            sender, error, status_code = get_or_create_remote_author(sender_fqid)
-            if error:
-                return Response(error, status=status_code)
+            try:
+                sender = Author.objects.get(fqid=sender_fqid)
+            except Author.DoesNotExist:
+                return Response({"detail": "Sender author not found in database."}, status=404)
 
             object_fqid = data.get("object")
             if not object_fqid:
@@ -1138,9 +1140,10 @@ def inbox(request, id):
                 return Response({"detail": "Missing author data."}, status=400)
 
             sender_fqid = actor_data.get("id")
-            sender, error, status_code = get_or_create_remote_author(sender_fqid)
-            if error:
-                return Response(error, status=status_code)
+            try:
+                sender = Author.objects.get(fqid=sender_fqid)
+            except Author.DoesNotExist:
+                return Response({"detail": "Sender author not found in database."}, status=404)
 
             post_fqid = data.get("post")
             if not post_fqid:
@@ -1175,9 +1178,10 @@ def inbox(request, id):
                 if not like_author_data:
                     continue
                 liker_fqid = like_author_data.get("id")
-                liker, error, status_code = get_or_create_remote_author(liker_fqid)
-                if error:
-                    continue
+                try:
+                    liker = Author.objects.get(fqid=liker_fqid)
+                except Author.DoesNotExist:
+                    continue  # Skip this like if the liker isn't known
                 CommentLike.objects.get_or_create(
                     object=comment,
                     author=liker,
@@ -1200,37 +1204,6 @@ def inbox(request, id):
         # === UNSUPPORTED TYPE ===
         else:
             return Response({"detail": f"Unsupported object type: {data.get('type')}"}, status=400)
-
-def get_or_create_remote_author(sender_fqid):
-    """
-    Fetches minimal info from a remote node and creates a local Author object
-    with a fallback username and auto-generated UUID, while storing FQID.
-    """
-    try:
-        response = requests.get(sender_fqid, timeout=5)
-        if response.status_code != 200:
-            return None, {"detail": f"Failed to fetch remote author at {sender_fqid}."}, 400
-
-        remote_data = response.json()
-        parsed = urlparse(sender_fqid)
-        fallback_username = sender_fqid.rstrip('/').split('/')[-1]
-        fallback_host = f"{parsed.scheme}://{parsed.netloc}"
-
-        author, created = Author.objects.get_or_create(
-            fqid=sender_fqid,
-            defaults={
-                "username": fallback_username,
-                "display_name": remote_data.get("display_name", fallback_username),
-                "github": remote_data.get("github"),
-                "host": fallback_host,
-                "is_approved": False,
-                "user": None,  # no associated Django user
-            }
-        )
-        return author, None, None
-
-    except Exception as e:
-        return None, {"detail": f"Error fetching remote author: {str(e)}"}, 500
 
     
 @api_view(["GET", "PUT", "DELETE"])
