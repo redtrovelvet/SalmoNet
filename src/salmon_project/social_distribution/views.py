@@ -266,13 +266,13 @@ def view_post(request, author_id, post_id):
     except AttributeError:
         current_user = request.user
         if post.visibility == "FRIENDS":
-            request.session["homepage_alert_message"] = "Error: Access denied"
+            request.session["homepage_alert_message"] = "403 Error: Access denied due to not being signed-in"
             return redirect("index")
         
     # If current user is signed in, check access
     else:
         if post.visibility == "FRIENDS" and not (current_user == post_author or post_author.is_friends_with(current_user)):
-            request.session["homepage_alert_message"] = "Error: Access denied"
+            request.session["homepage_alert_message"] = "403 Error: Access denied due to not being friends with post's author"
             return redirect("index")
     return render(request, "social_distribution/view_post.html", {"post": rendered_post, "current_user": current_user})
 
@@ -509,9 +509,30 @@ def send_follow_request(request, author_id):
     if current_author.sent_requests.filter(receiver=target_author, status='PENDING').exists():
         messages.info(request, "You already sent a follow request to this author.")
         return redirect('profile', author_id=target_author.id)
-    FollowRequest.objects.create(sender=current_author, receiver=target_author)
-    messages.success(request, f"Follow request sent to {target_author.display_name}.")
-    return redirect('profile', author_id=target_author.id)
+    
+    if target_author.host != settings.BASE_URL:
+        follow_request_data = {
+            "type": "follow",
+            "summary": f"{current_author.display_name} wants to follow {target_author.display_name}",
+            "actor": AuthorSerializer(current_author).data,
+        }
+
+        try:
+            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+            response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10)
+            if response.status_code in [200, 201]:
+                current_author.following.add(target_author)
+                messages.success(request, f"Follow request sent to remote author {target_author.display_name}.")
+            else:
+                messages.error(request, f"Failed to send follow request to remote author: {response.text}")
+        except Exception as e:
+            messages.error(request, f"Error sending follow request to remote author: {str(e)}")
+        return redirect('profile', author_id=target_author.id)
+    else:
+        FollowRequest.objects.create(sender=current_author, receiver=target_author)
+        current_author.following.add(target_author)
+        messages.success(request, f"Follow request sent to {target_author.display_name}.")
+        return redirect('profile', author_id=target_author.id)
 
 def all_authors(request):
     """
@@ -535,16 +556,18 @@ def all_authors(request):
                 remote_author["display_name"] = remote_author["displayName"]
                 remote_author["username"] = remote_author["displayName"]
 
-                if not Author.objects.filter(fqid=remote_author["fqid"]).exists():
-                    Author.objects.create(
-                        id = remote_author["id"],
-                        username=remote_author["displayName"],
-                        fqid=remote_author["fqid"],
-                        display_name=remote_author["displayName"],
-                        host=node.host,
-                        is_approved=False
-                    )
-                    
+                #<BEGIN GENERATED model='gpt-4' date=2025-03-26 prompt: here is my all_authors functions, it looks likes it keeps duplicating the keys, can you help me figure out why and how to fix?>
+                author_obj, created = Author.objects.get_or_create(
+                    id=remote_author["id"],
+                    defaults={
+                        "username": remote_author["displayName"],
+                        "fqid": remote_author["fqid"],
+                        "display_name": remote_author["displayName"],
+                        "host": node.host,
+                        "is_approved": False,
+                    }
+                )
+                #<END GENERATED></END>
                 authors.append(remote_author)
 
 
