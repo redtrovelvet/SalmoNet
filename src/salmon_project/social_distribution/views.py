@@ -428,7 +428,6 @@ def connect_node(request):
             
 @api_view(["POST"])
 def remove_connection(request):
-    print(request.user)
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
     
