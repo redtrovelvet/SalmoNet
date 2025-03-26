@@ -851,6 +851,9 @@ def create_post(request, author_id):
     if serializer.is_valid():
         serializer.save(author=author)
         return redirect("profile", author_id=author.id)
+
+    
+
     return render(request, "social_distribution/profile.html")
 
 @api_view(['GET'])
@@ -1047,7 +1050,7 @@ def inbox(request, id):
 
             # Iterate through fields
             data_dict = {}
-            for field in ["title", "id", "page", "description", "contentType", "content", "author", "comments", "likes", "published", "visibility"]:
+            for field in ["title", "id", "page", "description", "content_type", "content", "author", "comments", "likes", "published", "visibility"]:
                 field_data = data.get(field)
                 if not field_data:
                     return Response({"detail": "Missing %s" % field}, status=400)
