@@ -25,6 +25,9 @@ from django.views.decorators.http import require_POST, require_http_methods
 from django.core.paginator import Paginator
 import commonmark, uuid, mimetypes, requests
 from urllib.parse import unquote
+from django.utils.dateparse import parse_datetime
+import requests
+from urllib.parse import urlparse
 
 # Create your views here.
 def index(request):
@@ -442,12 +445,11 @@ def remove_connection(request):
             return Response("Outgoing connection removed", status=200)
         return Response("Connection not found", status=404)
 
-
+'''
 @api_view(["GET"])
 def get_authors(request):
-    '''
     API: returns all authors in local node
-    '''
+    
     page_num = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 5))
 
@@ -459,6 +461,25 @@ def get_authors(request):
     return Response({
         "type": "authors",
         "authors": serializer.data  
+    })
+'''
+
+@api_view(["GET"])
+def get_authors(request):
+    """
+    API: returns all authors on this local node
+    """
+    page_num = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 5))
+
+    authors_qs = Author.objects.filter(host=settings.BASE_URL).order_by("id")
+    paginator = Paginator(authors_qs, size)
+    page_obj = paginator.get_page(page_num)
+
+    serializer = AuthorSerializer(page_obj, many=True)
+    return Response({
+        "type": "authors",
+        "authors": serializer.data
     })
 
 @api_view(["GET", "PUT"])
@@ -499,7 +520,12 @@ def send_follow_request(request, author_id):
         messages.error(request, "Please log in to follow authors.")
         return redirect('login')
     current_author = request.user.author
-    target_author = get_object_or_404(Author, id=author_id)
+
+    try:
+        target_author = Author.objects.get(id=author_id)
+    except Author.DoesNotExist:
+        target_author = get_object_or_404(Author, fqid=author_id)
+
     if current_author == target_author:
         messages.error(request, "You cannot follow yourself.")
         return redirect('profile', author_id=target_author.id)
@@ -515,7 +541,7 @@ def send_follow_request(request, author_id):
         }
 
         try:
-            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.fqid}/inbox/"
             response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10)
             if response.status_code in [200, 201]:
                 current_author.following.add(target_author)
@@ -530,7 +556,8 @@ def send_follow_request(request, author_id):
         current_author.following.add(target_author)
         messages.success(request, f"Follow request sent to {target_author.display_name}.")
         return redirect('profile', author_id=target_author.id)
-
+        
+    
 def all_authors(request):
     """
     Retrieve and display all authors.
@@ -541,7 +568,7 @@ def all_authors(request):
     for author in authors:
         author.page = f"/authors/{author.id}/"
 
-    remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True)
+    remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True).exclude(host=settings.BASE_URL)
     for node in remote_nodes:
         response = requests.get(f"{node.host}/api/authors/")
         if response.status_code == 200:
@@ -549,21 +576,20 @@ def all_authors(request):
             for remote_author in remote_authors:
                 remote_author["host"] = node.host
                 remote_author["fqid"] = remote_author["id"]
-                remote_author["id"] = uuid.UUID(remote_author["id"].split("/")[-1])
                 remote_author["display_name"] = remote_author["displayName"]
                 remote_author["username"] = remote_author["displayName"]
 
-                if not Author.objects.filter(fqid=remote_author["fqid"]).exists():
-                    Author.objects.create(
-                        id = remote_author["id"],
-                        username=remote_author["displayName"],
-                        fqid=remote_author["fqid"],
-                        display_name=remote_author["displayName"],
-                        host=node.host,
-                        is_approved=False
-                    )    
-                authors.append(remote_author)
-
+                remote_author_obj, _  = Author.objects.get_or_create(
+                fqid=remote_author["fqid"],
+                defaults={
+                    "username": remote_author["displayName"],
+                    "display_name": remote_author["displayName"],
+                    "host": node.host,
+                    "is_approved": False,
+                    "user": None,  # no associated Django user
+                }
+                )   
+                authors.append(remote_author_obj)
 
     return render(request, "social_distribution/all_authors.html", {"authors": authors})
 
@@ -945,91 +971,263 @@ def get_followers_api(request, author_id):
         "followers": serializer.data
     })
 
+
 @api_view(["POST"])
-def inbox(request, author_id):
-    '''
-    API: Inbox endpoint to receive various objects.
-    If the payload has type "follow", create a follow request.
-    '''
+def inbox(request, id):
     data = request.data
-    if data.get("type") == "follow":
-        actor_data = data.get("actor")
-        if not actor_data:
-            return Response({"detail": "Missing actor data."}, status=400)
-        sender_id = actor_data.get("id")
-        receiver = get_object_or_404(Author, id=author_id)
-        try:
-            sender_uuid = uuid.UUID(sender_id.split("/")[-1])
-        except Exception:
+    receiver = None
+
+    # Try treating id as UUID
+    try:
+        author_uuid = uuid.UUID(id)
+        receiver = get_object_or_404(Author, id=author_uuid)
+
+        # === FOLLOW REQUEST ===
+        if data.get("type") == "follow":
+            actor_data = data.get("actor")
+            if not actor_data:
+                return Response({"detail": "Missing actor data."}, status=400)
+            sender_id = actor_data.get("id")
             try:
-                sender_uuid = uuid.UUID(sender_id)
+                sender_uuid = uuid.UUID(sender_id.split("/")[-1])
             except Exception:
-                return Response({"detail": "Invalid sender id."}, status=400)
-        sender = get_object_or_404(Author, id=sender_uuid)
-        follow_req, created = FollowRequest.objects.get_or_create(sender=sender, receiver=receiver, defaults={"status": "PENDING"})
-        if created:
-            return Response({"detail": "Follow request created."}, status=201)
+                try:
+                    sender_uuid = uuid.UUID(sender_id)
+                except Exception:
+                    return Response({"detail": "Invalid sender id."}, status=400)
+            sender = get_object_or_404(Author, id=sender_uuid)
+            follow_req, created = FollowRequest.objects.get_or_create(
+                sender=sender, receiver=receiver, defaults={"status": "PENDING"}
+            )
+            if created:
+                return Response({"detail": "Follow request created."}, status=201)
+            else:
+                return Response({"detail": "Follow request already exists."}, status=200)
+
+        # === POST LIKE ===
+        elif data.get("type") == "like":
+            actor_data = data.get("actor")
+            if not actor_data:
+                return Response({"detail": "Missing actor data."}, status=400)
+            sender_id = actor_data.get("id")
+            try:
+                sender_uuid = uuid.UUID(sender_id.split("/")[-1])
+            except Exception:
+                try:
+                    sender_uuid = uuid.UUID(sender_id)
+                except Exception:
+                    return Response({"detail": "Invalid sender id."}, status=400)
+            sender = get_object_or_404(Author, id=sender_uuid)
+            published = data.get("published")
+            post_id = data.get("post_id")
+            if not post_id:
+                return Response({"detail": "Missing post id."}, status=400)
+            post_obj = get_object_or_404(Post, id=post_id)
+            post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/"
+            notification = {
+                "type": "like_notification",
+                "author": AuthorSerializer(sender).data,
+                "published": published,
+                "post_url": post_url
+            }
+            return Response({"detail": "Like notification received.", "notification": notification}, status=201)
+
+        # === COMMENT ===
+        elif data.get("type") == "comment":
+            actor_data = data.get("actor")
+            if not actor_data:
+                return Response({"detail": "Missing actor data."}, status=400)
+            sender_id = actor_data.get("id")
+            try:
+                sender_uuid = uuid.UUID(sender_id.split("/")[-1])
+            except Exception:
+                try:
+                    sender_uuid = uuid.UUID(sender_id)
+                except Exception:
+                    return Response({"detail": "Invalid sender id."}, status=400)
+            sender = get_object_or_404(Author, id=sender_uuid)
+            post_id = data.get("post_id")
+            if not post_id:
+                return Response({"detail": "Missing post id."}, status=400)
+            post_obj = get_object_or_404(Post, id=post_id)
+            comment_text = data.get("comment")
+            if not comment_text:
+                return Response({"detail": "Missing comment text."}, status=400)
+            published = data.get("published")
+            post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/"
+            notification = {
+                "type": "comment_notification",
+                "author": AuthorSerializer(sender).data,
+                "comment": comment_text,
+                "published": published,
+                "post_url": post_url
+            }
+            return Response({"detail": "Comment notification received.", "notification": notification}, status=201)
+
         else:
-            return Response({"detail": "Follow request already exists."}, status=200)
-    elif data.get("type") == "like":
-        actor_data = data.get("actor")
-        if not actor_data:
-            return Response({"detail": "Missing actor data."}, status=400)
-        sender_id = actor_data.get("id")
-        try:
-            sender_uuid = uuid.UUID(sender_id.split("/")[-1])
-        except Exception:
+            return Response({"detail": "Unsupported type for inbox."}, status=400)
+        # Else treat it as an FQID
+    except ValueError:
+        author_fqid = unquote(id)
+        receiver = get_object_or_404(Author, fqid=author_fqid)
+
+        # === FOLLOW REQUEST ===
+        if data.get("type") == "follow":
+            actor_data = data.get("actor")
+            if not actor_data:
+                return Response({"detail": "Missing actor data."}, status=400)
+
+            sender_fqid = actor_data.get("id")
             try:
-                sender_uuid = uuid.UUID(sender_id)
-            except Exception:
-                return Response({"detail": "Invalid sender id."}, status=400)
-        sender = get_object_or_404(Author, id=sender_uuid)
-        published = data.get("published")  # expect published time in the payload
-        post_id = data.get("post_id")
-        if not post_id:
-            return Response({"detail": "Missing post id."}, status=400)
-        post_obj = get_object_or_404(Post, id=post_id)
-        post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/view/"
-        notification = {
-            "type": "like_notification",
-            "author": AuthorSerializer(sender).data,
-            "published": published,
-            "post_url": post_url
-        }
-        return Response({"detail": "Like notification received.", "notification": notification}, status=201)
-    elif data.get("type") == "comment":
-        # Expect payload to include: type, actor, post_id, comment, published
-        actor_data = data.get("actor")
-        if not actor_data:
-            return Response({"detail": "Missing actor data."}, status=400)
-        sender_id = actor_data.get("id")
-        try:
-            sender_uuid = uuid.UUID(sender_id.split("/")[-1])
-        except Exception:
+                sender = Author.objects.get(fqid=sender_fqid)
+            except Author.DoesNotExist:
+                return Response({"detail": "Sender author not found in database."}, status=404)
+
+            follow_req, created = FollowRequest.objects.get_or_create(
+                sender=sender, receiver=receiver, defaults={"status": "PENDING"}
+            )
+
+            notification = {
+                "type": "follow_notification",
+                "author": AuthorSerializer(sender).data,
+            }
+
+            return Response(
+                {"detail": "Follow request created." if created else "Follow request already exists.", "notification": notification},
+                status=201 if created else 200
+            )
+
+        # === LIKE (POST or COMMENT) ===
+        elif data.get("type") == "like":
+            actor_data = data.get("actor")
+            if not actor_data:
+                return Response({"detail": "Missing author data."}, status=400)
+
+            sender_fqid = actor_data.get("id")
             try:
-                sender_uuid = uuid.UUID(sender_id)
-            except Exception:
-                return Response({"detail": "Invalid sender id."}, status=400)
-        sender = get_object_or_404(Author, id=sender_uuid)
-        post_id = data.get("post_id")
-        if not post_id:
-            return Response({"detail": "Missing post id."}, status=400)
-        post_obj = get_object_or_404(Post, id=post_id)
-        comment_text = data.get("comment")
-        if not comment_text:
-            return Response({"detail": "Missing comment text."}, status=400)
-        published = data.get("published")
-        post_url = f"{post_obj.author.host}/authors/{post_obj.author.id}/posts/{post_obj.id}/view/"
-        notification = {
-            "type": "comment_notification",
-            "author": AuthorSerializer(sender).data,
-            "comment": comment_text,
-            "published": published,
-            "post_url": post_url
-        }
-        return Response({"detail": "Comment notification received.", "notification": notification}, status=201)
-    else:
-        return Response({"detail": "Unsupported type for inbox."}, status=400)
+                sender = Author.objects.get(fqid=sender_fqid)
+            except Author.DoesNotExist:
+                return Response({"detail": "Sender author not found in database."}, status=404)
+
+            object_fqid = data.get("object")
+            if not object_fqid:
+                return Response({"detail": "Missing object field."}, status=400)
+
+            like_fqid = data.get("id")
+            published = data.get("published")
+            parsed = urlparse(object_fqid)
+            object_path = parsed.path
+
+            if "/commented/" in object_path:
+                # CommentLike — store it silently
+                try:
+                    comment = Comment.objects.get(fqid=object_fqid)
+                    CommentLike.objects.get_or_create(
+                        object=comment,
+                        author=sender,
+                        defaults={"published": parse_datetime(published), "fqid": like_fqid}
+                    )
+                except Comment.DoesNotExist:
+                    return Response({"detail": "Target comment not found."}, status=404)
+
+                return Response({"detail": "Comment like stored."}, status=201)
+
+            elif "/posts/" in object_path:
+                # PostLike — store + notify
+                try:
+                    post = Post.objects.get(fqid=object_fqid)
+                    PostLike.objects.get_or_create(
+                        object=post,
+                        author=sender,
+                        defaults={"published": parse_datetime(published), "fqid": like_fqid}
+                    )
+                except Post.DoesNotExist:
+                    return Response({"detail": "Target post not found."}, status=404)
+
+                post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
+                notification = {
+                    "type": "like_notification",
+                    "author": AuthorSerializer(sender).data,
+                    "published": published,
+                    "post_url": post_url
+                }
+                return Response({"detail": "Post like stored.", "notification": notification}, status=201)
+
+            else:
+                return Response({"detail": "Unrecognized object type for like."}, status=400)
+
+        # === COMMENT ===
+        elif data.get("type") == "comment":
+            actor_data = data.get("actor")
+            if not actor_data:
+                return Response({"detail": "Missing author data."}, status=400)
+
+            sender_fqid = actor_data.get("id")
+            try:
+                sender = Author.objects.get(fqid=sender_fqid)
+            except Author.DoesNotExist:
+                return Response({"detail": "Sender author not found in database."}, status=404)
+
+            post_fqid = data.get("post")
+            if not post_fqid:
+                return Response({"detail": "Missing post field."}, status=400)
+
+            comment_text = data.get("comment")
+            published = data.get("published")
+            content_type = data.get("contentType", "text/plain")
+            comment_fqid = data.get("id")
+
+            if not comment_text or not comment_fqid:
+                return Response({"detail": "Missing comment text or comment id."}, status=400)
+
+            try:
+                post = Post.objects.get(fqid=post_fqid)
+            except Post.DoesNotExist:
+                return Response({"detail": "Target post not found."}, status=404)
+
+            comment = Comment.objects.create(
+                post=post,
+                author=sender,
+                comment=comment_text,
+                content_type=content_type,
+                published=parse_datetime(published) if published else None,
+                fqid=comment_fqid
+            )
+
+            # Handle embedded comment likes (stored silently)
+            likes_data = data.get("likes", {}).get("src", [])
+            for like in likes_data:
+                like_author_data = like.get("author")
+                if not like_author_data:
+                    continue
+                liker_fqid = like_author_data.get("id")
+                try:
+                    liker = Author.objects.get(fqid=liker_fqid)
+                except Author.DoesNotExist:
+                    continue  # Skip this like if the liker isn't known
+                CommentLike.objects.get_or_create(
+                    object=comment,
+                    author=liker,
+                    defaults={
+                        "published": parse_datetime(like.get("published")),
+                        "fqid": like.get("id")
+                    }
+                )
+
+            post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
+            notification = {
+                "type": "comment_notification",
+                "author": AuthorSerializer(sender).data,
+                "comment": comment.comment,
+                "published": comment.published,
+                "post_url": post_url
+            }
+            return Response({"detail": "Comment and embedded likes stored.", "notification": notification}, status=201)
+
+        # === UNSUPPORTED TYPE ===
+        else:
+            return Response({"detail": f"Unsupported object type: {data.get('type')}"}, status=400)
+
     
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])

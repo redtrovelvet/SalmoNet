@@ -45,7 +45,9 @@ urlpatterns = [
 
 
     # Inbox API (used for follow requests in our API)
-    path("api/authors/<uuid:author_id>/inbox/", views.inbox, name="inbox"),
+    re_path(r"^api/authors/(?P<id>.+)/inbox/$", views.inbox, name="inbox"),
+  
+
 
     # Comments API
     path("api/authors/<str:author_id>/posts/<str:post_id>/comments/", views.get_comments, name="get_author_comments"),
