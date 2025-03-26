@@ -849,11 +849,22 @@ def create_post(request, author_id):
         return Response(status=403)
     serializer = PostSerializer(data=request.data, context={'author': author})
     if serializer.is_valid():
-        serializer.save(author=author)
+        post = serializer.save(author=author)
+
+        # Send post to followers
+        if post.visibility != "UNLISTED":
+            for target_author in Author.objects.filter(following=author):
+                try:
+                    remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+                    response = requests.post(remote_inbox_url, json=serializer.data, timeout=10)
+                    if response.status_code in [200, 201]:
+                        messages.success(request, f"Post sent to remote follower {target_author.display_name}.")
+                    else:
+                        messages.error(request, f"Failed to send post to remote follower: {response.text}")
+                except Exception as e:
+                    messages.error(request, f"Error sending post to remote follower: {str(e)}")
+
         return redirect("profile", author_id=author.id)
-
-    
-
     return render(request, "social_distribution/profile.html")
 
 @api_view(['GET'])
