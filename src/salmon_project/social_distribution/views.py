@@ -518,6 +518,7 @@ def send_follow_request(request, author_id):
             remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
             response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10)
             if response.status_code in [200, 201]:
+                current_author.following.add(target_author)
                 messages.success(request, f"Follow request sent to remote author {target_author.display_name}.")
             else:
                 messages.error(request, f"Failed to send follow request to remote author: {response.text}")
