@@ -510,7 +510,7 @@ def send_follow_request(request, author_id):
     if target_author.host != settings.BASE_URL:
         follow_request_data = {
             "type": "follow",
-            "summary": f"{current_author.display_name} wants to follow {target_author.display_name}"
+            "summary": f"{current_author.display_name} wants to follow {target_author.display_name}",
             "actor": AuthorSerializer(current_author).data,
         }
 
