@@ -23,9 +23,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.http import require_POST, require_http_methods
 from django.core.paginator import Paginator
-import commonmark, uuid
+import commonmark, uuid, mimetypes, requests
 from urllib.parse import unquote
-import mimetypes
 
 # Create your views here.
 def index(request):
@@ -264,13 +263,13 @@ def view_post(request, author_id, post_id):
     except AttributeError:
         current_user = request.user
         if post.visibility == "FRIENDS":
-            request.session["homepage_alert_message"] = "Error: Access denied"
+            request.session["homepage_alert_message"] = "403 Error: Access denied due to not being signed-in"
             return redirect("index")
         
     # If current user is signed in, check access
     else:
         if post.visibility == "FRIENDS" and not (current_user == post_author or post_author.is_friends_with(current_user)):
-            request.session["homepage_alert_message"] = "Error: Access denied"
+            request.session["homepage_alert_message"] = "403 Error: Access denied due to not being friends with post's author"
             return redirect("index")
     return render(request, "social_distribution/view_post.html", {"post": rendered_post, "current_user": current_user})
 
@@ -368,6 +367,7 @@ def set_node_info(request):
         if node_info:
             node_info.username = request.POST["username"]
             node_info.password = make_password(request.POST["password"])
+            node_info.host = settings.BASE_URL
             node_info.save()
             return Response("Node info updated", status=200)
         else:
@@ -407,19 +407,22 @@ def connect_node(request):
         local_node = NodeInfo.objects.first()
         if not local_node:
             return Response("Local node not found", status=404)
+
+        if request.META.get("HTTP_ORIGIN") == local_node.host:
+            return Response("Forbidden", status=403)
         
         username = request.POST["username"]
         password = request.POST["password"]
 
         if local_node.username == username and check_password(password, local_node.password):
-            remote_node = RemoteNode.objects.filter(host=request.POST["host"]).first()
+            remote_node = RemoteNode.objects.filter(host=request.META.get("HTTP_ORIGIN")).first()
             if remote_node:
                 remote_node.incoming = True
                 remote_node.save()
                 return Response("Connected", status=200)
             else:
                 RemoteNode.objects.create(
-                    host=request.POST["host"],
+                    host=request.META.get("HTTP_ORIGIN"),
                     outgoing=False,
                     incoming=True
                 )
@@ -503,15 +506,65 @@ def send_follow_request(request, author_id):
     if current_author.sent_requests.filter(receiver=target_author, status='PENDING').exists():
         messages.info(request, "You already sent a follow request to this author.")
         return redirect('profile', author_id=target_author.id)
-    FollowRequest.objects.create(sender=current_author, receiver=target_author)
-    messages.success(request, f"Follow request sent to {target_author.display_name}.")
-    return redirect('profile', author_id=target_author.id)
+    
+    if target_author.host != settings.BASE_URL:
+        follow_request_data = {
+            "type": "follow",
+            "summary": f"{current_author.display_name} wants to follow {target_author.display_name}",
+            "actor": AuthorSerializer(current_author).data,
+        }
+
+        try:
+            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+            response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10)
+            if response.status_code in [200, 201]:
+                current_author.following.add(target_author)
+                messages.success(request, f"Follow request sent to remote author {target_author.display_name}.")
+            else:
+                messages.error(request, f"Failed to send follow request to remote author: {response.text}")
+        except Exception as e:
+            messages.error(request, f"Error sending follow request to remote author: {str(e)}")
+        return redirect('profile', author_id=target_author.id)
+    else:
+        FollowRequest.objects.create(sender=current_author, receiver=target_author)
+        current_author.following.add(target_author)
+        messages.success(request, f"Follow request sent to {target_author.display_name}.")
+        return redirect('profile', author_id=target_author.id)
 
 def all_authors(request):
     """
     Retrieve and display all authors.
     """
-    authors = Author.objects.all()
+    authors = Author.objects.filter(host=settings.BASE_URL)
+    authors = list(authors)
+    
+    for author in authors:
+        author.page = f"/authors/{author.id}/"
+
+    remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True)
+    for node in remote_nodes:
+        response = requests.get(f"{node.host}/api/authors/")
+        if response.status_code == 200:
+            remote_authors = response.json()["authors"]
+            for remote_author in remote_authors:
+                remote_author["host"] = node.host
+                remote_author["fqid"] = remote_author["id"]
+                remote_author["id"] = uuid.UUID(remote_author["id"].split("/")[-1])
+                remote_author["display_name"] = remote_author["displayName"]
+                remote_author["username"] = remote_author["displayName"]
+
+                if not Author.objects.filter(fqid=remote_author["fqid"]).exists():
+                    Author.objects.create(
+                        id = remote_author["id"],
+                        username=remote_author["displayName"],
+                        fqid=remote_author["fqid"],
+                        display_name=remote_author["displayName"],
+                        host=node.host,
+                        is_approved=False
+                    )    
+                authors.append(remote_author)
+
+
     return render(request, "social_distribution/all_authors.html", {"authors": authors})
 
 def view_follow_requests(request):
