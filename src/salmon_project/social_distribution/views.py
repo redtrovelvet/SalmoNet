@@ -588,8 +588,9 @@ def all_authors(request):
                     "is_approved": False,
                     "user": None,  # no associated Django user
                 }
-                )   
-                authors.append(remote_author_obj)
+                )  
+                if remote_author_obj not in authors:
+                    authors.append(remote_author_obj)
 
     return render(request, "social_distribution/all_authors.html", {"authors": authors})
 
