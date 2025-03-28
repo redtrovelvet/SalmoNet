@@ -23,10 +23,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.http import require_POST, require_http_methods
 from django.core.paginator import Paginator
-import commonmark, uuid, mimetypes, requests
+import commonmark, uuid, mimetypes, requests, re
 from urllib.parse import unquote
 from django.utils.dateparse import parse_datetime
-import requests
 from urllib.parse import urlparse
 
 # Create your views here.
@@ -1100,7 +1099,7 @@ def inbox(request, id):
 
         # === LIKE (POST or COMMENT) ===
         elif data.get("type") == "like":
-            actor_data = data.get("actor")
+            actor_data = data.get("author")
             if not actor_data:
                 return Response({"detail": "Missing author data."}, status=400)
 
@@ -1116,6 +1115,7 @@ def inbox(request, id):
 
             like_fqid = data.get("id")
             published = data.get("published")
+            like_id = like_fqid.split("/")[-1]
             parsed = urlparse(object_fqid)
             object_path = parsed.path
 
@@ -1123,11 +1123,16 @@ def inbox(request, id):
                 # CommentLike — store it silently
                 try:
                     comment = Comment.objects.get(fqid=object_fqid)
-                    CommentLike.objects.get_or_create(
+                    like, created = CommentLike.objects.get_or_create(
+                        id=like_id,
                         object=comment,
                         author=sender,
                         defaults={"published": parse_datetime(published), "fqid": like_fqid}
                     )
+                    if not created:
+                        like.delete()
+                        return Response({"detail": "Like already exists."}, status=200)
+                    
                 except Comment.DoesNotExist:
                     return Response({"detail": "Target comment not found."}, status=404)
 
@@ -1137,11 +1142,17 @@ def inbox(request, id):
                 # PostLike — store + notify
                 try:
                     post = Post.objects.get(fqid=object_fqid)
-                    PostLike.objects.get_or_create(
+
+                    like, created = PostLike.objects.get_or_create(
+                        id=like_id,
                         object=post,
                         author=sender,
                         defaults={"published": parse_datetime(published), "fqid": like_fqid}
                     )
+                    if not created:
+                        like.delete()
+                        return Response({"detail": "Like already exists."}, status=200)
+                    
                 except Post.DoesNotExist:
                     return Response({"detail": "Target post not found."}, status=404)
 
@@ -1159,10 +1170,9 @@ def inbox(request, id):
 
         # === COMMENT ===
         elif data.get("type") == "comment":
-            actor_data = data.get("actor")
+            actor_data = data.get("author")
             if not actor_data:
                 return Response({"detail": "Missing author data."}, status=400)
-
             sender_fqid = actor_data.get("id")
             try:
                 sender = Author.objects.get(fqid=sender_fqid)
@@ -1177,6 +1187,7 @@ def inbox(request, id):
             published = data.get("published")
             content_type = data.get("contentType", "text/plain")
             comment_fqid = data.get("id")
+            comment_id = comment_fqid.split("/")[-1]
 
             if not comment_text or not comment_fqid:
                 return Response({"detail": "Missing comment text or comment id."}, status=400)
@@ -1187,6 +1198,7 @@ def inbox(request, id):
                 return Response({"detail": "Target post not found."}, status=404)
 
             comment = Comment.objects.create(
+                id=comment_id,
                 post=post,
                 author=sender,
                 comment=comment_text,
@@ -1378,6 +1390,28 @@ def commented(request, author_id):
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+
+            # Send a notification to the inbox of the post author if the comment is on a remote post
+            comment_data = serializer.data
+            post_id = comment_data["post"]
+            match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+)", post_id)
+            if match:
+                host = match.group(0)
+            else:
+                return Response({"detail": "Invalid post ID format."}, status=400)
+            
+            author_match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+/api/authors/[a-zA-Z0-9\[\]:.-]+)", post_id)
+            if author_match:
+                author_fqid = author_match.group(0)
+            else:
+                return Response({"detail": "Invalid author ID format."}, status=400)
+            
+            if host != settings.BASE_URL:
+                response = requests.post(f"{host}/api/authors/{author_fqid}/inbox/", json=comment_data)
+                if response.status_code != 201:
+                    Comment.objects.filter(fqid=comment_data["id"]).delete()
+                    return Response({"detail": "Failed to send notification to post author."}, status=500)
+
             return Response(serializer.data, status=201)
         return Response(status=400, data=serializer.errors)
     else: # GET based on author fqid
@@ -1569,18 +1603,43 @@ def like_post(request, author_id, post_id):
         serializer = PostLikeSerializer(data=data)
         if serializer.is_valid():
             if PostLike.objects.filter(author=author_id, object=post_id).exists():
+                like_data = PostLikeSerializer(PostLike.objects.get(author=author_id, object=post_id)).data
                 PostLike.objects.filter(author=author_id, object=post_id).delete()
+                like_count = -1
             else:
                 try:
                     serializer.save()
+                    like_data = serializer.data
+                    like_count = 1
                 except Exception as e:
                     return Response(status=400, data={"error": str(e)})
+                
+            # Send a notification to the inbox of the post author if the like is on a remote post
+            post_id = like_data["object"]
+            match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+)", post_id)
+            if match:
+                host = match.group(0)
+            else:
+                return Response({"detail": "Invalid post ID format."}, status=400)
+            
+            author_match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+/api/authors/[a-zA-Z0-9\[\]:.-]+)", post_id)
+            if author_match:
+                author_fqid = author_match.group(0)
+            else:
+                return Response({"detail": "Invalid author ID format."}, status=400)
+            
+            if host != settings.BASE_URL:
+                response = requests.post(f"{host}/api/authors/{author_fqid}/inbox/", json=like_data)
+                if response.status_code not in [201, 200]:
+                    PostLike.objects.filter(fqid=like_data["id"]).delete()
+                    return Response({"detail": "Failed to send notification to post author."}, status=500)
+
+
         else:
             return Response(status=400, data={"error": serializer.errors})
     else:
         return Response(status=400, data={"error": "Invalid type."})
         
-    like_count = PostLike.objects.filter(object=post_id).count()
     return Response({"like_count": like_count}, status=201)
 
 @api_view(["POST"])
@@ -1595,16 +1654,41 @@ def like_comment(request, author_id, comment_id):
         serializer = CommentLikeSerializer(data=data)
         if serializer.is_valid():
             if CommentLike.objects.filter(author=author_id, object=comment_id).exists():
+                like_data = CommentLikeSerializer(CommentLike.objects.get(author=author_id, object=comment_id)).data
                 CommentLike.objects.filter(author=author_id, object=comment_id).delete()
+                like_count = -1
+
             else:
                 try:
                     serializer.save()
+                    like_data = serializer.data
+                    like_count = 1
                 except Exception as e:
                     return Response(status=400, data={"error": str(e)})
+                
+            # Send a notification to the inbox of the comment author if the like is on a remote comment
+            comment_id = like_data["object"]
+            match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+)", comment_id)
+            if match:
+                host = match.group(0)
+            else:
+                return Response({"detail": "Invalid comment ID format."}, status=400)
+            
+            author_match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+/api/authors/[a-zA-Z0-9\[\]:.-]+)", comment_id)
+            if author_match:
+                author_fqid = author_match.group(0)
+            else:
+                return Response({"detail": "Invalid author ID format."}, status=400)
+            
+            if host != settings.BASE_URL:
+                response = requests.post(f"{host}/api/authors/{author_fqid}/inbox/", json=like_data)
+                if response.status_code not in [201, 200]:
+                    CommentLike.objects.filter(fqid=like_data["id"]).delete()
+                    return Response({"detail": "Failed to send notification to comment author."}, status=500)
+
         else:
             return Response(status=400, data={"error": serializer.errors})
     else:
         return Response(status=400, data={"error": "Invalid type."})
     
-    like_count = CommentLike.objects.filter(object=comment_id).count()
     return Response({"like_count": like_count}, status=201)
