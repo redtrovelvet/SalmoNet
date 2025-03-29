@@ -28,7 +28,7 @@ class SharingTests(TestCase):
         self.public_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Public Post for Sharing",
+            content="Public Post for Sharing",
             visibility="PUBLIC",
             content_type="text/plain"
         )
@@ -36,7 +36,7 @@ class SharingTests(TestCase):
         self.unlisted_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Unlisted Post for Sharing",
+            content="Unlisted Post for Sharing",
             visibility="UNLISTED",
             content_type="text/plain"
         )
@@ -44,7 +44,7 @@ class SharingTests(TestCase):
         self.friends_only_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Friends-only Post for Sharing",
+            content="Friends-only Post for Sharing",
             visibility="FRIENDS",
             content_type="text/plain"
         )
@@ -103,7 +103,7 @@ class SharingTests(TestCase):
         another_public_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Another Public Post",
+            content="Another Public Post",
             visibility="PUBLIC",
             content_type="text/plain"
         )
@@ -113,7 +113,7 @@ class SharingTests(TestCase):
         response_unauth = self.client.get(url)
         self.assertEqual(response_unauth.status_code, status.HTTP_200_OK)
         #<BEGIN GENERATED model="gpt-4" date=2025-03-08 prompt: how can i test that the user can browse all public posts when testing though api becuase if is returned in json format?>
-        texts_unauth = [post["text"] for post in response_unauth.data] # type:ignore
+        texts_unauth = [post["content"] for post in response_unauth.data["src"]] # type:ignore
         self.assertIn("Public Post for Sharing", texts_unauth)
         self.assertIn("Another Public Post", texts_unauth)
         #<END GENERATED></END>.
@@ -122,7 +122,7 @@ class SharingTests(TestCase):
         response_auth = self.client.get(url)
         self.assertEqual(response_auth.status_code, status.HTTP_200_OK)
         #<BEGIN GENERATED model="gpt-4" date=2025-03-08 prompt: how can i test that the user can browse all public posts when testing though api becuase if is returned in json format?>
-        texts_auth = [post["text"] for post in response_auth.data] #type:ignore
+        texts_auth = [post["content"] for post in response_auth.data["src"]] #type:ignore
         self.assertIn("Public Post for Sharing", texts_auth)
         self.assertIn("Another Public Post", texts_auth)
         #<END GENERATED></END>.

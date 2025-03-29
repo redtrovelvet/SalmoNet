@@ -63,28 +63,28 @@ class VisibilityTests(TestCase):
         self.public_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Owner Public Post",
+            content="Owner Public Post",
             visibility="PUBLIC",
             content_type="text/plain"
         )
         self.unlisted_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Owner Unlisted Post",
+            content="Owner Unlisted Post",
             visibility="UNLISTED",
             content_type="text/plain"
         )
         self.friends_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Owner Friends-Only Post",
+            content="Owner Friends-Only Post",
             visibility="FRIENDS",
             content_type="text/plain"
         )
         self.deleted_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Owner Deleted Post",
+            content="Owner Deleted Post",
             visibility="DELETED",
             content_type="text/plain"
         )
@@ -118,7 +118,7 @@ class VisibilityTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         #<BEGIN GENERATED model="gpt-4" date=2025-03-08 prompt: how can i test that a user who is a friend can see publuc, unlisted, and friends-only posts when testing though api becuase if is returned in json format?>
-        texts = [post["text"] for post in response.data]  # type:ignore
+        texts = [post["content"] for post in response.data["src"]]  # type:ignore
         self.assertIn("Owner Public Post", texts)
         self.assertIn("Owner Unlisted Post", texts)
         self.assertIn("Owner Friends-Only Post", texts)
@@ -132,7 +132,7 @@ class VisibilityTests(TestCase):
         self.client.login(username="follower", password="followerpass")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        texts = [post["text"] for post in response.data]  # type:ignore
+        texts = [post["content"] for post in response.data["src"]]  # type:ignore
         self.assertIn("Owner Public Post", texts)
         self.assertIn("Owner Unlisted Post", texts)
         self.assertNotIn("Owner Friends-Only Post", texts)
@@ -147,34 +147,34 @@ class VisibilityTests(TestCase):
         self.client.login(username="owner", password="ownerpass")
         response_owner = self.client.get(index_url)
         self.assertEqual(response_owner.status_code, 200)
-        self.assertContains(response_owner, self.public_post.text) # type:ignore
+        self.assertContains(response_owner, self.public_post.content) # type:ignore
         self.client.logout()
 
         # shows up in friend's stream
         self.client.login(username="friend", password="friendpass")
         response_friend = self.client.get(index_url)
         self.assertEqual(response_friend.status_code, 200)
-        self.assertContains(response_friend, self.public_post.text) # type:ignore
+        self.assertContains(response_friend, self.public_post.content) # type:ignore
         self.client.logout()
 
          # shows up in follower's stream
         self.client.login(username="follower", password="followerpass")
         response_friend = self.client.get(index_url)
         self.assertEqual(response_friend.status_code, 200)
-        self.assertContains(response_friend, self.public_post.text) # type:ignore
+        self.assertContains(response_friend, self.public_post.content) # type:ignore
         self.client.logout()
 
         self.client.login(username="nonrelation", password="nonrelationpass")
         response_other = self.client.get(index_url)
         self.assertEqual(response_other.status_code, 200)
-        self.assertContains(response_other, self.public_post.text) # type:ignore
+        self.assertContains(response_other, self.public_post.content) # type:ignore
         self.client.logout()
         
         # shows up in unauthentcated stream
         self.client.logout()
         response_unauth = self.client.get(index_url)
         self.assertEqual(response_unauth.status_code, 200)
-        self.assertContains(response_unauth, self.public_post.text) # type:ignore
+        self.assertContains(response_unauth, self.public_post.content) # type:ignore
     
     def test_everyone_see_public_and_unlisted_if_link(self):
         """
@@ -290,7 +290,7 @@ class VisibilityTests(TestCase):
         self.client.login(username="owner", password="ownerpass")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        texts = [post["text"] for post in response.data]  # type:ignore
+        texts = [post["content"] for post in response.data["src"]]  # type:ignore
         self.assertIn("Owner Public Post", texts)
         self.assertIn("Owner Unlisted Post", texts)
         self.assertIn("Owner Friends-Only Post", texts)

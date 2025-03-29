@@ -18,9 +18,9 @@
   <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;" class="post" data-visibility="{{ post.visibility }}">
     
     <p>
-      {% if post.author.profile_image and post.author.profile_image.url %}
+      {% if post.author.profile_image %}
         <!-- Author has an uploaded profile image -->
-        <img src="{{ post.author.profile_image.url }}" alt="Profile Picture" class="avatar">
+        <img src="data:image/png;base64,{{ post.author.profile_image }}" alt="Profile Picture" class="avatar">
       {% else %}
         <!-- Author does not have a profile image: show default avatar -->
         <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="avatar">
@@ -29,20 +29,21 @@
     </p>
     
 
-    {% if post.text %}
-      <!-- If 'content_type' was text/markdown, post.text is HTML -->
-      <div>{{ post.text|safe }}</div>
-    {% endif %}
-
-    {% if post.image %}
-      <img src="{{ post.image.url }}" alt="Post Image" class="post-image">
-    {% endif %}
-
-    {% if post.video %}
-      <video class="post-video" controls>
-        <source src="{{ post.video.url }}" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
+    {% if post.content_type == "text/plain" %}
+        <div>{{ post.rendered_content }}</div>
+    {% elif post.content_type == "text/markdown" %}
+        <div>{{ post.rendered_content|safe }}</div>
+    {% elif post.content_type == "image/png;base64" %}
+        <img src="data:image/png;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
+    {% elif post.content_type == "image/jpeg;base64" %}
+        <img src="data:image/jpeg;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
+    {% elif post.content_type == "application/base64" %}
+    <video class="post-application" controls>
+        <source src="data:application/base64,{{ post.raw_content }}" type="video/mp4">
+        Your browser does not support the application tag.
+    </video>
+    {% else %}
+    <div>{{ post.content }}</div>
     {% endif %}
 
     <p class="post-meta">Posted on {{ post.created_at }}</p>

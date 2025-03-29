@@ -45,21 +45,21 @@ class ReadingTests(TestCase):
         self.public_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.other_author,
-            text="Public Post by Other",
+            content="Public Post by Other",
             visibility="PUBLIC",
             content_type="text/plain"
         )
         self.friends_only_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.friend_author,
-            text="Friends-only Post by Friend",
+            content="Friends-only Post by Friend",
             visibility="FRIENDS",
             content_type="text/plain"
         )
         self.unlisted_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.friend_author,
-            text="Unlisted Post by Friend",
+            content="Unlisted Post by Friend",
             visibility="UNLISTED",
             content_type="text/plain"
         )
@@ -67,7 +67,7 @@ class ReadingTests(TestCase):
         self.deleted_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.friend_author,
-            text="Deleted Post",
+            content="Deleted Post",
             visibility="DELETED",
             content_type="text/plain"
         )
@@ -104,7 +104,7 @@ class ReadingTests(TestCase):
         """
         response_initial = self.client.get(reverse("index"))
         self.assertContains(response_initial, "Public Post by Other")
-        self.public_post.text = "Public Post Updated"
+        self.public_post.content = "Public Post Updated"
         self.public_post.save()
         response_updated = self.client.get(reverse("index"))
         self.assertContains(response_updated, "Public Post Updated")
@@ -126,7 +126,7 @@ class ReadingTests(TestCase):
         older_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.other_author,
-            text="Older Public Post",
+            content="Older Public Post",
             visibility="PUBLIC",
             content_type="text/plain"
         )
@@ -135,7 +135,7 @@ class ReadingTests(TestCase):
         newer_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.other_author,
-            text="Newer Public Post",
+            content="Newer Public Post",
             visibility="PUBLIC",
             content_type="text/plain"
         )
