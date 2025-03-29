@@ -28,7 +28,7 @@ from urllib.parse import unquote
 from django.utils.dateparse import parse_datetime
 import requests
 from urllib.parse import urlparse
-from django_ratelimit.decorators import ratelimit
+from django.core.cache import cache
 
 # Create your views here.
 def index(request):
@@ -87,6 +87,18 @@ def index(request):
         context["alert_message"] = alert_message
 
     return render(request, "social_distribution/index.html", context)
+
+def rate_limit(max_requests, time_window):
+    def decorator(view_func):
+        def wrapper(request, *args, **kwargs):
+            key = f'rate_limit:{request.user.id}'
+            requests_made = cache.get(key, 0)
+            if requests_made >= max_requests:
+                return HttpResponse('Too Many Requests', status=429)
+            cache.set(key, requests_made + 1, time_window)
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 def profile(request, author_id):
     '''
@@ -362,7 +374,7 @@ def delete_post_local(request, author_id, post_id):
 # --- API Endpoints ---
 
 @api_view(["POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def set_node_info(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -386,7 +398,7 @@ def set_node_info(request):
     return Response("GET request not allowed", status=405)
 
 @api_view(["POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def add_remote_node(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -408,7 +420,7 @@ def add_remote_node(request):
     return Response("GET request not allowed", status=405)
 
 @api_view(["POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def connect_node(request):
     if request.method == "POST":
         local_node = NodeInfo.objects.first()
@@ -437,7 +449,7 @@ def connect_node(request):
         return Response("Unauthorized", status=401)
             
 @api_view(["POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def remove_connection(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -470,7 +482,7 @@ def get_authors(request):
 '''
 
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_authors(request):
     """
     API: returns all authors on this local node
@@ -489,7 +501,7 @@ def get_authors(request):
     })
 
 @api_view(["GET", "PUT"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def author_details(request, author_id):
     '''
     API: returns specific author profiile
@@ -510,7 +522,7 @@ def author_details(request, author_id):
         return Response(serializer.errors, status=400)
     
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def fqid_author_details(request, author_fqid):
     '''
     API: returns specific author detaisl using fqid.
@@ -743,7 +755,7 @@ def view_friends(request):
     return render(request, "social_distribution/friends.html", {"friends": friends})
 
 @api_view(['GET', 'DELETE', 'PUT'])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def posts_detail(request, author_id, post_id):
     """
     GET [local, remote] get the public post whose serial is POST_ID
@@ -794,7 +806,7 @@ def posts_detail(request, author_id, post_id):
         return Response(serializer.errors, status=400)
 
 @api_view(['GET'])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_post_by_fqid(request, post_fqid):
     """
     GET [remote] get the public post whose URL is POST_FQID
@@ -824,7 +836,7 @@ def get_post_by_fqid(request, post_fqid):
     return Response(serializer.data)
 
 @api_view(['GET',"POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def author_posts(request, author_id):
     """
     GET [local, remote] get the recent posts from author AUTHOR_ID (paginated)
@@ -874,7 +886,7 @@ def author_posts(request, author_id):
     
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def create_post(request, author_id):
     """
     POST [local] create a new post but generate a new ID
@@ -890,7 +902,7 @@ def create_post(request, author_id):
     return render(request, "social_distribution/profile.html")
 
 @api_view(['GET'])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_post_image(request, author_id, post_id):
     """
     GET [local]: get the public post converted to binary as an image.
@@ -930,7 +942,7 @@ def get_post_image(request, author_id, post_id):
     return HttpResponse(binary_image_data, content_type=mime_type)
 
 @api_view(['GET'])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_postimage_by_fqid(request, post_fqid):
     """
     GET [remote]: get the public post converted to binary as an image.
@@ -973,7 +985,7 @@ def get_postimage_by_fqid(request, post_fqid):
 # ================= NEW: Followers and Follow Request API Endpoints =================
 
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_followers_api(request, author_id):
     """
     API: GET /api/authors/{author_id}/followers/
@@ -989,7 +1001,7 @@ def get_followers_api(request, author_id):
 
 
 @api_view(["POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def inbox(request, id):
     data = request.data
     receiver = None
@@ -1248,7 +1260,7 @@ def inbox(request, id):
     
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def modify_follower_api(request, author_id, foreign_author_encoded=None):
     """
     API endpoint to get, add, or remove a follower for the given author.
@@ -1317,7 +1329,7 @@ def modify_follower_api(request, author_id, foreign_author_encoded=None):
 
 
 @api_view(["POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def api_send_follow_request(request, author_id):
     """
     API: send a follow request to the author with id=author_id.
@@ -1343,7 +1355,7 @@ def api_send_follow_request(request, author_id):
 
 # ========================== COMMENTS ==========================
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_comments(request, post_id, author_id=None):
     '''
     API: returns all comments for a post in the form of a "comments" object
@@ -1379,7 +1391,7 @@ def get_comments(request, post_id, author_id=None):
     return Response(comments_data)
 
 @api_view(["GET", "POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def commented(request, author_id):
     '''
     API: returns all comments made by an author, or allows an author to post a comment
@@ -1411,7 +1423,7 @@ def commented(request, author_id):
         return Response(serializer.data)
 
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_comment(request, comment_id, author_id=None, post_id=None):
     '''
     API: returns a specific comment
@@ -1438,7 +1450,7 @@ def get_comment(request, comment_id, author_id=None, post_id=None):
 
 # ========================== LIKES ==========================
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_post_likes(request, post_id, author_id=None):
     '''
     API: returns all likes for a post
@@ -1478,7 +1490,7 @@ def get_post_likes(request, post_id, author_id=None):
     return Response(likes_data)
 
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_comment_likes(request, author_id, post_id, comment_id):
     '''
     API: returns all likes for a comment
@@ -1515,7 +1527,7 @@ def get_comment_likes(request, author_id, post_id, comment_id):
     return Response(likes_data)
 
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_author_liked(request, author_id):
     '''
     API: returns all likes made by an author
@@ -1551,7 +1563,7 @@ def get_author_liked(request, author_id):
     return Response(likes_data)
 
 @api_view(["GET"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def get_like(request, like_id, author_id=None):
     '''
     API: returns a specific like
@@ -1583,7 +1595,7 @@ def get_like(request, like_id, author_id=None):
     return Response(serializer.data)
 
 @api_view(["POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def like_post(request, author_id, post_id):
     '''
     API: allows an author to like a post
@@ -1610,7 +1622,7 @@ def like_post(request, author_id, post_id):
     return Response({"like_count": like_count}, status=201)
 
 @api_view(["POST"])
-@ratelimit(key='user_or_ip', rate='10/m', block=True)
+@rate_limit(max_requests=10, time_window=60)
 def like_comment(request, author_id, comment_id):
     '''
     API: allows an author to like a comment
