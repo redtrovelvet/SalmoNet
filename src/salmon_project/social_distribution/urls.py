@@ -79,7 +79,7 @@ urlpatterns = [
     path("api/authors/<uuid:author_id>/followers/", views.get_followers_api, name="get_followers_api"),
     re_path(r'^api/authors/(?P<author_id>[0-9a-f-]+)/followers/(?P<foreign_author_encoded>https?.+)/$', views.modify_follower_api, name="modify_follower_api"),
     path("api/authors/<uuid:author_id>/followrequest/", views.api_send_follow_request, name="api_send_follow_request"),
-
+    path('search_authors/', views.search_authors, name='search_authors'),
     #---DO NOT CHANGE POSTITION OF THIS OR ELSE IT MESSES UP THE CODE PLEASE MAKE SURE THIS PATH IS ALWAYS THE LAST PATH---#
     re_path(r'^api/posts/(?P<post_fqid>https?.+)/$', views.get_post_by_fqid, name="get_post_by_fqid"),
     #<BEGIN GENERATED model='gpt-4' date=2025-03-23 prompt: when i use fqid, the url path doesnt work becuase im using str:author_fqid, but when i use path:author_fqid it overrides the path of other urls, what do id?>

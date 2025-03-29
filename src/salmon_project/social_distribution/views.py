@@ -28,6 +28,7 @@ from urllib.parse import unquote
 from django.utils.dateparse import parse_datetime
 import requests
 from urllib.parse import urlparse
+from django.db.models import Q
 
 # Create your views here.
 def index(request):
@@ -1608,3 +1609,20 @@ def like_comment(request, author_id, comment_id):
     
     like_count = CommentLike.objects.filter(object=comment_id).count()
     return Response({"like_count": like_count}, status=201)
+
+def search_authors(request):
+    query = request.GET.get('search', '')
+    if query:
+        authors = Author.objects.filter(Q(username__icontains=query) | Q(display_name__icontains=query))
+        if not authors.exists():
+            message = "No user found matching your search."
+        else:
+            message = ""
+    else:
+        authors = Author.objects.all()
+        message = ""
+    context = {
+        'authors': authors,
+        'message': message,
+    }
+    return render(request, 'social_distribution/all_authors.html', context)

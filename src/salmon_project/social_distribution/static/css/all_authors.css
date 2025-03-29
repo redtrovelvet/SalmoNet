@@ -102,3 +102,50 @@
         margin-right: 20px; 
     }
 }
+
+/* Animated Search Bar with Icon on the Same Line */
+form.example {
+    margin-bottom: 20px;  
+    display: flex;       
+    align-items: center;  
+    justify-content: center; 
+    gap: 5px;             
+}
+
+form.example input[type="text"] {
+    width: 200px;         
+    padding: 10px;
+    font-size: 17px;
+    border: 1px solid grey;
+    background: #f1f1f1;
+    box-sizing: border-box;
+    -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+}
+
+form.example input[type="text"]:focus {
+    width: 100%;
+}
+
+form.example button img {
+    width: 16px;
+    height: auto;
+    display: block;
+    padding: 10px;
+    cursor: pointer; /* ensures the image is rendered without extra inline padding */
+}
+
+form.example button:hover {
+    background: #0b7dda;
+}
+
+.search-message {
+    color: red;
+    font-size: 16px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+
+
+
