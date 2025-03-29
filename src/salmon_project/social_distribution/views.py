@@ -1058,7 +1058,6 @@ def is_remote(request):
 
 @api_view(["POST"])
 @rate_limit(max_requests=10, time_window=60)
-def inbox(request, id):
 def inbox(request, author_id):
     data = request.data
     receiver = get_object_or_404(Author, id=author_id)
