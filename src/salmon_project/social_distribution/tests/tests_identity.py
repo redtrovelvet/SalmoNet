@@ -151,7 +151,7 @@ class IdentityTests(TestCase):
         Testing user story: As an author, I want my profile page to show my public posts (most recent first), 
         so they can decide if they want to follow me.
         """
-        Post.objects.create(author=self.author, text="Test Post", visibility="PUBLIC")
+        Post.objects.create(author=self.author, content="Test Post", visibility="PUBLIC")
         response = self.client.get(reverse("profile", args=[self.author.id]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Post")
