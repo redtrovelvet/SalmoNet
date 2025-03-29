@@ -972,41 +972,40 @@ def get_followers_api(request, author_id):
         "followers": serializer.data
     })
 
+def is_remote(request):
+    incoming_host = request.get_host()  # e.g., "[2605:fd00:4:1001:f816:3eff:fe2c:1382]"
+    expected_host = urlparse(settings.BASE_URL).netloc  # strips 'http://' and gives same format
+    return incoming_host != expected_host
 
 @api_view(["POST"])
-def inbox(request, id):
+def inbox(request, author_id):
     data = request.data
-    receiver = None
+    receiver = get_object_or_404(Author, id=author_id)
 
-    # Try treating id as UUID
-    try:
-        author_uuid = uuid.UUID(id)
-        receiver = get_object_or_404(Author, id=author_uuid)
+    # === FOLLOW REQUEST === 
+    if data.get("type") == "follow":
+        actor_data = data.get("actor")
+        if not actor_data:
+            return Response({"detail": "Missing actor data."}, status=400)
+        
+        sender_fqid = actor_data.get("id")
+        try:
+            sender = Author.objects.get(fqid=sender_fqid)
+        except Author.DoesNotExist:
+            return Response({"detail": "Sender author not found in database."}, status=404)
+        
+        follow_req, created = FollowRequest.objects.get_or_create(sender=sender, receiver=receiver, defaults={"status": "PENDING"})
 
-        # === FOLLOW REQUEST ===
-        if data.get("type") == "follow":
-            actor_data = data.get("actor")
-            if not actor_data:
-                return Response({"detail": "Missing actor data."}, status=400)
-            sender_id = actor_data.get("id")
-            try:
-                sender_uuid = uuid.UUID(sender_id.split("/")[-1])
-            except Exception:
-                try:
-                    sender_uuid = uuid.UUID(sender_id)
-                except Exception:
-                    return Response({"detail": "Invalid sender id."}, status=400)
-            sender = get_object_or_404(Author, id=sender_uuid)
-            follow_req, created = FollowRequest.objects.get_or_create(
-                sender=sender, receiver=receiver, defaults={"status": "PENDING"}
-            )
-            if created:
-                return Response({"detail": "Follow request created."}, status=201)
-            else:
-                return Response({"detail": "Follow request already exists."}, status=200)
+        if created:
+            return Response({"detail": "Follow request created."}, status=201)
+        else:
+            return Response({"detail": "Follow request already exists."}, status=200)
+
+    # Handling likes, comments from a local node
+    elif not is_remote(request):
 
         # === POST LIKE ===
-        elif data.get("type") == "like":
+        if data.get("type") == "like":
             actor_data = data.get("actor")
             if not actor_data:
                 return Response({"detail": "Missing actor data."}, status=400)
@@ -1032,8 +1031,9 @@ def inbox(request, id):
                 "post_url": post_url
             }
             return Response({"detail": "Like notification received.", "notification": notification}, status=201)
-
+        
         # === COMMENT ===
+        # Expect payload to include: type, actor, post_id, comment, published
         elif data.get("type") == "comment":
             actor_data = data.get("actor")
             if not actor_data:
@@ -1064,106 +1064,73 @@ def inbox(request, id):
                 "post_url": post_url
             }
             return Response({"detail": "Comment notification received.", "notification": notification}, status=201)
-
+        
         else:
             return Response({"detail": "Unsupported type for inbox."}, status=400)
-        # Else treat it as an FQID
-    except ValueError:
-        author_fqid = unquote(id)
-        receiver = get_object_or_404(Author, fqid=author_fqid)
 
-        # === FOLLOW REQUEST ===
-        if data.get("type") == "follow":
-            actor_data = data.get("actor")
-            if not actor_data:
-                return Response({"detail": "Missing actor data."}, status=400)
+    elif is_remote(request): # Handling posts, likes and comments from a remote node
 
-            sender_fqid = actor_data.get("id")
-            try:
-                sender = Author.objects.get(fqid=sender_fqid)
-            except Author.DoesNotExist:
-                return Response({"detail": "Sender author not found in database."}, status=404)
-
-            follow_req, created = FollowRequest.objects.get_or_create(
-                sender=sender, receiver=receiver, defaults={"status": "PENDING"}
-            )
-
-            notification = {
-                "type": "follow_notification",
-                "author": AuthorSerializer(sender).data,
-            }
-
-            return Response(
-                {"detail": "Follow request created." if created else "Follow request already exists.", "notification": notification},
-                status=201 if created else 200
-            )
-
-        # === LIKE (POST or COMMENT) ===
-        elif data.get("type") == "like":
-            actor_data = data.get("actor")
-            if not actor_data:
+        # === LIKE  ===
+        if data.get("type") == "like":
+            author_data = data.get("author")
+            if not author_data:
                 return Response({"detail": "Missing author data."}, status=400)
-
-            sender_fqid = actor_data.get("id")
+            
+            sender_fqid = author_data.get("id")
             try:
                 sender = Author.objects.get(fqid=sender_fqid)
             except Author.DoesNotExist:
                 return Response({"detail": "Sender author not found in database."}, status=404)
-
+            
             object_fqid = data.get("object")
             if not object_fqid:
                 return Response({"detail": "Missing object field."}, status=400)
-
+            
             like_fqid = data.get("id")
             published = data.get("published")
             parsed = urlparse(object_fqid)
             object_path = parsed.path
 
+            # === COMMENT LIKE  ===
             if "/commented/" in object_path:
-                # CommentLike — store it silently
                 try:
                     comment = Comment.objects.get(fqid=object_fqid)
-                    CommentLike.objects.get_or_create(
-                        object=comment,
-                        author=sender,
-                        defaults={"published": parse_datetime(published), "fqid": like_fqid}
-                    )
+                    Clike, created = CommentLike.objects.get_or_create(fqid=like_fqid,defaults={"object": comment,"author": sender,"published": parse_datetime(published)})
+                    if not created:
+                        Clike.delete()
+                        return Response({"detail": "Comment like removed."}, status=200)
+                    return Response({"detail": "Comment like stored."}, status=201)
                 except Comment.DoesNotExist:
                     return Response({"detail": "Target comment not found."}, status=404)
-
-                return Response({"detail": "Comment like stored."}, status=201)
-
+                
+            # === POST LIKE  ===
             elif "/posts/" in object_path:
-                # PostLike — store + notify
                 try:
                     post = Post.objects.get(fqid=object_fqid)
-                    PostLike.objects.get_or_create(
-                        object=post,
-                        author=sender,
-                        defaults={"published": parse_datetime(published), "fqid": like_fqid}
-                    )
+                    Plike, created = PostLike.objects.get_or_create(fqid=like_fqid,defaults={"object": post,"author": sender,"published": parse_datetime(published)})
+                    post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/" # FIX URL FOR REMOTE POSTS SINCE THEY HAVE DIFFERENT UUID (extract from fqid if possible)
+                    if not created:
+                        Plike.delete()
+                        return Response({"detail": "Post like removed."}, status=200)
+                    notification = { # CHANGE SO THAT NOTIFICATION ONLY FOR LOCAL POSTS
+                        "type": "like_notification",
+                        "author": AuthorSerializer(sender).data,
+                        "published": published,
+                        "post_url": post_url
+                    }
+                    return Response({"detail": "Post like stored.", "notification": notification}, status=201)
                 except Post.DoesNotExist:
                     return Response({"detail": "Target post not found."}, status=404)
-
-                post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
-                notification = {
-                    "type": "like_notification",
-                    "author": AuthorSerializer(sender).data,
-                    "published": published,
-                    "post_url": post_url
-                }
-                return Response({"detail": "Post like stored.", "notification": notification}, status=201)
-
             else:
                 return Response({"detail": "Unrecognized object type for like."}, status=400)
-
-        # === COMMENT ===
-        elif data.get("type") == "comment":
-            actor_data = data.get("actor")
-            if not actor_data:
+            
+        # === COMMENT  === 
+        elif data.get("type")=="comment":
+            author_data = data.get("author")
+            if not author_data:
                 return Response({"detail": "Missing author data."}, status=400)
 
-            sender_fqid = actor_data.get("id")
+            sender_fqid = author_data.get("id")
             try:
                 sender = Author.objects.get(fqid=sender_fqid)
             except Author.DoesNotExist:
@@ -1174,49 +1141,40 @@ def inbox(request, id):
                 return Response({"detail": "Missing post field."}, status=400)
 
             comment_text = data.get("comment")
+            content_type = data.get("contentType")
             published = data.get("published")
-            content_type = data.get("contentType", "text/plain")
             comment_fqid = data.get("id")
 
             if not comment_text or not comment_fqid:
-                return Response({"detail": "Missing comment text or comment id."}, status=400)
+                return Response({"detail": "Missing comment text or comment fqid."}, status=400)
 
             try:
                 post = Post.objects.get(fqid=post_fqid)
+                comment, created = Comment.objects.get_or_create(fqid=comment_fqid, defaults={"post": post, "author": sender, "comment": comment_text, 'content_type': content_type, 'published': parse_datetime(published)})
             except Post.DoesNotExist:
                 return Response({"detail": "Target post not found."}, status=404)
-
-            comment = Comment.objects.create(
-                post=post,
-                author=sender,
-                comment=comment_text,
-                content_type=content_type,
-                published=parse_datetime(published) if published else None,
-                fqid=comment_fqid
-            )
-
-            # Handle embedded comment likes (stored silently)
+            
+            # Handle embedded comment likes 
             likes_data = data.get("likes", {}).get("src", [])
             for like in likes_data:
                 like_author_data = like.get("author")
                 if not like_author_data:
                     continue
                 liker_fqid = like_author_data.get("id")
-                try:
-                    liker = Author.objects.get(fqid=liker_fqid)
-                except Author.DoesNotExist:
-                    continue  # Skip this like if the liker isn't known
-                CommentLike.objects.get_or_create(
-                    object=comment,
-                    author=liker,
+                liker, _ = Author.objects.get_or_create(
+                    fqid=liker_fqid,
                     defaults={
-                        "published": parse_datetime(like.get("published")),
-                        "fqid": like.get("id")
-                    }
-                )
+                        "host": like_author_data.get("host"),
+                        "username": like_author_data.get("displayName"),
+                        "display_name": like_author_data.get("displayName"),
+                        "profile_image": like_author_data.get("profileImage"),
+                        "is_approved": False,
+                        "user": None,
+                        })
+                Clike = CommentLike.objects.get_or_create(fqid=like.get("id"),defaults={"object": comment,"author": liker,"published": parse_datetime(like.get("published"))})[0]
 
-            post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
-            notification = {
+            post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/" # CHANGE URL FOR REMOTE OBJECT STORED IN DB
+            notification = { # NO NOTIFICATION FOR CHANGES TO REMOTE POST
                 "type": "comment_notification",
                 "author": AuthorSerializer(sender).data,
                 "comment": comment.comment,
@@ -1224,10 +1182,6 @@ def inbox(request, id):
                 "post_url": post_url
             }
             return Response({"detail": "Comment and embedded likes stored.", "notification": notification}, status=201)
-
-        # === UNSUPPORTED TYPE ===
-        else:
-            return Response({"detail": f"Unsupported object type: {data.get('type')}"}, status=400)
 
     
 @api_view(["GET", "PUT", "DELETE"])
