@@ -14,7 +14,7 @@
     {% endif %}
     
     {% if post.image %}
-        <!-- Center the image inside its container -->
+        
         <div style="text-align: center;">
             <img src="{{ post.image.url }}" alt="Post Image" style="max-width: 80%; height: auto;">
         </div>
@@ -31,12 +31,12 @@
     
     {# Buttons for Delete Confirmation #}
     <div class="delete-buttons" style="text-align: center; margin-top: 20px;">
-        <!-- "Yes, Delete" button -->
+        
         <form method="post" action="{% url 'delete_post_local' post.author.id post.id %}" style="display:inline;">
             {% csrf_token %}
             <button type="submit" class="button delete">Yes, Delete</button>
         </form>
-        <!-- "Cancel" button -->
+       
         <a href="{% url 'profile' post.author.id %}" class="cancel-button" style="text-decoration: none; margin-left: 20px;">
             <button type="button" class="button cancel">Cancel</button>
         </a>

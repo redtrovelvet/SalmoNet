@@ -439,12 +439,8 @@ h2 {
     white-space: nowrap;
 }
   
-
-/* BEGIN: Delete Post Button Styles */
-
-/* Base style for buttons similar to .btn */
 .button {
-    padding: 8px 15px;                /* Similar to .btn */
+    padding: 8px 15px;                
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -454,32 +450,29 @@ h2 {
     text-align: center;
 }
 
-/* "Yes, Delete" button - red style */
+
 .button.delete {
-    background-color: #e74c3c;        /* Red color */
+    background-color: #e74c3c;       
     color: white;
 }
 
 .button.delete:hover {
-    background-color: #c0392b;        /* Darker red on hover */
+    background-color: #c0392b;        
     animation: shake 0.82s cubic-bezier(.36, .07, .19, .97) both;
     transform: translate3d(0, 0, 0);
     perspective: 1000px;
 }
 
-/* "Cancel" button - style similar to .btn, using a neutral color */
 .button.cancel {
-    background-color: #7f8c8d;        /* Grayish tone */
+    background-color: #7f8c8d;       
     color: white;
 }
 
 .button.cancel:hover {
-    background-color: #95a5a6;        /* Lighter gray on hover */
-    /* No shake animation for cancel */
+    background-color: #95a5a6;       
     animation: none;
 }
 
-/* Shake animation keyframes */
 @keyframes shake {
   10%, 90% {
     transform: translate3d(-1px, 0, 0);
@@ -495,4 +488,4 @@ h2 {
   }
 }
 
-/* END: Delete Post Button Styles */
+
