@@ -587,6 +587,7 @@ def all_authors(request):
                     "host": node.host,
                     "is_approved": False,
                     "user": None,  # no associated Django user
+                    "profile_image": remote_author["profileImage"]
                 }
                 )  
                 if remote_author_obj not in authors:
