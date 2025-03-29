@@ -333,6 +333,11 @@ def edit_post(request, author_id, post_id):
         if "video" in request.FILES:
             serializer.validated_data["video"] = request.FILES["video"]  # type:ignore
         serializer.save()
+
+        # Send updated posts to followers
+        author = get_object_or_404(Author, id=author_id)
+        send_post_to_remote(request, author, post)
+
         return redirect("profile", author_id=author_id)
     else:
         return render(request, "social_distribution/edit_post.html", {"post": post, "serializer": serializer})
@@ -355,6 +360,11 @@ def delete_post_local(request, author_id, post_id):
         return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
     post.visibility = "DELETED"
+
+    # Send updated posts to followers
+    author = get_object_or_404(Author, id=author_id)
+    send_post_to_remote(request, author, post)
+
     post.save()
     return redirect("profile", author_id=author_id)
 
@@ -835,8 +845,21 @@ def author_posts(request, author_id):
             serializer.save(author=author)
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
-        
-    
+           
+def send_post_to_remote(request, author, post):
+    for target_author in Author.objects.filter(following=author):
+        try:
+            if post.visibility == "FRIENDS" and not author.is_friends_with(target_author):
+                continue
+            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10)
+            if response.status_code in [200, 201]:
+                messages.success(request, f"Post sent to remote follower {target_author.display_name}.")
+            else:
+                messages.error(request, f"Failed to send post to remote follower: {response.text}")
+        except Exception as e:
+            messages.error(request, f"Error sending post to remote follower: {str(e)}")
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_post(request, author_id):
@@ -852,17 +875,7 @@ def create_post(request, author_id):
         post = serializer.save(author=author)
 
         # Send post to followers
-        if post.visibility != "UNLISTED":
-            for target_author in Author.objects.filter(following=author):
-                try:
-                    remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
-                    response = requests.post(remote_inbox_url, json=serializer.data, timeout=10)
-                    if response.status_code in [200, 201]:
-                        messages.success(request, f"Post sent to remote follower {target_author.display_name}.")
-                    else:
-                        messages.error(request, f"Failed to send post to remote follower: {response.text}")
-                except Exception as e:
-                    messages.error(request, f"Error sending post to remote follower: {str(e)}")
+        send_post_to_remote(request, author, post)
 
         return redirect("profile", author_id=author.id)
     return render(request, "social_distribution/profile.html")
