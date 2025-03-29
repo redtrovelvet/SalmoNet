@@ -578,7 +578,7 @@ def all_authors(request):
     """
     Retrieve and display all authors.
     """
-    authors = Author.objects.filter(host=settings.BASE_URL)
+    authors = Author.objects.filter(host=settings.BASE_URL, is_approved=True)
     authors = list(authors)
     
     for author in authors:
