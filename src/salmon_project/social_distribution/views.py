@@ -12,7 +12,6 @@ from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike,
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.utils.html import escape
 
@@ -368,7 +367,7 @@ def set_node_info(request):
         node_info = NodeInfo.objects.first()
         if node_info:
             node_info.username = request.POST["username"]
-            node_info.password = make_password(request.POST["password"])
+            node_info.password = request.POST["password"]
             node_info.host = settings.BASE_URL
             node_info.save()
             return Response("Node info updated", status=200)
@@ -376,7 +375,7 @@ def set_node_info(request):
             NodeInfo.objects.create(
                 host=settings.BASE_URL,
                 username=request.POST["username"],
-                password=make_password(request.POST["password"])
+                password=request.POST["password"]
             )
             return Response("Node info created", status=201)
         
@@ -389,15 +388,22 @@ def add_remote_node(request):
     
     if request.method == "POST":
         node = RemoteNode.objects.filter(host=request.POST["host"]).first()
+        username = request.POST["username"]
+        password = request.POST["password"]
+
         if node:
             node.outgoing = True
+            node.username = username
+            node.password = password
             node.save()
             return Response("Node updated", status=200)
         else:
             RemoteNode.objects.create(
                 host=request.POST["host"],
                 outgoing=True,
-                incoming=False
+                incoming=False,
+                username=username,
+                password=password
             )
             return Response("Node added", status=201)
     
@@ -416,7 +422,7 @@ def connect_node(request):
         username = request.POST["username"]
         password = request.POST["password"]
 
-        if local_node.username == username and check_password(password, local_node.password):
+        if local_node.username == username and local_node.password == password:
             remote_node = RemoteNode.objects.filter(host=request.META.get("HTTP_ORIGIN")).first()
             if remote_node:
                 remote_node.incoming = True
@@ -540,8 +546,18 @@ def send_follow_request(request, author_id):
         }
 
         try:
-            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.fqid}/inbox/"
-            response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10)
+            remote_node = RemoteNode.objects.filter(host=target_author.host).first()
+            if not remote_node:
+                messages.error(request, "Remote node not found.")
+                return redirect('profile', author_id=target_author.id)
+            
+            remote_inbox_url = f"{target_author.fqid}/inbox/"
+            if remote_node.username and remote_node.password:
+                response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10, auth=(remote_node.username, remote_node.password))
+            else:
+                messages.error(request, "Remote node credentials are missing.")
+                return redirect('profile', author_id=target_author.id)
+            
             if response.status_code in [200, 201]:
                 current_author.following.add(target_author)
                 messages.success(request, f"Follow request sent to remote author {target_author.display_name}.")
@@ -569,7 +585,10 @@ def all_authors(request):
 
     remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True).exclude(host=settings.BASE_URL)
     for node in remote_nodes:
-        response = requests.get(f"{node.host}/api/authors/")
+        if not node.username or not node.password:
+            continue
+
+        response = requests.get(f"{node.host}/api/authors/", auth=(node.username, node.password))
         if response.status_code == 200:
             remote_authors = response.json()["authors"]
             for remote_author in remote_authors:
@@ -1115,7 +1134,6 @@ def inbox(request, id):
 
             like_fqid = data.get("id")
             published = data.get("published")
-            like_id = like_fqid.split("/")[-1]
             parsed = urlparse(object_fqid)
             object_path = parsed.path
 
@@ -1124,7 +1142,6 @@ def inbox(request, id):
                 try:
                     comment = Comment.objects.get(fqid=object_fqid)
                     like, created = CommentLike.objects.get_or_create(
-                        id=like_id,
                         object=comment,
                         author=sender,
                         defaults={"published": parse_datetime(published), "fqid": like_fqid}
@@ -1144,7 +1161,6 @@ def inbox(request, id):
                     post = Post.objects.get(fqid=object_fqid)
 
                     like, created = PostLike.objects.get_or_create(
-                        id=like_id,
                         object=post,
                         author=sender,
                         defaults={"published": parse_datetime(published), "fqid": like_fqid}
@@ -1187,7 +1203,6 @@ def inbox(request, id):
             published = data.get("published")
             content_type = data.get("contentType", "text/plain")
             comment_fqid = data.get("id")
-            comment_id = comment_fqid.split("/")[-1]
 
             if not comment_text or not comment_fqid:
                 return Response({"detail": "Missing comment text or comment id."}, status=400)
@@ -1198,7 +1213,6 @@ def inbox(request, id):
                 return Response({"detail": "Target post not found."}, status=404)
 
             comment = Comment.objects.create(
-                id=comment_id,
                 post=post,
                 author=sender,
                 comment=comment_text,
@@ -1407,7 +1421,15 @@ def commented(request, author_id):
                 return Response({"detail": "Invalid author ID format."}, status=400)
             
             if host != settings.BASE_URL:
-                response = requests.post(f"{host}/api/authors/{author_fqid}/inbox/", json=comment_data)
+                remote_node = RemoteNode.objects.filter(host=host).first()
+                if not remote_node:
+                    return Response({"detail": "Remote node not found."}, status=404)
+                
+                if remote_node.username and remote_node.password:
+                    response = requests.post(f"{author_fqid}/inbox/", json=comment_data, auth=(remote_node.username, remote_node.password))
+                else:
+                    return Response({"detail": "Remote node credentials not found."}, status=404)
+
                 if response.status_code != 201:
                     Comment.objects.filter(fqid=comment_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to post author."}, status=500)
@@ -1629,7 +1651,14 @@ def like_post(request, author_id, post_id):
                 return Response({"detail": "Invalid author ID format."}, status=400)
             
             if host != settings.BASE_URL:
-                response = requests.post(f"{host}/api/authors/{author_fqid}/inbox/", json=like_data)
+                remote_node = RemoteNode.objects.filter(host=host).first()
+                if not remote_node:
+                    return Response({"detail": "Remote node not found."}, status=404)
+                if remote_node.username and remote_node.password:
+                    response = requests.post(f"{author_fqid}/inbox/", json=like_data, auth=(remote_node.username, remote_node.password))
+                else:
+                    return Response({"detail": "Remote node credentials not found."}, status=404)
+                
                 if response.status_code not in [201, 200]:
                     PostLike.objects.filter(fqid=like_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to post author."}, status=500)
@@ -1681,7 +1710,13 @@ def like_comment(request, author_id, comment_id):
                 return Response({"detail": "Invalid author ID format."}, status=400)
             
             if host != settings.BASE_URL:
-                response = requests.post(f"{host}/api/authors/{author_fqid}/inbox/", json=like_data)
+                remote_node = RemoteNode.objects.filter(host=host).first()
+                if not remote_node:
+                    return Response({"detail": "Remote node not found."}, status=404)
+                if remote_node.username and remote_node.password:
+                    response = requests.post(f"{author_fqid}/inbox/", json=like_data, auth=(remote_node.username, remote_node.password))
+                else:
+                    return Response({"detail": "Remote node credentials not found."}, status=404)
                 if response.status_code not in [201, 200]:
                     CommentLike.objects.filter(fqid=like_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to comment author."}, status=500)
