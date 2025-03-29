@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'social_distribution',
     'drf_yasg',
     'corsheaders',
+    'ratelimit',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'salmon_project.wsgi.application'
 
+RATELIMIT_CACHE_BACKEND = 'django.core.cache.backends.locmem.LocMemCache'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
