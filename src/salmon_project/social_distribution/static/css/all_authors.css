@@ -146,6 +146,32 @@ form.example button:hover {
     text-align: center;
 }
 
+/* BEGIN: Pagination Styles */
+.pagination {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.pagination a {
+    color: black;
+    padding: 8px 16px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    margin: 0 2px;
+    border: 1px solid #ddd;
+}
+
+.pagination a.active {
+    background-color: #ffc0b4;
+    color: white;
+    border: 1px solid #ffc0b4;;
+}
+
+.pagination a:hover:not(.active) {
+    background-color: #ddd;
+}
+/* END: Pagination Styles */
+
 
 
 

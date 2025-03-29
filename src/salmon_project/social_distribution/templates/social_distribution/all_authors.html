@@ -18,7 +18,7 @@
       <p class="search-message">{{ message }}</p>
     {% endif %}
     
-    {% for author in authors %}
+    {% for author in page_obj %}
         <div class="author">
             <h3><a href="{{ author.page }}"><div class="author-name">{{ author.display_name }}</div></a></h3>
             <p>Username: {{ author.username }}</p>
@@ -37,5 +37,29 @@
             {% endif %}
         </div>
     {% endfor %}
+
+    <div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+    {% else %}
+        <a href="#">&laquo;</a>
+    {% endif %}
+    
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <a class="active" href="?page={{ num }}">{{ num }}</a>
+        {% else %}
+            <a href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+    {% else %}
+        <a href="#">&raquo;</a>
+    {% endif %}
+</div>
+
+    
 </div>
 {% endblock %}

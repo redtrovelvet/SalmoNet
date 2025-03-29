@@ -593,7 +593,11 @@ def all_authors(request):
                 if remote_author_obj not in authors:
                     authors.append(remote_author_obj)
 
-    return render(request, "social_distribution/all_authors.html", {"authors": authors})
+    paginator = Paginator(authors, 4)  # Only 4 authors per page
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, "social_distribution/all_authors.html", {"page_obj": page_obj})
 
 def view_follow_requests(request):
     """
@@ -1621,8 +1625,15 @@ def search_authors(request):
     else:
         authors = Author.objects.all()
         message = ""
+    
+    # Paginate the authors list to display 4 authors per page
+    paginator = Paginator(authors, 4)
+    page_number = request.GET.get("page", 1)
+    page_obj = paginator.get_page(page_number)
+    
     context = {
-        'authors': authors,
+        'page_obj': page_obj,  # Use the paginated object in the template
         'message': message,
     }
     return render(request, 'social_distribution/all_authors.html', context)
+
