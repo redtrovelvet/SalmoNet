@@ -45,7 +45,7 @@ urlpatterns = [
 
 
     # Inbox API (used for follow requests in our API)
-    re_path(r"^api/authors/(?P<id>.+)/inbox/$", views.inbox, name="inbox"),
+    re_path(r"^api/authors/(?P<author_id>[^/]+)/inbox/$", views.inbox, name="inbox"),
   
 
 
