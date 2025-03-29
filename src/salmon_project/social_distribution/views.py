@@ -1108,11 +1108,11 @@ def inbox(request, author_id):
                 try:
                     post = Post.objects.get(fqid=object_fqid)
                     Plike, created = PostLike.objects.get_or_create(fqid=like_fqid,defaults={"object": post,"author": sender,"published": parse_datetime(published)})
-                    post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/" # FIX URL FOR REMOTE POSTS SINCE THEY HAVE DIFFERENT UUID (extract from fqid if possible)
                     if not created:
                         Plike.delete()
                         return Response({"detail": "Post like removed."}, status=200)
-                    notification = { # CHANGE SO THAT NOTIFICATION ONLY FOR LOCAL POSTS
+                    post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
+                    notification = { 
                         "type": "like_notification",
                         "author": AuthorSerializer(sender).data,
                         "published": published,
@@ -1173,8 +1173,8 @@ def inbox(request, author_id):
                         })
                 Clike = CommentLike.objects.get_or_create(fqid=like.get("id"),defaults={"object": comment,"author": liker,"published": parse_datetime(like.get("published"))})[0]
 
-            post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/" # CHANGE URL FOR REMOTE OBJECT STORED IN DB
-            notification = { # NO NOTIFICATION FOR CHANGES TO REMOTE POST
+            post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/" 
+            notification = { 
                 "type": "comment_notification",
                 "author": AuthorSerializer(sender).data,
                 "comment": comment.comment,
