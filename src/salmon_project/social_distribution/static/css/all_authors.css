@@ -61,11 +61,13 @@
     border: none;
     padding: 8px 15px;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 16px;         
     cursor: pointer;
     transition: 0.3s;
     margin-top: 5px;
+    min-width: 120px;        
 }
+
 
 .author button:hover {
     background: #034c52;
@@ -132,7 +134,7 @@ form.example button img {
     height: auto;
     display: block;
     padding: 10px;
-    cursor: pointer; /* ensures the image is rendered without extra inline padding */
+    cursor: pointer; 
 }
 
 form.example button:hover {
@@ -146,7 +148,7 @@ form.example button:hover {
     text-align: center;
 }
 
-/* BEGIN: Pagination Styles */
+
 .pagination {
     text-align: center;
     margin-top: 20px;
@@ -170,7 +172,65 @@ form.example button:hover {
 .pagination a:hover:not(.active) {
     background-color: #ddd;
 }
-/* END: Pagination Styles */
+
+
+.follow-btn {
+    position: relative;
+    overflow: hidden;
+    padding-right: 20px;  
+    transition: padding-right 0.3s ease;
+  }
+  
+  .follow-btn:hover {
+    padding-right: 35px;  
+  }
+  
+  .follow-btn::after {
+    content: "  +";  
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .follow-btn:hover::after {
+    opacity: 1;
+  }
+  
+ 
+  .unfollow-btn {
+    position: relative;
+    overflow: hidden;
+    padding-right: 20px;  
+    transition: padding-right 0.3s ease;
+  }
+  
+  .unfollow-btn:hover {
+    padding-right: 35px;  
+  }
+  
+  .unfollow-btn::after {
+    content: "  >>";  
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .unfollow-btn:hover::after {
+    opacity: 1;
+  }
+  
+
+.author-header {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;            
+}
 
 
 

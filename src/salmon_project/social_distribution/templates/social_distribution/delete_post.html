@@ -1,29 +1,46 @@
 {% extends "social_distribution/base.html" %}
+{% load static %}
 
 {% block content %}
-<div class="content">
-    <h2>Delete Post</h2>
-    <p>Are you sure you want to delete this post?</p>
-
-    <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;">
-        {% if rendered_text %}
-            <div>{{ rendered_text|safe }}</div>
-        {% endif %}
-        {% if post.image %}
-            <img src="{{ post.image.url }}" alt="Post Image" width="300">
-        {% endif %}
-        {% if post.video %}
-            <video width="300" controls>
+<div class="content post">
+    <h2>Are you sure you want to delete this post?</h2>
+    
+    {# Display the post details (similar to view_posts.html) #}
+    <p>Posted on: {{ post.created_at }}</p>
+    <p>Visibility: {{ post.visibility }}</p>
+    
+    {% if post.text %}
+        <div class="post-text">{{ post.text|safe }}</div>
+    {% endif %}
+    
+    {% if post.image %}
+        <!-- Center the image inside its container -->
+        <div style="text-align: center;">
+            <img src="{{ post.image.url }}" alt="Post Image" style="max-width: 80%; height: auto;">
+        </div>
+    {% endif %}
+    
+    {% if post.video %}
+        <div style="text-align: center;">
+            <video width="320" height="240" controls>
                 <source src="{{ post.video.url }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
-        {% endif %}
+        </div>
+    {% endif %}
+    
+    {# Buttons for Delete Confirmation #}
+    <div class="delete-buttons" style="text-align: center; margin-top: 20px;">
+        <!-- "Yes, Delete" button -->
+        <form method="post" action="{% url 'delete_post_local' post.author.id post.id %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="button delete">Yes, Delete</button>
+        </form>
+        <!-- "Cancel" button -->
+        <a href="{% url 'profile' post.author.id %}" class="cancel-button" style="text-decoration: none; margin-left: 20px;">
+            <button type="button" class="button cancel">Cancel</button>
+        </a>
     </div>
-
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Yes, Delete</button>
-        <a href="{% url 'profile' author.id %}">Cancel</a>
-    </form>
+    
 </div>
 {% endblock %}
