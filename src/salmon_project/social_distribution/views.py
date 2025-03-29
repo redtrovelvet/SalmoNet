@@ -6,8 +6,8 @@
 
 from django.shortcuts import render, get_object_or_404, redirect
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Author, Post, FollowRequest, Comment, CommentLike, PostLike, NodeInfo, RemoteNode
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, CommentLikeSerializer, PostLikeSerializer
 from django.conf import settings
@@ -26,6 +26,7 @@ import commonmark, uuid, mimetypes, requests, re
 from urllib.parse import unquote
 from django.utils.dateparse import parse_datetime
 from urllib.parse import urlparse
+from base64 import b64decode
 
 # Create your views here.
 def index(request):
@@ -588,7 +589,7 @@ def all_authors(request):
         if not node.username or not node.password:
             continue
 
-        response = requests.get(f"{node.host}/api/authors/", auth=(node.username, node.password))
+        response = requests.get(f"{node.host}/api/authors/")
         if response.status_code == 200:
             remote_authors = response.json()["authors"]
             for remote_author in remote_authors:
@@ -992,7 +993,25 @@ def get_followers_api(request, author_id):
 
 
 @api_view(["POST"])
+@authentication_classes([])
 def inbox(request, id):
+    # Authenticate with basic auth
+    if "HTTP_AUTHORIZATION" not in request.META:
+        return Response("Unauthorized", status=401)
+    
+    auth = request.META["HTTP_AUTHORIZATION"].split()
+
+    if len(auth) != 2 or auth[0] != "Basic":
+        return Response("Unauthorized", status=401)
+    
+    username, password = b64decode(auth[1]).decode().split(":")
+
+    node_info = NodeInfo.objects.all().first()
+    if not node_info:
+        return Response("Node info not found.", status=404)
+    if node_info.username != username or node_info.password != password:
+        return Response("Unauthorized", status=401)
+
     data = request.data
     receiver = None
 
