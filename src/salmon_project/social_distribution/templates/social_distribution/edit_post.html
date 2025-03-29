@@ -21,48 +21,27 @@
             
             <!-- Text Content -->
             <div class="form-group">
-                <label for="text">Text:</label>
-                <textarea name="text" id="text" rows="5" cols="40">{{ post.text }}</textarea>
+                <label for="content">Content:</label>
+                <textarea name="content" id="content" rows="5">{{ post.content }}</textarea>
             </div>
-            
-            <!-- Image Upload and Removal -->
-            <div class="form-group">
-                <label for="image">Image:</label>
-                <input type="file" name="image" id="image">
-                {% if post.image %}
-                    <div class="current-media">
-                        <p>Current Image:</p>
-                        <img src="{{ post.image.url }}" alt="Current Image" width="100">
-                    </div>
 
-                    <div class="remove-media">
-                        <label>
-                            <input type="checkbox" name="remove_image">
-                            Remove current image
-                        </label>
-                    </div>
-                {% endif %}
-            </div>
-            
-            <!-- Video Upload and Removal -->
+            {% if post.content_type == "image/png;base64" or post.content_type == "image/jpeg;base64" or post.content_type == "application/base64" %}
+                <div class="form-group">
+                    <p>Current Media:</p>
+                    {% if post.content_type == "image/png;base64" %}
+                        <img src="data:image/png;base64,{{ post.content }}" alt="Current Image" width="100">
+                    {% elif post.content_type == "image/jpeg;base64" %}
+                        <img src="data:image/jpeg;base64,{{ post.content }}" alt="Current Image" width="100">
+                    {% else %}
+                        <p>File is stored as base64.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
             <div class="form-group">
-                <label for="video">Video:</label>
-                <input type="file" name="video" id="video">
-                {% if post.video %}
-                    <div class="current-media">
-                        <p>Current Video:</p>
-                        <video width="100" controls>
-                            <source src="{{ post.video.url }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
-                    <div class="remove-media">
-                        <label>
-                            <input type="checkbox" name="remove_video">
-                            Remove current video
-                        </label>
-                    </div>
-                {% endif %}
+                <label for="media_file">Replace Media (optional):</label>
+                <input type="file" name="media_file" id="media_file">
+                <p class="help-text">Any file uploaded here that is not a PNG or JPEG will be saved as application/base64.</p>
             </div>
             
             <!-- Visibility Selection -->

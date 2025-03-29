@@ -25,7 +25,7 @@ class Author(models.Model):
     following = models.ManyToManyField('self', symmetrical=False, blank=True)
     display_name = models.CharField(max_length=100, default="Display Name")
     github = models.URLField(null=True, blank=True)
-    profile_image = models.ImageField(upload_to="images/", null=True, blank=True)
+    profile_image = models.TextField(null=True, blank=True)
     page = models.URLField(null=True, blank=True)
     host = models.URLField(default=settings.BASE_URL)
     is_approved = models.BooleanField(default=False)
@@ -56,19 +56,16 @@ class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    text = models.TextField(null=True, blank=True)
-    image = models.ImageField(upload_to="images/", null=True, blank=True)
-    video = models.FileField(upload_to="videos/", null=True, blank=True,
-                             validators=[FileExtensionValidator(allowed_extensions=["mp4", "mov", "avi"])])
+    content = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
     CONTENT_TYPE_CHOICES = [
         ("text/plain", "Plain Text"),
         ("text/markdown", "CommonMark"),
-        ("image/png", "PNG Image"),
-        ("image/jpeg", "JPEG Image"),
-        ("video/mp4", "MP4 Video"),
+        ("image/png;base64", "PNG Image (Base64)"),
+        ("image/jpeg;base64", "JPEG Image (Base64)"),
+        ("application/base64", "Base64 Data"),
     ]
     content_type = models.CharField(choices=CONTENT_TYPE_CHOICES, default="text/plain", max_length=100)
     
