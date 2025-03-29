@@ -19,7 +19,7 @@ class AuthorSerializer(serializers.Serializer):
     host = serializers.URLField()
     display_name = serializers.CharField(max_length=100, allow_null=True, required=False, default="Display Name")
     github = serializers.URLField(allow_null=True, required=False)
-    profile_image = serializers.URLField(allow_null=True, required=False)
+    profile_image = serializers.CharField(allow_null=True, required=False)
     username = serializers.CharField(max_length=100)
 
     def get_id(self, obj):
@@ -189,12 +189,13 @@ class PostSerializer(serializers.ModelSerializer):
     likes = LikesListSerializer(read_only=True)
     class Meta:
         model = Post
-        fields = ["type", "id", "author", "text", "image", "video", "content_type", "visibility", "created_at", "updated_at", "comments", "likes"]
+        fields = ["type", "id", "author", "content", "content_type", "visibility", "created_at", "updated_at", "comments", "likes"]
         read_only_fields = ["type", "id", "author", "created_at", "updated_at", "comments", "likes"]
 
     def validate(self, attrs):
-        if "text" not in attrs and "image" not in attrs and "video" not in attrs:
-            raise serializers.ValidationError("A post must contain text, image, or video.")
+        has_file = self.context.get("has_file", False)
+        if not has_file and (not attrs.get("content")):
+            raise serializers.ValidationError("A post must contain text or an uploaded file.")
         return attrs
     
     def create(self, validated_data):
@@ -211,10 +212,30 @@ class PostSerializer(serializers.ModelSerializer):
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["id"] = self.get_id(instance)
-        representation["type"] = "post"
-        representation["author"] = AuthorSerializer(instance.author).data
-
+        ct = instance.content_type
+        if ct == "text/plain":
+            title = "plain text post"
+            description = "plain text post"
+        elif ct == "text/markdown":
+            title = "markdown post"
+            description = "markdown post"
+        elif ct in ["image/png;base64", "image/jpeg;base64", "application/base64"]:
+            title = "base64 post"
+            description = "base64 post"
+        else:
+            title = ""
+            description = ""
+        
+        representation = {
+            "type": "post",
+            "title": title,
+            "id": self.get_id(instance),
+            "page": f"{instance.author.host.rstrip('/')}/authors/{instance.author.id}/posts/{instance.id}",
+            "description": description,
+            "contentType": instance.content_type,
+            "content": instance.content,
+            "author": AuthorSerializer(instance.author).data,
+        }
 
         # Get the host
         host = settings.BASE_URL
@@ -243,4 +264,8 @@ class PostSerializer(serializers.ModelSerializer):
             "src": serialized_likes
         }
         representation["likes"] = LikesListSerializer(likes_data).data
+
+        representation["published"] = instance.created_at.isoformat()
+        representation["visibility"] = instance.visibility
+
         return {snake_to_camel(key): value for key, value in representation.items()}

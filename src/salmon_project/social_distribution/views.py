@@ -28,6 +28,7 @@ from urllib.parse import unquote
 from django.utils.dateparse import parse_datetime
 import requests
 from urllib.parse import urlparse
+import base64
 
 # Create your views here.
 def index(request):
@@ -59,8 +60,8 @@ def index(request):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        safe_text = escape(p.text)
-        html_text = render_markdown_if_needed(safe_text, p.content_type)
+        safe_content = escape(p.content)
+        html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -70,9 +71,9 @@ def index(request):
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
-            "text": html_text,
-            "image": p.image,
-            "video": p.video,
+            "raw_content": p.content,      
+            "rendered_content": html_content,
+            "content_type": p.content_type,
             "visibility": p.visibility,
             "created_at": p.created_at,
             "comments": comments,
@@ -115,8 +116,8 @@ def profile(request, author_id):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        safe_text = escape(p.text)
-        html_text = render_markdown_if_needed(safe_text, p.content_type)
+        safe_content = escape(p.content)
+        html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -126,9 +127,9 @@ def profile(request, author_id):
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
-            "text": html_text,
-            "image": p.image,
-            "video": p.video,
+            "raw_content": p.content,      
+            "rendered_content": html_content,
+            "content_type": p.content_type,
             "visibility": p.visibility,
             "created_at": p.created_at,
             "comments": comments,
@@ -151,7 +152,9 @@ def edit_profile(request, author_id):
         author.display_name = request.POST.get("display_name", author.display_name)
         author.github = request.POST.get("github", author.github)
         if "profile_image" in request.FILES:
-            author.profile_image = request.FILES["profile_image"]
+            file = request.FILES["profile_image"]
+            encoded = base64.b64encode(file.read()).decode('utf-8')
+            author.profile_image = encoded 
         author.save()
         return redirect("profile", author_id=author.id)
     return render(request, "social_distribution/edit_profile.html", {"author": author})
@@ -237,8 +240,8 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
     serialized_post = PostSerializer(post).data
-    safe_text = escape(post.text)
-    html_text = render_markdown_if_needed(safe_text, post.content_type)
+    safe_content = escape(post.content)
+    html_content = render_markdown_if_needed(safe_content, post.content_type)
     post_comments = serialized_post["comments"]["src"]
     comments = []
     for comment in post_comments:
@@ -249,9 +252,9 @@ def view_post(request, author_id, post_id):
     rendered_post = {
         "id": post.id,
         "author": post.author,
-        "text": html_text,
-        "image": post.image,
-        "video": post.video,
+        "raw_content": post.content,      
+        "rendered_content": html_content,
+        "content_type": post.content_type,
         "visibility": post.visibility,
         "created_at": post.created_at,
         "comments": comments,
@@ -306,32 +309,19 @@ def edit_post(request, author_id, post_id):
     if request.method == "GET":
         return render(request, "social_distribution/edit_post.html", {"post": post})
     data = request.POST.copy()
-
-    # If user checked "Remove Image", ensure data contains image as None.
-    if "remove_image" in data:
-        data["image"] = None
-    else:
-        # Only remove the key if no new file is uploaded.
-        image_val = data.get("image", "")
-        if image_val is None or (isinstance(image_val, str) and not image_val.strip()):
-            # Only pop if the remove checkbox was NOT checked.
-            data.pop("image", None)
-
-    # Similarly for video.      
-    if "remove_video" in data:
-        data["video"] = None
-    else:
-        video_val = data.get("video", "")
-        if video_val is None or (isinstance(video_val, str) and not video_val.strip()):
-            data.pop("video", None)
-
+    if post.content_type in ["image/png;base64", "image/jpeg;base64", "application/base64"] and "media_file" not in request.FILES:
+        data.pop("content", None)
+        return redirect("profile", author_id=author_id)
     serializer = PostSerializer(post, data=data, partial=True)
     if serializer.is_valid():
-        # If new files are uploaded, attach them.
-        if "image" in request.FILES:
-            serializer.validated_data["image"] = request.FILES["image"]  # type:ignore
-        if "video" in request.FILES:
-            serializer.validated_data["video"] = request.FILES["video"]  # type:ignore
+        media_file = request.FILES.get("media_file", None)
+        if media_file:
+            encoded_file = base64.b64encode(media_file.read()).decode("utf-8").strip()
+            serializer.validated_data["content"] = encoded_file #type:ignore
+            if media_file.content_type in ["image/png", "image/jpeg"]: 
+                serializer.validated_data["content_type"] = f"{media_file.content_type};base64" #type:ignore
+            else:
+                serializer.validated_data["content_type"] = "application/base64" #type:ignore
         serializer.save()
         return redirect("profile", author_id=author_id)
     else:
@@ -350,9 +340,9 @@ def delete_post_local(request, author_id, post_id):
         return HttpResponseForbidden("You are not allowed to delete this post.")
     
     if request.method == "GET":
-        safe_text = escape(post.text)
-        rendered_text = render_markdown_if_needed(safe_text, post.content_type)
-        return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
+       safe_content = escape(post.content)
+       rendered_text = render_markdown_if_needed(safe_content, post.content_type)
+       return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
     post.visibility = "DELETED"
     post.save()
@@ -760,9 +750,9 @@ def posts_detail(request, author_id, post_id):
             except Author.DoesNotExist:
                 return Response({"detail": "Authentication required."}, status=403)
             # Must be mutual friends.
-            if (requesting_author not in author.following.all() or
-                    author not in requesting_author.following.all()):
-                return Response({"detail": "You are not friends with the author."}, status=403)
+            if requesting_author != author:
+                 if (requesting_author not in author.following.all() or author not in requesting_author.following.all()):
+                     return Response({"detail": "You are not friends with the author."}, status=403)
         serializer = PostSerializer(post)
         return Response(serializer.data)
     
@@ -847,8 +837,20 @@ def author_posts(request, author_id):
             else:
                 # Not mutual friends: show only public posts.
                 posts = posts.filter(visibility='PUBLIC')
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+
+        page_number = int(request.GET.get("page", 1))
+        size = int(request.GET.get("size", 10))
+        paginator = Paginator(posts, size)
+        page_obj = paginator.get_page(page_number)
+        serializer = PostSerializer(page_obj, many=True)
+        result = {
+            "type": "posts",
+            "page_number": page_number,
+            "size": size,
+            "count": paginator.count,
+            "src": serializer.data,
+        }
+        return Response(result)
     
     elif request.method == "POST":
         author = get_object_or_404(Author, id=author_id)
@@ -871,11 +873,47 @@ def create_post(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     if author.user != request.user:
         return Response(status=403)
-    serializer = PostSerializer(data=request.data, context={'author': author})
+    
+    
+    content = request.data.get("content", "")
+    media_file = request.FILES.get("media_file", None)
+
+    if media_file and content.strip():
+        error_message = "You cannot combine text and media in a single post. Please either enter text or upload media."
+        return render(
+            request,
+            "social_distribution/create_post.html",
+            {"errors": {"non_field_errors": [error_message]}}
+        )
+    
+    visibility = request.data.get("visibility", "PUBLIC")
+    content_type = request.data.get("content_type", "text/plain")
+    has_file = False
+    if media_file:
+        has_file = True
+        encoded_file = base64.b64encode(media_file.read()).decode("utf-8")
+        encoded_file = encoded_file.strip()
+        content = encoded_file
+        if media_file.content_type in ["image/png", "image/jpeg"]:
+            content_type = f"{media_file.content_type};base64"
+        else:
+            content_type = "application/base64"
+        post_data = {
+        "content_type": content_type,
+        "content": content,
+        "visibility": visibility
+        }
+        serializer = PostSerializer(data=post_data, context={"has_file": has_file})
+    else:
+        serializer = PostSerializer(data=request.data, context={"has_file": has_file})
+
     if serializer.is_valid():
         serializer.save(author=author)
         return redirect("profile", author_id=author.id)
-    return render(request, "social_distribution/profile.html")
+    else:
+        return render(request, "social_distribution/create_post.html", {
+            "errors": serializer.errors
+        })
 
 @api_view(['GET'])
 def get_post_image(request, author_id, post_id):
@@ -888,11 +926,10 @@ def get_post_image(request, author_id, post_id):
     # Check DELETED visibility
     if post.visibility == "DELETED":
         return Response({"detail": "Post not found."}, status=403)
-
-    # Check if the post has an image
-    if not post.image:
+    
+    if post.content_type not in ["image/png;base64", "image/jpeg;base64", "application/base64"]:
         return Response({"detail": "Post does not have an image."}, status=404)
-
+    
     # FRIENDS-only visibility logic
     if post.visibility == 'FRIENDS':
         if not request.user.is_authenticated:
@@ -905,14 +942,21 @@ def get_post_image(request, author_id, post_id):
         if (requesting_author not in post.author.following.all() or
                 post.author not in requesting_author.following.all()):
             return Response({"detail": "You are not friends with the author."}, status=403)
+        
+    try:
+        binary_image_data = base64.b64decode(post.content)
+    except Exception:
+        return Response({"detail": "Error decoding image."}, status=400)
 
     # Dynamically detect image content type
-    mime_type, _ = mimetypes.guess_type(post.image.url)
-    if mime_type not in ["image/png", "image/jpeg"]:
-        return Response({"detail": "Not a valid image type."}, status=404)
-
-    with post.image.open('rb') as image_file:
-        binary_image_data = image_file.read()
+    if post.content_type == "image/png;base64":
+        mime_type = "image/png"
+    elif post.content_type == "image/jpeg;base64":
+        mime_type = "image/jpeg"
+    elif post.content_type == "application/base64":
+        mime_type = "application/octet-stream"
+    else:
+        mime_type = "application/octet-stream"
 
     return HttpResponse(binary_image_data, content_type=mime_type)
 
@@ -930,7 +974,7 @@ def get_postimage_by_fqid(request, post_fqid):
         return Response({"detail": "Post not found."}, status=403)
 
     # Check if the post has an image
-    if not post.image:
+    if post.content_type not in ["image/png;base64", "image/jpeg;base64", "application/base64"]:
         return Response({"detail": "Post does not have an image."}, status=404)
 
     # FRIENDS-only visibility logic
@@ -945,14 +989,21 @@ def get_postimage_by_fqid(request, post_fqid):
         if (requesting_author not in post.author.following.all() or
                 post.author not in requesting_author.following.all()):
             return Response({"detail": "You are not friends with the author."}, status=403)
+        
+    try:
+        binary_image_data = base64.b64decode(post.content)
+    except Exception:
+        return Response({"detail": "Error decoding image."}, status=400)
 
     # Dynamically detect image content type
-    mime_type, _ = mimetypes.guess_type(post.image.url)
-    if mime_type not in ["image/png", "image/jpeg"]:
-        return Response({"detail": "Not a valid image type."}, status=404)
-
-    with post.image.open('rb') as image_file:
-        binary_image_data = image_file.read()
+    if post.content_type == "image/png;base64":
+        mime_type = "image/png"
+    elif post.content_type == "image/jpeg;base64":
+        mime_type = "image/jpeg"
+    elif post.content_type == "application/base64":
+        mime_type = "application/octet-stream"
+    else:
+        mime_type = "application/octet-stream"
 
     return HttpResponse(binary_image_data, content_type=mime_type)
 
