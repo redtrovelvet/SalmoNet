@@ -186,7 +186,7 @@ def register(request):
                 author.user = user  # type: ignore
                 author.save() # type: ignore
             else:
-                Author.objects.create(user=user, username=user.username, is_approved=False)
+                Author.objects.create(user=user, username=user.username, display_name=user.username, is_approved=False)
                 messages.success(request, "Your account has been created and is pending admin approval.")
                 return redirect("login")
             login(request, user)
