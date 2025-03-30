@@ -53,7 +53,7 @@ class AuthorSerializer(serializers.Serializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         base_host = instance.host.rstrip('/')
-        representation["id"] = f"{base_host}/api/authors/{instance.id}"
+        representation["id"] = instance.fqid
         representation["host"] = f"{base_host}/api/"
         representation["page"] = f"{base_host}/authors/{instance.id}"
         representation.pop("username", None)
@@ -80,7 +80,7 @@ class CommentLikeSerializer(serializers.Serializer):
 
         # Add the fields to the representation in the correct format
         representation["author"] = AuthorSerializer(instance.author).data
-        representation["id"] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
+        representation["id"] = instance.fqid
         representation["object"] = f"{host}/api/authors/{instance.object.author.id}/commented/{instance.object.id}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
@@ -122,7 +122,7 @@ class CommentSerializer(serializers.Serializer):
         host = settings.BASE_URL
 
         representation["author"] = AuthorSerializer(instance.author).data
-        representation["id"] = f"{host}/api/authors/{instance.author.id}/commented/{instance.id}"
+        representation["id"] = instance.fqid
         representation["post"] = f"{host}/api/authors/{instance.post.author.id}/posts/{instance.post.id}"
         representation["page"] = f"{host}/authors/{instance.post.author.id}/posts/{instance.post.id}"
         likes = CommentLike.objects.filter(object=instance.id)
@@ -174,7 +174,7 @@ class PostLikeSerializer(serializers.Serializer):
 
         # Add the fields to the representation in the correct format
         representation["author"] = AuthorSerializer(instance.author).data
-        representation["id"] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
+        representation["id"] = instance.fqid
         representation["object"] = f"{host}/api/authors/{instance.object.author.id}/posts/{instance.object.id}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
@@ -229,7 +229,7 @@ class PostSerializer(serializers.ModelSerializer):
         representation = {
             "type": "post",
             "title": title,
-            "id": self.get_id(instance),
+            "id": instance.fqid,
             "page": f"{instance.author.host.rstrip('/')}/authors/{instance.author.id}/posts/{instance.id}",
             "description": description,
             "contentType": instance.content_type,

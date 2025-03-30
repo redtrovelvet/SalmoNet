@@ -13,6 +13,10 @@
             
             <p>Username: {{ author.username }}</p>
 
+            {% if author.host != user.author.host %}
+                <p>Remote: {{ author.host }}</p>
+            {% endif %}
+
             {# Check if the current user is logged in and is not viewing their own profile #}
             {% if user.is_authenticated and user.author != author %}
                 {% if author in user.author.following.all %}

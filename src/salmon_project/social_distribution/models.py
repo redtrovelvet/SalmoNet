@@ -20,7 +20,7 @@ class Author(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="author", null=True, blank=True)
     #<END GENERATED></END>
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    username = models.CharField(max_length=100, unique=True)
+    username = models.CharField(max_length=100)
     fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     following = models.ManyToManyField('self', symmetrical=False, blank=True)
     display_name = models.CharField(max_length=100, default="Display Name")
@@ -191,3 +191,5 @@ class RemoteNode(models.Model):
     host = models.URLField(unique=True)
     outgoing = models.BooleanField()
     incoming = models.BooleanField()
+    username = models.CharField(max_length=100, null=True, blank=True)
+    password = models.CharField(max_length=100, null=True, blank=True)
