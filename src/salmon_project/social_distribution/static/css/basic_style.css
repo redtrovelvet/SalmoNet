@@ -488,4 +488,14 @@ h2 {
   }
 }
 
+.profile-link {
+    cursor: pointer;
+    text-decoration: none;  
+    color: inherit;         
+}
+
+.profile-link:hover {
+    text-decoration: none;  
+}
+
 

@@ -18,15 +18,19 @@
   <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;" class="post" data-visibility="{{ post.visibility }}">
     
     <p>
-      {% if post.author.profile_image and post.author.profile_image.url %}
-        <!-- Author has an uploaded profile image -->
-        <img src="{{ post.author.profile_image.url }}" alt="Profile Picture" class="avatar">
-      {% else %}
-        <!-- Author does not have a profile image: show default avatar -->
-        <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="avatar">
-      {% endif %}
-      <strong>{{ post.author.display_name }}</strong>
+      <a href="{% url 'profile' post.author.id %}" class="profile-link">
+        {% if post.author.profile_image and post.author.profile_image.url %}
+          <!-- Author has an uploaded profile image -->
+          <img src="{{ post.author.profile_image.url }}" alt="Profile Picture" class="avatar">
+        {% else %}
+          <!-- Author does not have a profile image: show default avatar -->
+          <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="avatar">
+        {% endif %}
+        <strong>{{ post.author.display_name }}</strong>
+      </a>
     </p>
+    
+    
     
 
     {% if post.text %}
