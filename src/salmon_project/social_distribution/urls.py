@@ -32,6 +32,7 @@ urlpatterns = [
     
     # Authors API
     path("api/authors/", views.get_authors, name="get_authors"),
+    path("api/authors", views.get_authors, name="get_authors"),
 
     # Single Author API
     path("api/authors/<uuid:author_id>/", views.author_details, name="author_details"),
@@ -45,7 +46,7 @@ urlpatterns = [
 
 
     # Inbox API (used for follow requests in our API)
-    re_path(r"^api/authors/(?P<author_id>[^/]+)/inbox/$", views.inbox, name="inbox"),
+    re_path(r"^api/authors/(?P<author_id>[^/]+)/inbox/?$", views.inbox, name="inbox"),
   
 
 

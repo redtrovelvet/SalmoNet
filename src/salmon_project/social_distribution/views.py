@@ -561,6 +561,7 @@ def send_follow_request(request, author_id):
             "type": "follow",
             "summary": f"{current_author.display_name} wants to follow {target_author.display_name}",
             "actor": AuthorSerializer(current_author).data,
+            "object": AuthorSerializer(target_author).data,
         }
 
         try:
