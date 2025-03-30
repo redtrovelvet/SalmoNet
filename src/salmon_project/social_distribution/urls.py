@@ -17,6 +17,7 @@ urlpatterns = [
     path("api/connect/", views.connect_node, name="connect_node"),
     path("api/add_remote_node/", views.add_remote_node, name="add_remote_node"),
     path("api/remove_connection/", views.remove_connection, name="remove_connection"),
+    path("api/connect_external/", views.connect_external, name="connect_external"),
 
     # Extra User-Facing Views (from following/friend branch)
     path("authors/", views.all_authors, name="all_authors"),

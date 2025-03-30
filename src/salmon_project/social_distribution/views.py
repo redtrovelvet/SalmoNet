@@ -452,6 +452,36 @@ def connect_node(request):
                 )
                 return Response("Connected", status=201)
         return Response("Unauthorized", status=401)
+
+@api_view(["POST"])
+@rate_limit(max_requests=1000, time_window=60)
+def connect_external(request):
+    if not request.user.is_superuser:
+        return Response("Forbidden", status=403)
+    
+    if request.method == "POST":
+        host = request.POST["host"]
+        username = request.POST["username"]
+        password = request.POST["password"]
+        remote_node, created = RemoteNode.objects.get_or_create(
+            host=host,
+            defaults={
+                "outgoing": True,
+                "incoming": True,
+                "username": username,
+                "password": password
+            })
+        
+        if not created:
+            remote_node.outgoing = True
+            remote_node.incoming = True
+            remote_node.username = username
+            remote_node.password = password
+            remote_node.save()
+            
+        return Response("Node info created", status=201)
+        
+    return Response("GET request not allowed", status=405)
             
 @api_view(["POST"])
 @rate_limit(max_requests=1000, time_window=60)
