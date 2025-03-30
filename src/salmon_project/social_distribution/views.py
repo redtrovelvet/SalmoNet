@@ -59,7 +59,10 @@ def index(request):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        safe_content = escape(p.content)
+        if p.content_type == "text/markdown":
+            safe_content = p.content
+        else:
+            safe_content = escape(p.content)
         html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
@@ -127,7 +130,10 @@ def profile(request, author_id):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        safe_content = escape(p.content)
+        if p.content_type == "text/markdown":
+            safe_content = p.content
+        else:
+            safe_content = escape(p.content)
         html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
@@ -249,7 +255,10 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
     serialized_post = PostSerializer(post).data
-    safe_content = escape(post.content)
+    if post.content_type == "text/markdown":
+        safe_content = post.content
+    else:
+        safe_content = escape(post.content)
     html_content = render_markdown_if_needed(safe_content, post.content_type)
     post_comments = serialized_post["comments"]["src"]
     comments = []
@@ -290,12 +299,33 @@ def view_post(request, author_id, post_id):
 
 def render_markdown_if_needed(text, content_type):
     """
-    If content_type is 'text/markdown', convert 'text' to HTML using commonmark.
-    Otherwise, return the text as-is (plain text).
+    Render text to HTML, handling both markdown and base64 images properly
     """
     if content_type == "text/markdown":
-        return commonmark.commonmark(text or "")
-    return text or "" 
+        # First escape the text to prevent XSS
+        safe_text = escape(text or "")
+        
+        pattern = r'!\[([^\]]*)\]\(data:image/([^;]+);base64,([^\)]+)\)'
+
+        # this function was written by deepseek, prompt: why is my markrdown not rendering images that are base64 encoded (picture of function)?
+        # Replace markdown image syntax with HTML img tags for base64 images
+        def replace_base64_images(match):
+            alt = escape(match.group(1))
+            img_type = match.group(2)
+            base64_data = match.group(3)
+            return f'<img src="data:image/{img_type};base64,{base64_data}" alt="{alt}">'
+        #end of function#
+
+        processed_text = re.sub(pattern, replace_base64_images, safe_text)
+        html = commonmark.commonmark(processed_text)
+        
+        return html
+    elif content_type in ["image/png;base64", "image/jpeg;base64"]:
+        return f'<img src="data:image/{content_type.split(";")[0]};base64,{text}">'
+    elif content_type == "application/base64":
+        return f'<video controls><source src="data:application/base64,{text}"></video>'
+    else:
+        return escape(text or "")
 
 def admin_controls(request):
     if not request.user.is_superuser:
@@ -354,9 +384,12 @@ def delete_post_local(request, author_id, post_id):
         return HttpResponseForbidden("You are not allowed to delete this post.")
     
     if request.method == "GET":
-       safe_content = escape(post.content)
-       rendered_text = render_markdown_if_needed(safe_content, post.content_type)
-       return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
+        if post.content_type == "text/markdown":
+            safe_content = post.content
+        else:
+            safe_content = escape(post.content)
+        rendered_text = render_markdown_if_needed(safe_content, post.content_type)
+        return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
     post.visibility = "DELETED"
 
