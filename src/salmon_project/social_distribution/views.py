@@ -64,7 +64,7 @@ def index(request):
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
-            comment["id"] = comment["id"].split("/")[-1]
+            comment["id"] = Comment.objects.get(fqid=comment["id"]).id
             comments.append(comment)
 
         rendered_posts.append({
@@ -132,7 +132,7 @@ def profile(request, author_id):
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
-            comment["id"] = comment["id"].split("/")[-1]
+            comment["id"] = Comment.objects.get(fqid=comment["id"]).id
             comments.append(comment)
 
         rendered_posts.append({
@@ -256,7 +256,7 @@ def view_post(request, author_id, post_id):
     post_comments = serialized_post["comments"]["src"]
     comments = []
     for comment in post_comments:
-        comment["id"] = comment["id"].split("/")[-1]
+        comment["id"] = Comment.objects.get(fqid=comment["id"]).id
         comments.append(comment)
 
     # Convert the post ot a new list with rendered text if needed
@@ -1739,7 +1739,7 @@ def commented(request, author_id):
             
             else:
                 # Send the comment to the inbox of the post author
-                post = get_object_or_404(Post, id=post_id)
+                post = get_object_or_404(Post, fqid=post_id)
                 send_post_to_remote(request, post.author, post)
 
             return Response(serializer.data, status=201)
@@ -2017,7 +2017,7 @@ def like_comment(request, author_id, comment_id):
                     return Response(status=400, data={"error": str(e)})
                 
             # Send a notification to the inbox of the comment author if the like is on a remote comment
-            comment = Comment.objects.get(fqid=comment_id)
+            comment = Comment.objects.get(id=comment_id)
             if not comment:
                 return Response({"detail": "Comment not found."}, status=404)
             comment_id = comment.fqid
