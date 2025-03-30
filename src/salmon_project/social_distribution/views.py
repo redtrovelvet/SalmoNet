@@ -1951,7 +1951,10 @@ def like_post(request, author_id, post_id):
                     return Response(status=400, data={"error": str(e)})
                 
             # Send a notification to the inbox of the post author if the like is on a remote post
-            post_id = like_data["object"]
+            post = Post.objects.get(id=post_id)
+            if not post:
+                return Response({"detail": "Post not found."}, status=404)
+            post_id = post.fqid
             match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+)", post_id)
             if match:
                 host = match.group(0)

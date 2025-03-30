@@ -26,7 +26,7 @@ class AuthorSerializer(serializers.Serializer):
         """
         returns full API URL for the author
         """
-        return f"{obj.host}/api/authors/{obj.id}"
+        return f"{obj.fqid}"
     
     def create(self, validated_data):
         """
@@ -54,7 +54,7 @@ class AuthorSerializer(serializers.Serializer):
         representation = super().to_representation(instance)
         base_host = instance.host.rstrip('/')
         representation["id"] = instance.fqid
-        representation["host"] = f"{base_host}/api/"
+        representation["host"] = f"{instance.host}/api/"
         representation["page"] = f"{base_host}/authors/{instance.id}"
         representation.pop("username", None)
         return {snake_to_camel(key): value for key, value in representation.items()}
@@ -81,7 +81,7 @@ class CommentLikeSerializer(serializers.Serializer):
         # Add the fields to the representation in the correct format
         representation["author"] = AuthorSerializer(instance.author).data
         representation["id"] = instance.fqid
-        representation["object"] = f"{host}/api/authors/{instance.object.author.id}/commented/{instance.object.id}"
+        representation["object"] = f"{instance.object.fqid}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
     def to_internal_value(self, data):
@@ -123,14 +123,14 @@ class CommentSerializer(serializers.Serializer):
 
         representation["author"] = AuthorSerializer(instance.author).data
         representation["id"] = instance.fqid
-        representation["post"] = f"{host}/api/authors/{instance.post.author.id}/posts/{instance.post.id}"
+        representation["post"] = f"{instance.post.fqid}"
         representation["page"] = f"{host}/authors/{instance.post.author.id}/posts/{instance.post.id}"
         likes = CommentLike.objects.filter(object=instance.id)
         serialized_likes = CommentLikeSerializer(likes, many=True).data
         likes_data = {
             "type": "likes",
             "page": f"{host}/authors/{instance.author.id}/comments/{instance.id}",
-            "id": f"{host}/api/authors/{instance.author.id}/commented/{instance.id}/likes",
+            "id": f"{instance.fqid}/likes",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_likes), 50),
             "count": len(serialized_likes),
@@ -175,7 +175,7 @@ class PostLikeSerializer(serializers.Serializer):
         # Add the fields to the representation in the correct format
         representation["author"] = AuthorSerializer(instance.author).data
         representation["id"] = instance.fqid
-        representation["object"] = f"{host}/api/authors/{instance.object.author.id}/posts/{instance.object.id}"
+        representation["object"] = f"{instance.object.fqid}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
     def to_internal_value(self, data):
@@ -208,7 +208,7 @@ class PostSerializer(serializers.ModelSerializer):
         """
         returns full API URL for the author
         """
-        return f"{obj.author.host}/api/authors/{obj.author.id}/posts/{obj.id}"
+        return f"{obj.fqid}"
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -245,7 +245,7 @@ class PostSerializer(serializers.ModelSerializer):
         comments_data = {
             "type": "comments",
             "page": f"{host}/authors/{instance.author.id}/posts/{instance.id}",
-            "id": f"{host}/api/authors/{instance.author.id}/posts/{instance.id}/comments",
+            "id": f"{instance.fqid}/comments",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_comments), 5),
             "count": len(serialized_comments),
@@ -257,7 +257,7 @@ class PostSerializer(serializers.ModelSerializer):
         likes_data = {
             "type": "likes",
             "page": f"{host}/authors/{instance.author.id}/posts/{instance.id}",
-            "id": f"{host}/api/authors/{instance.author.id}/posts/{instance.id}/likes",
+            "id": f"{instance.fqid}/likes",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_likes), 50),
             "count": len(serialized_likes),
