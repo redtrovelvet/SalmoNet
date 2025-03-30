@@ -58,10 +58,6 @@ class Post(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     content = models.TextField(default="")
     text = models.TextField(null=True, blank=True)
-    image = models.ImageField(upload_to="images/", null=True, blank=True,
-                              validators=[FileExtensionValidator(allowed_extensions=["png", "jpg", "jpeg"])])
-    video = models.FileField(upload_to="videos/", null=True, blank=True,
-                             validators=[FileExtensionValidator(allowed_extensions=["mp4", "mov", "avi"])])
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
