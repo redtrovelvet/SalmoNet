@@ -19,7 +19,7 @@ class AuthorSerializer(serializers.Serializer):
     host = serializers.URLField()
     display_name = serializers.CharField(max_length=100, allow_null=True, required=False, default="Display Name")
     github = serializers.URLField(allow_null=True, required=False)
-    profile_image = serializers.CharField(allow_null=True, required=False)
+    profile_image = serializers.URLField(allow_null=True, required=False)
     username = serializers.CharField(max_length=100)
 
     def get_id(self, obj):
