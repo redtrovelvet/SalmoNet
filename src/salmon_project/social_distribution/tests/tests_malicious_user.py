@@ -1,13 +1,16 @@
 from django.test import TestCase, Client
 from django.urls import reverse
+import time
 
 class RateLimitingTestCase(TestCase):
     def test_rate_limiting(self):
         # Create a client to make requests
         client = Client()
 
+        time.sleep(60)
+        
         # Make 100 requests to the all auhtors view
-        for _ in range(1000):
+        for _ in range(100):
             response = client.get(reverse('get_authors'))
             self.assertEqual(response.status_code, 200)
 
@@ -19,13 +22,14 @@ class RateLimitingTestCase(TestCase):
         # Create a client to make requests
         client = Client()
 
+        time.sleep(60)
+        
         # Make 100 requests to the all auhtors view
-        for _ in range(1000):
+        for _ in range(100):
             response = client.get(reverse('get_authors'))
             self.assertEqual(response.status_code, 200)
 
-        # Wait for 1 minute to allow the rate limit to reset
-        import time
+        # Wait for 1 minute to allow the rate limit to reset   
         time.sleep(60)
 
         # Make another request to the all auhtors view
