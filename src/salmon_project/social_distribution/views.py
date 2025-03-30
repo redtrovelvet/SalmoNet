@@ -2045,10 +2045,10 @@ def like_comment(request, author_id, comment_id):
                 # Send the updated comment object to inboxes
                 comment = Comment.objects.get(fqid=comment_id)
                 post = Post.objects.get(id=comment.post_id)
-                if comment.host == post.host:
+                if comment.author.host == post.author.host:
                     send_post_to_remote(request, post.author, post)
                 else:
-                    send_object(CommentSerializer(comment).data, comment.author.host, comment.author.fqid)
+                    send_object(CommentSerializer(comment).data, post.author.host, post.author.fqid)
 
         else:
             return Response(status=400, data={"error": serializer.errors})
