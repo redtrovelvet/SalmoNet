@@ -10,14 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='post',
-            name='text',
-        ),
-        migrations.RemoveField(
-            model_name='post',
-            name='video',
-        ),
         migrations.AddField(
             model_name='post',
             name='content',
