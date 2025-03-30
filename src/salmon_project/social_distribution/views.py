@@ -334,6 +334,11 @@ def edit_post(request, author_id, post_id):
             else:
                 serializer.validated_data["content_type"] = "application/base64" #type:ignore
         serializer.save()
+
+        # Send updated posts to followers
+        author = get_object_or_404(Author, id=author_id)
+        send_post_to_remote(request, author, post)
+
         return redirect("profile", author_id=author_id)
     else:
         return render(request, "social_distribution/edit_post.html", {"post": post, "serializer": serializer})
@@ -356,6 +361,11 @@ def delete_post_local(request, author_id, post_id):
        return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
     post.visibility = "DELETED"
+
+    # Send updated posts to followers
+    author = get_object_or_404(Author, id=author_id)
+    send_post_to_remote(request, author, post)
+
     post.save()
     return redirect("profile", author_id=author_id)
 
@@ -903,8 +913,21 @@ def author_posts(request, author_id):
             serializer.save(author=author)
             return Response(serializer.data)
         return Response(serializer.errors, status=400)
-        
-    
+           
+def send_post_to_remote(request, author, post):
+    for target_author in Author.objects.filter(following=author):
+        try:
+            if post.visibility == "FRIENDS" and not author.is_friends_with(target_author):
+                continue
+            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10)
+            if response.status_code in [200, 201]:
+                messages.success(request, f"Post sent to remote follower {target_author.display_name}.")
+            else:
+                messages.error(request, f"Failed to send post to remote follower: {response.text}")
+        except Exception as e:
+            messages.error(request, f"Error sending post to remote follower: {str(e)}")
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 @rate_limit(max_requests=10, time_window=60)
@@ -951,7 +974,11 @@ def create_post(request, author_id):
         serializer = PostSerializer(data=request.data, context={"has_file": has_file})
 
     if serializer.is_valid():
-        serializer.save(author=author)
+        post = serializer.save(author=author)
+
+        # Send post to followers
+        send_post_to_remote(request, author, post)
+
         return redirect("profile", author_id=author.id)
     else:
         return render(request, "social_distribution/create_post.html", {
@@ -1117,7 +1144,7 @@ def inbox(request, author_id):
         else:
             return Response({"detail": "Follow request already exists."}, status=200)
 
-    # Handling likes, comments from a local node
+    # Handles likes, comments from a local node
     elif not is_remote(request):
 
         # === POST LIKE ===
@@ -1149,7 +1176,7 @@ def inbox(request, author_id):
             return Response({"detail": "Like notification received.", "notification": notification}, status=201)
         
         # === COMMENT ===
-        # Expect payload to include: type, actor, post_id, comment, published
+        # Expected payload to include: type, actor, post_id, comment, published
         elif data.get("type") == "comment":
             actor_data = data.get("actor")
             if not actor_data:
@@ -1180,11 +1207,54 @@ def inbox(request, author_id):
                 "post_url": post_url
             }
             return Response({"detail": "Comment notification received.", "notification": notification}, status=201)
-        
+
+        # === POST ===
+        elif data.get("type") == "post":
+            # Expect payload to include: title, id, page, description, contentType, content, author, comments, likes, published, visibility
+
+            # Iterate through fields
+            data_dict = {}
+            for field in ["title", "id", "page", "description", "content_type", "content", "author", "comments", "likes", "published", "visibility"]:
+                field_data = data.get(field)
+                if not field_data:
+                    return Response({"detail": "Missing %s" % field}, status=400)
+                else:
+                    data_dict[field] = field_data
+
+            # Check post id
+            try:
+                data_dict["id"] = uuid.UUID(data_dict["id"].split("/"))
+            except Exception:
+                try:
+                    data_dict["id"] = uuid.UUID(data_dict["id"])
+                except Exception:
+                    return Response({"detail": "Invalid post id."}, status=400)
+
+            # Check author id
+            try:
+                data_dict["author"] = uuid.UUID(data_dict["author"].split("/"))
+            except Exception:
+                try:
+                    data_dict["author"] = uuid.UUID(data_dict["author"])
+                except Exception:
+                    return Response({"detail": "Invalid author id."}, status=400)
+                
+            # Create new or get existing post object with id
+            author = get_object_or_404(Author, id=data_dict["author"])
+            post = Post.objects.get_or_create(
+                author=author,
+                text=data_dict["content"],
+                created_at=data_dict["published"],
+                content_type=data_dict["contentType"],
+                visibility=data_dict["visibility"]
+            )
+
+
         else:
             return Response({"detail": "Unsupported type for inbox."}, status=400)
-
-    elif is_remote(request): # Handling posts, likes and comments from a remote node
+        
+    # Handles posts, likes and comments from a remote node
+    elif is_remote(request): 
 
         # === LIKE  ===
         if data.get("type") == "like":
@@ -1266,11 +1336,13 @@ def inbox(request, author_id):
 
             try:
                 post = Post.objects.get(fqid=post_fqid)
-                comment, created = Comment.objects.get_or_create(fqid=comment_fqid, defaults={"post": post, "author": sender, "comment": comment_text, 'content_type': content_type, 'published': parse_datetime(published)})
+                comment, created = Comment.objects.get_or_create(
+                    fqid=comment_fqid,
+                    defaults={"post": post,"author": sender, "comment": comment_text, 'content_type': content_type, 'published': parse_datetime(published)})
             except Post.DoesNotExist:
                 return Response({"detail": "Target post not found."}, status=404)
             
-            # Handle embedded comment likes 
+            # Handles embedded comment likes 
             likes_data = data.get("likes", {}).get("src", [])
             for like in likes_data:
                 like_author_data = like.get("author")
@@ -1298,7 +1370,155 @@ def inbox(request, author_id):
                 "post_url": post_url
             }
             return Response({"detail": "Comment and embedded likes stored.", "notification": notification}, status=201)
+        
+        # === POST  ===
+        elif data.get("type") == "post":
+            post_fqid = data.get("id")
+            author_data = data.get("author")
+            if not post_fqid or not author_data:
+                return Response({"detail": "Missing post ID or author data."}, status=400)
 
+            # Gets the author of the remote post from the database if it exists, otherwise creates a new one
+            author_fqid = author_data.get("id")
+            post_author, _ = Author.objects.get_or_create(
+                fqid=author_fqid,
+                defaults={
+                    "host": author_data.get("host"),
+                    "username": author_data.get("displayName"),
+                    "display_name": author_data.get("displayName"),
+                    "profile_image": author_data.get("profileImage"),
+                    "is_approved": False,
+                    "user": None,
+                })
+
+            # Gets the remote post from the database if it exists, creates a new one otherwise
+            post, created = Post.objects.get_or_create(
+                fqid=post_fqid,
+                defaults={
+                    "author": post_author,
+                    "content": data.get("content"),
+                    "content_type": data.get("contentType"),
+                    "visibility": data.get("visibility"),
+                    "created_at": parse_datetime(data.get("published"))
+                }
+            )
+
+            if not created:
+                updated = False
+                if post.content != data.get("content"):
+                    post.content = data.get("content")
+                    updated = True
+                if post.content_type != data.get("contentType"):
+                    post.content_type = data.get("contentType")
+                    updated = True
+                if post.visibility != data.get("visibility"):
+                    post.visibility = data.get("visibility")
+                    updated = True
+                if post.created_at != parse_datetime(data.get("published")):
+                    post.created_at = parse_datetime(data.get("published"))
+                    updated = True
+
+                if updated:
+                    post.save()
+
+            # Creates post like objects for a newly created remote post and updates post like objects for an existing remote post
+            likes_data = data.get("likes", {}).get("src", [])
+            incoming_like_fqids = set()
+
+            for like in likes_data:
+                like_fqid = like.get("id")
+                incoming_like_fqids.add(like_fqid)
+                like_author_data = like.get("author")
+                like_author, _ = Author.objects.get_or_create(
+                    fqid=like_author_data.get("id"),
+                    defaults={
+                        "host": like_author_data.get("host"),
+                        "username": like_author_data.get("displayName"),
+                        "display_name": like_author_data.get("displayName"),
+                        "profile_image": like_author_data.get("profileImage"),
+                        "is_approved": False,
+                        "user": None,
+                    })
+                
+                PostLike.objects.get_or_create(
+                    fqid=like_fqid,
+                    defaults={
+                        "object": post,
+                        "author": like_author,
+                        "published": parse_datetime(like.get("published")),
+                    })
+                
+            # Deletes any post likes associated with the remote post that are not in the incoming list 
+            PostLike.objects.filter(object=post).exclude(fqid__in=incoming_like_fqids).delete()
+
+
+            # Creates comment objects + comment likes for a newly created remote post and updates comment objects + comment likes for an existing remote post
+            comments_data = data.get("comments", {}).get("src", [])
+            incoming_comment_fqids = set()
+
+            for comment_data in comments_data:
+                comment_fqid = comment_data.get("id")
+                incoming_comment_fqids.add(comment_fqid)
+                comment_author_data = comment_data.get("author")
+                comment_author, _ = Author.objects.get_or_create(
+                    fqid=comment_author_data.get("id"),
+                    defaults={
+                        "host": comment_author_data.get("host"),
+                        "username": comment_author_data.get("displayName"),
+                        "display_name": comment_author_data.get("displayName"),
+                        "profile_image": comment_author_data.get("profileImage"),
+                        "is_approved": False,
+                        "user": None,
+                    })
+
+                comment, _ = Comment.objects.get_or_create(
+                    fqid=comment_fqid,
+                    defaults={
+                        "post": post,
+                        "author": comment_author,
+                        "comment": comment_data.get("comment"),
+                        "content_type": comment_data.get("contentType"),
+                        "published": parse_datetime(comment_data.get("published")),
+                    })
+
+                # Handle likes on the comment
+                comment_likes = comment_data.get("likes", {}).get("src", [])
+                comment_like_fqids = set()
+                for like in comment_likes:
+                    like_fqid = like.get("id")
+                    comment_like_fqids.add(like_fqid)
+                    like_author_data = like.get("author")
+                    liker, _ = Author.objects.get_or_create(
+                        fqid=like_author_data.get("id"),
+                        defaults={
+                            "host": like_author_data.get("host"),
+                            "username": like_author_data.get("displayName"),
+                            "display_name": like_author_data.get("displayName"),
+                            "profile_image": like_author_data.get("profileImage"),
+                            "is_approved": False,
+                            "user": None,
+                        })
+                    
+                    CommentLike.objects.get_or_create(
+                        fqid=like_fqid,
+                        defaults={
+                            "object": comment,
+                            "author": liker,
+                            "published": parse_datetime(like.get("published")),
+                        })
+
+                # Delete any comment likes associated with the remote comment that are not in the incoming list
+                CommentLike.objects.filter(object=comment).exclude(fqid__in=comment_like_fqids).delete()
+
+            # Delete any comments associated with the remote post that are not in the incoming list
+            Comment.objects.filter(post=post).exclude(fqid__in=incoming_comment_fqids).delete()
+            return Response({"detail": "Post and associated objects processed."}, status=201 if created else 200)
+
+        else:
+            return Response({"detail": "Unsupported type for inbox."}, status=400)
+    else:
+        return Response({"detail": "Unsupported request."}, status=400)
+            
     
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
