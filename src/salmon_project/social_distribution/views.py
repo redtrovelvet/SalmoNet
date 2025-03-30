@@ -1951,7 +1951,10 @@ def like_post(request, author_id, post_id):
                     return Response(status=400, data={"error": str(e)})
                 
             # Send a notification to the inbox of the post author if the like is on a remote post
-            post_id = like_data["object"]
+            post = Post.objects.get(id=post_id)
+            if not post:
+                return Response({"detail": "Post not found."}, status=404)
+            post_id = post.fqid
             match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+)", post_id)
             if match:
                 host = match.group(0)
@@ -2042,10 +2045,10 @@ def like_comment(request, author_id, comment_id):
                 # Send the updated comment object to inboxes
                 comment = Comment.objects.get(fqid=comment_id)
                 post = Post.objects.get(id=comment.post_id)
-                if comment.host == post.host:
+                if comment.author.host == post.author.host:
                     send_post_to_remote(request, post.author, post)
                 else:
-                    send_object(CommentSerializer(comment).data, comment.author.host, comment.author.fqid)
+                    send_object(CommentSerializer(comment).data, post.author.host, post.author.fqid)
 
         else:
             return Response(status=400, data={"error": serializer.errors})
