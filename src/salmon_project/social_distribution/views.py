@@ -2017,7 +2017,10 @@ def like_comment(request, author_id, comment_id):
                     return Response(status=400, data={"error": str(e)})
                 
             # Send a notification to the inbox of the comment author if the like is on a remote comment
-            comment_id = like_data["object"]
+            comment = Comment.objects.get(fqid=comment_id)
+            if not comment:
+                return Response({"detail": "Comment not found."}, status=404)
+            comment_id = comment.fqid
             match = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+)", comment_id)
             if match:
                 host = match.group(0)
