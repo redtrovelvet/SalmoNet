@@ -57,7 +57,6 @@ class Post(models.Model):
     fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     content = models.TextField(default="")
-    text = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
