@@ -8,7 +8,7 @@
 <div class="profile-container">
     <div class="profile-header">
         {% if author.profile_image %}
-            <img src="data:image/png;base64,{{ author.profile_image }}" alt="Profile Picture" class="profile-pic" width="150">
+            <img src="{{ author.profile_image.url }}" alt="Profile Picture" class="profile-pic" width="150">
         {% else %}
             <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="profile-pic" width="150">
         {% endif %}

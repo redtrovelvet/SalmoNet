@@ -163,9 +163,7 @@ def edit_profile(request, author_id):
         author.display_name = request.POST.get("display_name", author.display_name)
         author.github = request.POST.get("github", author.github)
         if "profile_image" in request.FILES:
-            file = request.FILES["profile_image"]
-            encoded = base64.b64encode(file.read()).decode('utf-8')
-            author.profile_image = encoded 
+            author.profile_image = request.FILES["profile_image"] 
         author.save()
         return redirect("profile", author_id=author.id)
     return render(request, "social_distribution/edit_profile.html", {"author": author})
@@ -591,7 +589,6 @@ def send_follow_request(request, author_id):
             "type": "follow",
             "summary": f"{current_author.display_name} wants to follow {target_author.display_name}",
             "actor": AuthorSerializer(current_author).data,
-            "object": AuthorSerializer(target_author).data,
         }
 
         try:
