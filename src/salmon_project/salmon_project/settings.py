@@ -34,7 +34,7 @@ DEBUG = os.environ.get("DEBUG", "0").lower() in ["1", "true"]
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1").split(",")
 
-BASE_URL ="http://[2605:fd00:4:1001:f816:3eff:fe2c:1382]"
+BASE_URL ="http://127.0.0.1:8000"
 # Application definition
 
 CORS_ORIGIN_ALLOW_ALL = False
@@ -63,6 +63,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'social_distribution.middleware.RateLimitMiddleware',
 ]
 
 ROOT_URLCONF = 'salmon_project.urls'
@@ -84,7 +85,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'salmon_project.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

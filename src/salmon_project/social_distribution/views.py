@@ -28,6 +28,8 @@ from urllib.parse import unquote
 from django.utils.dateparse import parse_datetime
 import requests
 from urllib.parse import urlparse
+from django.core.cache import cache
+import base64
 
 # Create your views here.
 def index(request):
@@ -59,8 +61,8 @@ def index(request):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        safe_text = escape(p.text)
-        html_text = render_markdown_if_needed(safe_text, p.content_type)
+        safe_content = escape(p.content)
+        html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -70,9 +72,9 @@ def index(request):
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
-            "text": html_text,
-            "image": p.image,
-            "video": p.video,
+            "raw_content": p.content,      
+            "rendered_content": html_content,
+            "content_type": p.content_type,
             "visibility": p.visibility,
             "created_at": p.created_at,
             "comments": comments,
@@ -86,6 +88,18 @@ def index(request):
         context["alert_message"] = alert_message
 
     return render(request, "social_distribution/index.html", context)
+
+def rate_limit(max_requests, time_window):
+    def decorator(view_func):
+        def wrapper(request, *args, **kwargs):
+            key = f'rate_limit:{request.user.id}'
+            requests_made = cache.get(key, 0)
+            if requests_made >= max_requests:
+                return HttpResponse('Too Many Requests', status=429)
+            cache.set(key, requests_made + 1, time_window)
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 def profile(request, author_id):
     '''
@@ -115,8 +129,8 @@ def profile(request, author_id):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        safe_text = escape(p.text)
-        html_text = render_markdown_if_needed(safe_text, p.content_type)
+        safe_content = escape(p.content)
+        html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -126,9 +140,9 @@ def profile(request, author_id):
         rendered_posts.append({
             "id": p.id,
             "author": p.author,
-            "text": html_text,
-            "image": p.image,
-            "video": p.video,
+            "raw_content": p.content,      
+            "rendered_content": html_content,
+            "content_type": p.content_type,
             "visibility": p.visibility,
             "created_at": p.created_at,
             "comments": comments,
@@ -151,7 +165,9 @@ def edit_profile(request, author_id):
         author.display_name = request.POST.get("display_name", author.display_name)
         author.github = request.POST.get("github", author.github)
         if "profile_image" in request.FILES:
-            author.profile_image = request.FILES["profile_image"]
+            file = request.FILES["profile_image"]
+            encoded = base64.b64encode(file.read()).decode('utf-8')
+            author.profile_image = encoded 
         author.save()
         return redirect("profile", author_id=author.id)
     return render(request, "social_distribution/edit_profile.html", {"author": author})
@@ -237,8 +253,8 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
     serialized_post = PostSerializer(post).data
-    safe_text = escape(post.text)
-    html_text = render_markdown_if_needed(safe_text, post.content_type)
+    safe_content = escape(post.content)
+    html_content = render_markdown_if_needed(safe_content, post.content_type)
     post_comments = serialized_post["comments"]["src"]
     comments = []
     for comment in post_comments:
@@ -249,9 +265,9 @@ def view_post(request, author_id, post_id):
     rendered_post = {
         "id": post.id,
         "author": post.author,
-        "text": html_text,
-        "image": post.image,
-        "video": post.video,
+        "raw_content": post.content,      
+        "rendered_content": html_content,
+        "content_type": post.content_type,
         "visibility": post.visibility,
         "created_at": post.created_at,
         "comments": comments,
@@ -306,32 +322,19 @@ def edit_post(request, author_id, post_id):
     if request.method == "GET":
         return render(request, "social_distribution/edit_post.html", {"post": post})
     data = request.POST.copy()
-
-    # If user checked "Remove Image", ensure data contains image as None.
-    if "remove_image" in data:
-        data["image"] = None
-    else:
-        # Only remove the key if no new file is uploaded.
-        image_val = data.get("image", "")
-        if image_val is None or (isinstance(image_val, str) and not image_val.strip()):
-            # Only pop if the remove checkbox was NOT checked.
-            data.pop("image", None)
-
-    # Similarly for video.      
-    if "remove_video" in data:
-        data["video"] = None
-    else:
-        video_val = data.get("video", "")
-        if video_val is None or (isinstance(video_val, str) and not video_val.strip()):
-            data.pop("video", None)
-
+    if post.content_type in ["image/png;base64", "image/jpeg;base64", "application/base64"] and "media_file" not in request.FILES:
+        data.pop("content", None)
+        return redirect("profile", author_id=author_id)
     serializer = PostSerializer(post, data=data, partial=True)
     if serializer.is_valid():
-        # If new files are uploaded, attach them.
-        if "image" in request.FILES:
-            serializer.validated_data["image"] = request.FILES["image"]  # type:ignore
-        if "video" in request.FILES:
-            serializer.validated_data["video"] = request.FILES["video"]  # type:ignore
+        media_file = request.FILES.get("media_file", None)
+        if media_file:
+            encoded_file = base64.b64encode(media_file.read()).decode("utf-8").strip()
+            serializer.validated_data["content"] = encoded_file #type:ignore
+            if media_file.content_type in ["image/png", "image/jpeg"]: 
+                serializer.validated_data["content_type"] = f"{media_file.content_type};base64" #type:ignore
+            else:
+                serializer.validated_data["content_type"] = "application/base64" #type:ignore
         serializer.save()
 
         # Send updated posts to followers
@@ -355,9 +358,9 @@ def delete_post_local(request, author_id, post_id):
         return HttpResponseForbidden("You are not allowed to delete this post.")
     
     if request.method == "GET":
-        safe_text = escape(post.text)
-        rendered_text = render_markdown_if_needed(safe_text, post.content_type)
-        return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
+       safe_content = escape(post.content)
+       rendered_text = render_markdown_if_needed(safe_content, post.content_type)
+       return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
     post.visibility = "DELETED"
 
@@ -371,6 +374,7 @@ def delete_post_local(request, author_id, post_id):
 # --- API Endpoints ---
 
 @api_view(["POST"])
+@rate_limit(max_requests=10, time_window=60)
 def set_node_info(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -394,6 +398,7 @@ def set_node_info(request):
     return Response("GET request not allowed", status=405)
 
 @api_view(["POST"])
+@rate_limit(max_requests=10, time_window=60)
 def add_remote_node(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -415,6 +420,7 @@ def add_remote_node(request):
     return Response("GET request not allowed", status=405)
 
 @api_view(["POST"])
+@rate_limit(max_requests=10, time_window=60)
 def connect_node(request):
     if request.method == "POST":
         local_node = NodeInfo.objects.first()
@@ -443,6 +449,7 @@ def connect_node(request):
         return Response("Unauthorized", status=401)
             
 @api_view(["POST"])
+@rate_limit(max_requests=10, time_window=60)
 def remove_connection(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -455,12 +462,11 @@ def remove_connection(request):
             return Response("Outgoing connection removed", status=200)
         return Response("Connection not found", status=404)
 
-
+'''
 @api_view(["GET"])
 def get_authors(request):
-    '''
     API: returns all authors in local node
-    '''
+    
     page_num = int(request.GET.get("page", 1))
     size = int(request.GET.get("size", 5))
 
@@ -473,8 +479,29 @@ def get_authors(request):
         "type": "authors",
         "authors": serializer.data  
     })
+'''
+
+@api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
+def get_authors(request):
+    """
+    API: returns all authors on this local node
+    """
+    page_num = int(request.GET.get("page", 1))
+    size = int(request.GET.get("size", 5))
+
+    authors_qs = Author.objects.filter(host=settings.BASE_URL).order_by("id")
+    paginator = Paginator(authors_qs, size)
+    page_obj = paginator.get_page(page_num)
+
+    serializer = AuthorSerializer(page_obj, many=True)
+    return Response({
+        "type": "authors",
+        "authors": serializer.data
+    })
 
 @api_view(["GET", "PUT"])
+@rate_limit(max_requests=10, time_window=60)
 def author_details(request, author_id):
     '''
     API: returns specific author profiile
@@ -495,6 +522,7 @@ def author_details(request, author_id):
         return Response(serializer.errors, status=400)
     
 @api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
 def fqid_author_details(request, author_fqid):
     '''
     API: returns specific author detaisl using fqid.
@@ -512,7 +540,12 @@ def send_follow_request(request, author_id):
         messages.error(request, "Please log in to follow authors.")
         return redirect('login')
     current_author = request.user.author
-    target_author = get_object_or_404(Author, id=author_id)
+
+    try:
+        target_author = Author.objects.get(id=author_id)
+    except Author.DoesNotExist:
+        target_author = get_object_or_404(Author, fqid=author_id)
+
     if current_author == target_author:
         messages.error(request, "You cannot follow yourself.")
         return redirect('profile', author_id=target_author.id)
@@ -528,7 +561,7 @@ def send_follow_request(request, author_id):
         }
 
         try:
-            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
+            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.fqid}/inbox/"
             response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10)
             if response.status_code in [200, 201]:
                 current_author.following.add(target_author)
@@ -543,7 +576,8 @@ def send_follow_request(request, author_id):
         current_author.following.add(target_author)
         messages.success(request, f"Follow request sent to {target_author.display_name}.")
         return redirect('profile', author_id=target_author.id)
-
+        
+    
 def all_authors(request):
     """
     Retrieve and display all authors.
@@ -554,7 +588,7 @@ def all_authors(request):
     for author in authors:
         author.page = f"/authors/{author.id}/"
 
-    remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True)
+    remote_nodes = RemoteNode.objects.filter(incoming=True, outgoing=True).exclude(host=settings.BASE_URL)
     for node in remote_nodes:
         response = requests.get(f"{node.host}/api/authors/")
         if response.status_code == 200:
@@ -562,21 +596,22 @@ def all_authors(request):
             for remote_author in remote_authors:
                 remote_author["host"] = node.host
                 remote_author["fqid"] = remote_author["id"]
-                remote_author["id"] = uuid.UUID(remote_author["id"].split("/")[-1])
                 remote_author["display_name"] = remote_author["displayName"]
                 remote_author["username"] = remote_author["displayName"]
 
-                if not Author.objects.filter(fqid=remote_author["fqid"]).exists():
-                    Author.objects.create(
-                        id = remote_author["id"],
-                        username=remote_author["displayName"],
-                        fqid=remote_author["fqid"],
-                        display_name=remote_author["displayName"],
-                        host=node.host,
-                        is_approved=False
-                    )    
-                authors.append(remote_author)
-
+                remote_author_obj, _  = Author.objects.get_or_create(
+                fqid=remote_author["fqid"],
+                defaults={
+                    "username": remote_author["displayName"],
+                    "display_name": remote_author["displayName"],
+                    "host": node.host,
+                    "is_approved": False,
+                    "user": None,  # no associated Django user
+                    "profile_image": remote_author["profileImage"]
+                }
+                )  
+                if remote_author_obj not in authors:
+                    authors.append(remote_author_obj)
 
     return render(request, "social_distribution/all_authors.html", {"authors": authors})
 
@@ -721,6 +756,7 @@ def view_friends(request):
     return render(request, "social_distribution/friends.html", {"friends": friends})
 
 @api_view(['GET', 'DELETE', 'PUT'])
+@rate_limit(max_requests=10, time_window=60)
 def posts_detail(request, author_id, post_id):
     """
     GET [local, remote] get the public post whose serial is POST_ID
@@ -746,9 +782,9 @@ def posts_detail(request, author_id, post_id):
             except Author.DoesNotExist:
                 return Response({"detail": "Authentication required."}, status=403)
             # Must be mutual friends.
-            if (requesting_author not in author.following.all() or
-                    author not in requesting_author.following.all()):
-                return Response({"detail": "You are not friends with the author."}, status=403)
+            if requesting_author != author:
+                 if (requesting_author not in author.following.all() or author not in requesting_author.following.all()):
+                     return Response({"detail": "You are not friends with the author."}, status=403)
         serializer = PostSerializer(post)
         return Response(serializer.data)
     
@@ -771,6 +807,7 @@ def posts_detail(request, author_id, post_id):
         return Response(serializer.errors, status=400)
 
 @api_view(['GET'])
+@rate_limit(max_requests=10, time_window=60)
 def get_post_by_fqid(request, post_fqid):
     """
     GET [remote] get the public post whose URL is POST_FQID
@@ -800,6 +837,7 @@ def get_post_by_fqid(request, post_fqid):
     return Response(serializer.data)
 
 @api_view(['GET',"POST"])
+@rate_limit(max_requests=10, time_window=60)
 def author_posts(request, author_id):
     """
     GET [local, remote] get the recent posts from author AUTHOR_ID (paginated)
@@ -833,8 +871,20 @@ def author_posts(request, author_id):
             else:
                 # Not mutual friends: show only public posts.
                 posts = posts.filter(visibility='PUBLIC')
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
+
+        page_number = int(request.GET.get("page", 1))
+        size = int(request.GET.get("size", 10))
+        paginator = Paginator(posts, size)
+        page_obj = paginator.get_page(page_number)
+        serializer = PostSerializer(page_obj, many=True)
+        result = {
+            "type": "posts",
+            "page_number": page_number,
+            "size": size,
+            "count": paginator.count,
+            "src": serializer.data,
+        }
+        return Response(result)
     
     elif request.method == "POST":
         author = get_object_or_404(Author, id=author_id)
@@ -862,6 +912,7 @@ def send_post_to_remote(request, author, post):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+@rate_limit(max_requests=10, time_window=60)
 def create_post(request, author_id):
     """
     POST [local] create a new post but generate a new ID
@@ -870,7 +921,40 @@ def create_post(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     if author.user != request.user:
         return Response(status=403)
-    serializer = PostSerializer(data=request.data, context={'author': author})
+    
+    
+    content = request.data.get("content", "")
+    media_file = request.FILES.get("media_file", None)
+
+    if media_file and content.strip():
+        error_message = "You cannot combine text and media in a single post. Please either enter text or upload media."
+        return render(
+            request,
+            "social_distribution/create_post.html",
+            {"errors": {"non_field_errors": [error_message]}}
+        )
+    
+    visibility = request.data.get("visibility", "PUBLIC")
+    content_type = request.data.get("content_type", "text/plain")
+    has_file = False
+    if media_file:
+        has_file = True
+        encoded_file = base64.b64encode(media_file.read()).decode("utf-8")
+        encoded_file = encoded_file.strip()
+        content = encoded_file
+        if media_file.content_type in ["image/png", "image/jpeg"]:
+            content_type = f"{media_file.content_type};base64"
+        else:
+            content_type = "application/base64"
+        post_data = {
+        "content_type": content_type,
+        "content": content,
+        "visibility": visibility
+        }
+        serializer = PostSerializer(data=post_data, context={"has_file": has_file})
+    else:
+        serializer = PostSerializer(data=request.data, context={"has_file": has_file})
+
     if serializer.is_valid():
         post = serializer.save(author=author)
 
@@ -878,9 +962,13 @@ def create_post(request, author_id):
         send_post_to_remote(request, author, post)
 
         return redirect("profile", author_id=author.id)
-    return render(request, "social_distribution/profile.html")
+    else:
+        return render(request, "social_distribution/create_post.html", {
+            "errors": serializer.errors
+        })
 
 @api_view(['GET'])
+@rate_limit(max_requests=10, time_window=60)
 def get_post_image(request, author_id, post_id):
     """
     GET [local]: get the public post converted to binary as an image.
@@ -891,11 +979,10 @@ def get_post_image(request, author_id, post_id):
     # Check DELETED visibility
     if post.visibility == "DELETED":
         return Response({"detail": "Post not found."}, status=403)
-
-    # Check if the post has an image
-    if not post.image:
+    
+    if post.content_type not in ["image/png;base64", "image/jpeg;base64", "application/base64"]:
         return Response({"detail": "Post does not have an image."}, status=404)
-
+    
     # FRIENDS-only visibility logic
     if post.visibility == 'FRIENDS':
         if not request.user.is_authenticated:
@@ -908,18 +995,26 @@ def get_post_image(request, author_id, post_id):
         if (requesting_author not in post.author.following.all() or
                 post.author not in requesting_author.following.all()):
             return Response({"detail": "You are not friends with the author."}, status=403)
+        
+    try:
+        binary_image_data = base64.b64decode(post.content)
+    except Exception:
+        return Response({"detail": "Error decoding image."}, status=400)
 
     # Dynamically detect image content type
-    mime_type, _ = mimetypes.guess_type(post.image.url)
-    if mime_type not in ["image/png", "image/jpeg"]:
-        return Response({"detail": "Not a valid image type."}, status=404)
-
-    with post.image.open('rb') as image_file:
-        binary_image_data = image_file.read()
+    if post.content_type == "image/png;base64":
+        mime_type = "image/png"
+    elif post.content_type == "image/jpeg;base64":
+        mime_type = "image/jpeg"
+    elif post.content_type == "application/base64":
+        mime_type = "application/octet-stream"
+    else:
+        mime_type = "application/octet-stream"
 
     return HttpResponse(binary_image_data, content_type=mime_type)
 
 @api_view(['GET'])
+@rate_limit(max_requests=10, time_window=60)
 def get_postimage_by_fqid(request, post_fqid):
     """
     GET [remote]: get the public post converted to binary as an image.
@@ -933,7 +1028,7 @@ def get_postimage_by_fqid(request, post_fqid):
         return Response({"detail": "Post not found."}, status=403)
 
     # Check if the post has an image
-    if not post.image:
+    if post.content_type not in ["image/png;base64", "image/jpeg;base64", "application/base64"]:
         return Response({"detail": "Post does not have an image."}, status=404)
 
     # FRIENDS-only visibility logic
@@ -948,20 +1043,28 @@ def get_postimage_by_fqid(request, post_fqid):
         if (requesting_author not in post.author.following.all() or
                 post.author not in requesting_author.following.all()):
             return Response({"detail": "You are not friends with the author."}, status=403)
+        
+    try:
+        binary_image_data = base64.b64decode(post.content)
+    except Exception:
+        return Response({"detail": "Error decoding image."}, status=400)
 
     # Dynamically detect image content type
-    mime_type, _ = mimetypes.guess_type(post.image.url)
-    if mime_type not in ["image/png", "image/jpeg"]:
-        return Response({"detail": "Not a valid image type."}, status=404)
-
-    with post.image.open('rb') as image_file:
-        binary_image_data = image_file.read()
+    if post.content_type == "image/png;base64":
+        mime_type = "image/png"
+    elif post.content_type == "image/jpeg;base64":
+        mime_type = "image/jpeg"
+    elif post.content_type == "application/base64":
+        mime_type = "application/octet-stream"
+    else:
+        mime_type = "application/octet-stream"
 
     return HttpResponse(binary_image_data, content_type=mime_type)
 
 # ================= NEW: Followers and Follow Request API Endpoints =================
 
 @api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
 def get_followers_api(request, author_id):
     """
     API: GET /api/authors/{author_id}/followers/
@@ -975,41 +1078,41 @@ def get_followers_api(request, author_id):
         "followers": serializer.data
     })
 
+def is_remote(request):
+    incoming_host = request.get_host()  # e.g., "[2605:fd00:4:1001:f816:3eff:fe2c:1382]"
+    expected_host = urlparse(settings.BASE_URL).netloc  # strips 'http://' and gives same format
+    return incoming_host != expected_host
 
 @api_view(["POST"])
-def inbox(request, id):
+@rate_limit(max_requests=10, time_window=60)
+def inbox(request, author_id):
     data = request.data
-    receiver = None
+    receiver = get_object_or_404(Author, id=author_id)
 
-    # Try treating id as UUID
-    try:
-        author_uuid = uuid.UUID(id)
-        receiver = get_object_or_404(Author, id=author_uuid)
+    # === FOLLOW REQUEST === 
+    if data.get("type") == "follow":
+        actor_data = data.get("actor")
+        if not actor_data:
+            return Response({"detail": "Missing actor data."}, status=400)
+        
+        sender_fqid = actor_data.get("id")
+        try:
+            sender = Author.objects.get(fqid=sender_fqid)
+        except Author.DoesNotExist:
+            return Response({"detail": "Sender author not found in database."}, status=404)
+        
+        follow_req, created = FollowRequest.objects.get_or_create(sender=sender, receiver=receiver, defaults={"status": "PENDING"})
 
-        # === FOLLOW REQUEST ===
-        if data.get("type") == "follow":
-            actor_data = data.get("actor")
-            if not actor_data:
-                return Response({"detail": "Missing actor data."}, status=400)
-            sender_id = actor_data.get("id")
-            try:
-                sender_uuid = uuid.UUID(sender_id.split("/")[-1])
-            except Exception:
-                try:
-                    sender_uuid = uuid.UUID(sender_id)
-                except Exception:
-                    return Response({"detail": "Invalid sender id."}, status=400)
-            sender = get_object_or_404(Author, id=sender_uuid)
-            follow_req, created = FollowRequest.objects.get_or_create(
-                sender=sender, receiver=receiver, defaults={"status": "PENDING"}
-            )
-            if created:
-                return Response({"detail": "Follow request created."}, status=201)
-            else:
-                return Response({"detail": "Follow request already exists."}, status=200)
+        if created:
+            return Response({"detail": "Follow request created."}, status=201)
+        else:
+            return Response({"detail": "Follow request already exists."}, status=200)
+
+    # Handles likes, comments from a local node
+    elif not is_remote(request):
 
         # === POST LIKE ===
-        elif data.get("type") == "like":
+        if data.get("type") == "like":
             actor_data = data.get("actor")
             if not actor_data:
                 return Response({"detail": "Missing actor data."}, status=400)
@@ -1035,8 +1138,9 @@ def inbox(request, id):
                 "post_url": post_url
             }
             return Response({"detail": "Like notification received.", "notification": notification}, status=201)
-
+        
         # === COMMENT ===
+        # Expected payload to include: type, actor, post_id, comment, published
         elif data.get("type") == "comment":
             actor_data = data.get("actor")
             if not actor_data:
@@ -1112,103 +1216,71 @@ def inbox(request, id):
 
         else:
             return Response({"detail": "Unsupported type for inbox."}, status=400)
-        # Else treat it as an FQID
-    except ValueError:
-        author_fqid = unquote(id)
-        receiver = get_object_or_404(Author, fqid=author_fqid)
+        
+    # Handles posts, likes and comments from a remote node
+    elif is_remote(request): 
 
-        # === FOLLOW REQUEST ===
-        if data.get("type") == "follow":
-            actor_data = data.get("author")
-            if not actor_data:
-                return Response({"detail": "Missing actor data."}, status=400)
-
-            sender_fqid = actor_data.get("id")
-            try:
-                sender = Author.objects.get(fqid=sender_fqid)
-            except Author.DoesNotExist:
-                return Response({"detail": "Sender author not found in database."}, status=404)
-
-            follow_req, created = FollowRequest.objects.get_or_create(
-                sender=sender, receiver=receiver, defaults={"status": "PENDING"}
-            )
-
-            notification = {
-                "type": "follow_notification",
-                "author": AuthorSerializer(sender).data,
-            }
-
-            return Response(
-                {"detail": "Follow request created." if created else "Follow request already exists.", "notification": notification},
-                status=201 if created else 200
-            )
-
-        # === LIKE (POST or COMMENT) ===
-        elif data.get("type") == "like":
-            actor_data = data.get("author")
-            if not actor_data:
+        # === LIKE  ===
+        if data.get("type") == "like":
+            author_data = data.get("author")
+            if not author_data:
                 return Response({"detail": "Missing author data."}, status=400)
-
-            sender_fqid = actor_data.get("id")
+            
+            sender_fqid = author_data.get("id")
             try:
                 sender = Author.objects.get(fqid=sender_fqid)
             except Author.DoesNotExist:
                 return Response({"detail": "Sender author not found in database."}, status=404)
-
+            
             object_fqid = data.get("object")
             if not object_fqid:
                 return Response({"detail": "Missing object field."}, status=400)
-
+            
             like_fqid = data.get("id")
             published = data.get("published")
             parsed = urlparse(object_fqid)
             object_path = parsed.path
 
+            # === COMMENT LIKE  ===
             if "/commented/" in object_path:
-                # CommentLike — store it silently
                 try:
                     comment = Comment.objects.get(fqid=object_fqid)
-                    CommentLike.objects.get_or_create(
-                        object=comment,
-                        author=sender,
-                        defaults={"published": parse_datetime(published), "fqid": like_fqid}
-                    )
+                    Clike, created = CommentLike.objects.get_or_create(fqid=like_fqid,defaults={"object": comment,"author": sender,"published": parse_datetime(published)})
+                    if not created:
+                        Clike.delete()
+                        return Response({"detail": "Comment like removed."}, status=200)
+                    return Response({"detail": "Comment like stored."}, status=201)
                 except Comment.DoesNotExist:
                     return Response({"detail": "Target comment not found."}, status=404)
-
-                return Response({"detail": "Comment like stored."}, status=201)
-
+                
+            # === POST LIKE  ===
             elif "/posts/" in object_path:
-                # PostLike — store + notify
                 try:
                     post = Post.objects.get(fqid=object_fqid)
-                    PostLike.objects.get_or_create(
-                        object=post,
-                        author=sender,
-                        defaults={"published": parse_datetime(published), "fqid": like_fqid}
-                    )
+                    Plike, created = PostLike.objects.get_or_create(fqid=like_fqid,defaults={"object": post,"author": sender,"published": parse_datetime(published)})
+                    if not created:
+                        Plike.delete()
+                        return Response({"detail": "Post like removed."}, status=200)
+                    post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
+                    notification = { 
+                        "type": "like_notification",
+                        "author": AuthorSerializer(sender).data,
+                        "published": published,
+                        "post_url": post_url
+                    }
+                    return Response({"detail": "Post like stored.", "notification": notification}, status=201)
                 except Post.DoesNotExist:
                     return Response({"detail": "Target post not found."}, status=404)
-
-                post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
-                notification = {
-                    "type": "like_notification",
-                    "author": AuthorSerializer(sender).data,
-                    "published": published,
-                    "post_url": post_url
-                }
-                return Response({"detail": "Post like stored.", "notification": notification}, status=201)
-
             else:
                 return Response({"detail": "Unrecognized object type for like."}, status=400)
-
-        # === COMMENT ===
-        elif data.get("type") == "comment":
-            actor_data = data.get("author")
-            if not actor_data:
+            
+        # === COMMENT  === 
+        elif data.get("type")=="comment":
+            author_data = data.get("author")
+            if not author_data:
                 return Response({"detail": "Missing author data."}, status=400)
 
-            sender_fqid = actor_data.get("id")
+            sender_fqid = author_data.get("id")
             try:
                 sender = Author.objects.get(fqid=sender_fqid)
             except Author.DoesNotExist:
@@ -1219,49 +1291,42 @@ def inbox(request, id):
                 return Response({"detail": "Missing post field."}, status=400)
 
             comment_text = data.get("comment")
+            content_type = data.get("contentType")
             published = data.get("published")
-            content_type = data.get("contentType", "text/plain")
             comment_fqid = data.get("id")
 
             if not comment_text or not comment_fqid:
-                return Response({"detail": "Missing comment text or comment id."}, status=400)
+                return Response({"detail": "Missing comment text or comment fqid."}, status=400)
 
             try:
                 post = Post.objects.get(fqid=post_fqid)
+                comment, created = Comment.objects.get_or_create(
+                    fqid=comment_fqid,
+                    defaults={"post": post,"author": sender, "comment": comment_text, 'content_type': content_type, 'published': parse_datetime(published)})
             except Post.DoesNotExist:
                 return Response({"detail": "Target post not found."}, status=404)
-
-            comment = Comment.objects.create(
-                post=post,
-                author=sender,
-                comment=comment_text,
-                content_type=content_type,
-                published=parse_datetime(published) if published else None,
-                fqid=comment_fqid
-            )
-
-            # Handle embedded comment likes (stored silently)
+            
+            # Handles embedded comment likes 
             likes_data = data.get("likes", {}).get("src", [])
             for like in likes_data:
                 like_author_data = like.get("author")
                 if not like_author_data:
                     continue
                 liker_fqid = like_author_data.get("id")
-                try:
-                    liker = Author.objects.get(fqid=liker_fqid)
-                except Author.DoesNotExist:
-                    continue  # Skip this like if the liker isn't known
-                CommentLike.objects.get_or_create(
-                    object=comment,
-                    author=liker,
+                liker, _ = Author.objects.get_or_create(
+                    fqid=liker_fqid,
                     defaults={
-                        "published": parse_datetime(like.get("published")),
-                        "fqid": like.get("id")
-                    }
-                )
+                        "host": like_author_data.get("host"),
+                        "username": like_author_data.get("displayName"),
+                        "display_name": like_author_data.get("displayName"),
+                        "profile_image": like_author_data.get("profileImage"),
+                        "is_approved": False,
+                        "user": None,
+                        })
+                Clike = CommentLike.objects.get_or_create(fqid=like.get("id"),defaults={"object": comment,"author": liker,"published": parse_datetime(like.get("published"))})[0]
 
-            post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
-            notification = {
+            post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/" 
+            notification = { 
                 "type": "comment_notification",
                 "author": AuthorSerializer(sender).data,
                 "comment": comment.comment,
@@ -1269,14 +1334,159 @@ def inbox(request, id):
                 "post_url": post_url
             }
             return Response({"detail": "Comment and embedded likes stored.", "notification": notification}, status=201)
+        
+        # === POST  ===
+        elif data.get("type") == "post":
+            post_fqid = data.get("id")
+            author_data = data.get("author")
+            if not post_fqid or not author_data:
+                return Response({"detail": "Missing post ID or author data."}, status=400)
 
-        # === UNSUPPORTED TYPE ===
+            # Gets the author of the remote post from the database if it exists, otherwise creates a new one
+            author_fqid = author_data.get("id")
+            post_author, _ = Author.objects.get_or_create(
+                fqid=author_fqid,
+                defaults={
+                    "host": author_data.get("host"),
+                    "username": author_data.get("displayName"),
+                    "display_name": author_data.get("displayName"),
+                    "profile_image": author_data.get("profileImage"),
+                    "is_approved": False,
+                    "user": None,
+                })
+
+            # Gets the remote post from the database if it exists, creates a new one otherwise
+            post, created = Post.objects.get_or_create(
+                fqid=post_fqid,
+                defaults={
+                    "author": post_author,
+                    "content": data.get("content"),
+                    "content_type": data.get("contentType"),
+                    "visibility": data.get("visibility"),
+                    "created_at": parse_datetime(data.get("published"))
+                }
+            )
+
+            if not created:
+                updated = False
+                if post.content != data.get("content"):
+                    post.content = data.get("content")
+                    updated = True
+                if post.content_type != data.get("contentType"):
+                    post.content_type = data.get("contentType")
+                    updated = True
+                if post.visibility != data.get("visibility"):
+                    post.visibility = data.get("visibility")
+                    updated = True
+                if post.created_at != parse_datetime(data.get("published")):
+                    post.created_at = parse_datetime(data.get("published"))
+                    updated = True
+
+                if updated:
+                    post.save()
+
+            # Creates post like objects for a newly created remote post and updates post like objects for an existing remote post
+            likes_data = data.get("likes", {}).get("src", [])
+            incoming_like_fqids = set()
+
+            for like in likes_data:
+                like_fqid = like.get("id")
+                incoming_like_fqids.add(like_fqid)
+                like_author_data = like.get("author")
+                like_author, _ = Author.objects.get_or_create(
+                    fqid=like_author_data.get("id"),
+                    defaults={
+                        "host": like_author_data.get("host"),
+                        "username": like_author_data.get("displayName"),
+                        "display_name": like_author_data.get("displayName"),
+                        "profile_image": like_author_data.get("profileImage"),
+                        "is_approved": False,
+                        "user": None,
+                    })
+                
+                PostLike.objects.get_or_create(
+                    fqid=like_fqid,
+                    defaults={
+                        "object": post,
+                        "author": like_author,
+                        "published": parse_datetime(like.get("published")),
+                    })
+                
+            # Deletes any post likes associated with the remote post that are not in the incoming list 
+            PostLike.objects.filter(object=post).exclude(fqid__in=incoming_like_fqids).delete()
+
+
+            # Creates comment objects + comment likes for a newly created remote post and updates comment objects + comment likes for an existing remote post
+            comments_data = data.get("comments", {}).get("src", [])
+            incoming_comment_fqids = set()
+
+            for comment_data in comments_data:
+                comment_fqid = comment_data.get("id")
+                incoming_comment_fqids.add(comment_fqid)
+                comment_author_data = comment_data.get("author")
+                comment_author, _ = Author.objects.get_or_create(
+                    fqid=comment_author_data.get("id"),
+                    defaults={
+                        "host": comment_author_data.get("host"),
+                        "username": comment_author_data.get("displayName"),
+                        "display_name": comment_author_data.get("displayName"),
+                        "profile_image": comment_author_data.get("profileImage"),
+                        "is_approved": False,
+                        "user": None,
+                    })
+
+                comment, _ = Comment.objects.get_or_create(
+                    fqid=comment_fqid,
+                    defaults={
+                        "post": post,
+                        "author": comment_author,
+                        "comment": comment_data.get("comment"),
+                        "content_type": comment_data.get("contentType"),
+                        "published": parse_datetime(comment_data.get("published")),
+                    })
+
+                # Handle likes on the comment
+                comment_likes = comment_data.get("likes", {}).get("src", [])
+                comment_like_fqids = set()
+                for like in comment_likes:
+                    like_fqid = like.get("id")
+                    comment_like_fqids.add(like_fqid)
+                    like_author_data = like.get("author")
+                    liker, _ = Author.objects.get_or_create(
+                        fqid=like_author_data.get("id"),
+                        defaults={
+                            "host": like_author_data.get("host"),
+                            "username": like_author_data.get("displayName"),
+                            "display_name": like_author_data.get("displayName"),
+                            "profile_image": like_author_data.get("profileImage"),
+                            "is_approved": False,
+                            "user": None,
+                        })
+                    
+                    CommentLike.objects.get_or_create(
+                        fqid=like_fqid,
+                        defaults={
+                            "object": comment,
+                            "author": liker,
+                            "published": parse_datetime(like.get("published")),
+                        })
+
+                # Delete any comment likes associated with the remote comment that are not in the incoming list
+                CommentLike.objects.filter(object=comment).exclude(fqid__in=comment_like_fqids).delete()
+
+            # Delete any comments associated with the remote post that are not in the incoming list
+            Comment.objects.filter(post=post).exclude(fqid__in=incoming_comment_fqids).delete()
+            return Response({"detail": "Post and associated objects processed."}, status=201 if created else 200)
+
         else:
-            return Response({"detail": f"Unsupported object type: {data.get('type')}"}, status=400)
-
+            return Response({"detail": "Unsupported type for inbox."}, status=400)
+    else:
+        return Response({"detail": "Unsupported request."}, status=400)
+            
     
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
+@rate_limit(max_requests=10, time_window=60)
 def modify_follower_api(request, author_id, foreign_author_encoded=None):
     """
     API endpoint to get, add, or remove a follower for the given author.
@@ -1345,6 +1555,7 @@ def modify_follower_api(request, author_id, foreign_author_encoded=None):
 
 
 @api_view(["POST"])
+@rate_limit(max_requests=10, time_window=60)
 def api_send_follow_request(request, author_id):
     """
     API: send a follow request to the author with id=author_id.
@@ -1370,6 +1581,7 @@ def api_send_follow_request(request, author_id):
 
 # ========================== COMMENTS ==========================
 @api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
 def get_comments(request, post_id, author_id=None):
     '''
     API: returns all comments for a post in the form of a "comments" object
@@ -1405,6 +1617,7 @@ def get_comments(request, post_id, author_id=None):
     return Response(comments_data)
 
 @api_view(["GET", "POST"])
+@rate_limit(max_requests=10, time_window=60)
 def commented(request, author_id):
     '''
     API: returns all comments made by an author, or allows an author to post a comment
@@ -1436,6 +1649,7 @@ def commented(request, author_id):
         return Response(serializer.data)
 
 @api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
 def get_comment(request, comment_id, author_id=None, post_id=None):
     '''
     API: returns a specific comment
@@ -1462,6 +1676,7 @@ def get_comment(request, comment_id, author_id=None, post_id=None):
 
 # ========================== LIKES ==========================
 @api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
 def get_post_likes(request, post_id, author_id=None):
     '''
     API: returns all likes for a post
@@ -1501,6 +1716,7 @@ def get_post_likes(request, post_id, author_id=None):
     return Response(likes_data)
 
 @api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
 def get_comment_likes(request, author_id, post_id, comment_id):
     '''
     API: returns all likes for a comment
@@ -1537,6 +1753,7 @@ def get_comment_likes(request, author_id, post_id, comment_id):
     return Response(likes_data)
 
 @api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
 def get_author_liked(request, author_id):
     '''
     API: returns all likes made by an author
@@ -1572,6 +1789,7 @@ def get_author_liked(request, author_id):
     return Response(likes_data)
 
 @api_view(["GET"])
+@rate_limit(max_requests=10, time_window=60)
 def get_like(request, like_id, author_id=None):
     '''
     API: returns a specific like
@@ -1603,6 +1821,7 @@ def get_like(request, like_id, author_id=None):
     return Response(serializer.data)
 
 @api_view(["POST"])
+@rate_limit(max_requests=10, time_window=60)
 def like_post(request, author_id, post_id):
     '''
     API: allows an author to like a post
@@ -1629,6 +1848,7 @@ def like_post(request, author_id, post_id):
     return Response({"like_count": like_count}, status=201)
 
 @api_view(["POST"])
+@rate_limit(max_requests=10, time_window=60)
 def like_comment(request, author_id, comment_id):
     '''
     API: allows an author to like a comment
