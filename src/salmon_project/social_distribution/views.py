@@ -1134,23 +1134,6 @@ def send_object(object_data, host, author_fqid):
 @authentication_classes([])
 @rate_limit(max_requests=10, time_window=60)
 def inbox(request, author_id):
-    # Authenticate with basic auth
-    if "HTTP_AUTHORIZATION" not in request.META:
-        return Response("Unauthorized", status=401)
-    
-    auth = request.META["HTTP_AUTHORIZATION"].split()
-
-    if len(auth) != 2 or auth[0] != "Basic":
-        return Response("Unauthorized", status=401)
-    
-    username, password = base64.b64decode(auth[1]).decode().split(":")
-
-    node_info = NodeInfo.objects.all().first()
-    if not node_info:
-        return Response("Node info not found.", status=404)
-    if node_info.username != username or node_info.password != password:
-        return Response("Unauthorized", status=401)
-
     data = request.data
     receiver = get_object_or_404(Author, id=author_id)
 
@@ -1284,6 +1267,22 @@ def inbox(request, author_id):
         
     # Handles posts, likes and comments from a remote node
     elif is_remote(request): 
+        # Authenticate with basic auth
+        if "HTTP_AUTHORIZATION" not in request.META:
+            return Response("Unauthorized", status=401)
+        
+        auth = request.META["HTTP_AUTHORIZATION"].split()
+
+        if len(auth) != 2 or auth[0] != "Basic":
+            return Response("Unauthorized", status=401)
+        
+        username, password = base64.b64decode(auth[1]).decode().split(":")
+
+        node_info = NodeInfo.objects.all().first()
+        if not node_info:
+            return Response("Node info not found.", status=404)
+        if node_info.username != username or node_info.password != password:
+            return Response("Unauthorized", status=401)
 
         # === LIKE  ===
         if data.get("type") == "like":
