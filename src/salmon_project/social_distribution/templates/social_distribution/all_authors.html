@@ -11,10 +11,11 @@
             {# Wrap the display name in a hyperlink to the author's profile #}
             <h3><a href="{{ author.page }}"><div class="author-name">{{ author.display_name }}</a></h3>  {# NEW: Link added #}
             
-            <p>Username: {{ author.username }}</p>
-
+                
             {% if author.host != user.author.host %}
                 <p>Remote: {{ author.host }}</p>
+            {% else %}
+                <p>Username: {{ author.username }}</p>
             {% endif %}
 
             {# Check if the current user is logged in and is not viewing their own profile #}

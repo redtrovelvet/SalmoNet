@@ -1106,8 +1106,8 @@ def get_followers_api(request, author_id):
     })
 
 def is_remote(request):
-    incoming_host = request.get_host()  # e.g., "[2605:fd00:4:1001:f816:3eff:fe2c:1382]"
-    expected_host = urlparse(settings.BASE_URL).netloc  # strips 'http://' and gives same format
+    incoming_host = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+)", request.data.get("id")).group(0)  # e.g., "http://[2605:fd00:4:1001:f816:3eff:fe2c:1382]"
+    expected_host = settings.BASE_URL
     return incoming_host != expected_host
 
 def send_object(object_data, host, author_fqid):
@@ -1227,7 +1227,7 @@ def inbox(request, author_id):
 
             # Iterate through fields
             data_dict = {}
-            for field in ["title", "id", "page", "description", "content_type", "content", "author", "comments", "likes", "published", "visibility"]:
+            for field in ["title", "id", "page", "description", "contentType", "content", "author", "comments", "likes", "published", "visibility"]:
                 field_data = data.get(field)
                 if not field_data:
                     return Response({"detail": "Missing %s" % field}, status=400)
@@ -1745,6 +1745,11 @@ def commented(request, author_id):
                 if response.status_code != 201:
                     Comment.objects.filter(fqid=comment_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to post author."}, status=500)
+            
+            else:
+                # Send the comment to the inbox of the post author
+                post = get_object_or_404(Post, id=post_id)
+                send_post_to_remote(request, post.author, post)
 
             return Response(serializer.data, status=201)
         return Response(status=400, data=serializer.errors)
@@ -1980,7 +1985,10 @@ def like_post(request, author_id, post_id):
                 if response.status_code not in [201, 200]:
                     PostLike.objects.filter(fqid=like_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to post author."}, status=500)
-
+            else:
+                # Send the updated post object to inboxes
+                post = Post.objects.get(fqid=post_id)
+                send_post_to_remote(request, post.author, post)
 
         else:
             return Response(status=400, data={"error": serializer.errors})
@@ -2039,6 +2047,14 @@ def like_comment(request, author_id, comment_id):
                 if response.status_code not in [201, 200]:
                     CommentLike.objects.filter(fqid=like_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to comment author."}, status=500)
+            else:
+                # Send the updated comment object to inboxes
+                comment = Comment.objects.get(fqid=comment_id)
+                post = Post.objects.get(id=comment.post_id)
+                if comment.host == post.host:
+                    send_post_to_remote(request, post.author, post)
+                else:
+                    send_object(CommentSerializer(comment).data, comment.author.host, comment.author.fqid)
 
         else:
             return Response(status=400, data={"error": serializer.errors})
