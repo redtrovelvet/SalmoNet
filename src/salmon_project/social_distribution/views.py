@@ -1329,6 +1329,9 @@ def inbox(request, author_id):
                         # send the updated post object to inboxes
                         send_post_to_remote(request, post.author, post)
                         return Response({"detail": "Post like removed."}, status=200)
+
+                    # send the updated post object to inboxes
+                    send_post_to_remote(request, post.author, post)
                     post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
                     notification = { 
                         "type": "like_notification",
