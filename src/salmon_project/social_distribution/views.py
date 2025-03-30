@@ -1631,6 +1631,9 @@ def search_authors(request):
     page_number = request.GET.get("page", 1)
     page_obj = paginator.get_page(page_number)
     
+    for author in page_obj:
+        author.page = f"/authors/{author.id}/"
+        
     context = {
         'page_obj': page_obj,  # Use the paginated object in the template
         'message': message,
