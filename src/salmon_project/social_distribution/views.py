@@ -487,7 +487,7 @@ def get_authors(request):
 '''
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=100, time_window=60)
 def get_authors(request):
     """
     API: returns all authors on this local node
@@ -506,7 +506,6 @@ def get_authors(request):
     })
 
 @api_view(["GET", "PUT"])
-@rate_limit(max_requests=1000, time_window=60)
 def author_details(request, author_id):
     '''
     API: returns specific author profiile
@@ -527,7 +526,6 @@ def author_details(request, author_id):
         return Response(serializer.errors, status=400)
     
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
 def fqid_author_details(request, author_fqid):
     '''
     API: returns specific author detaisl using fqid.
@@ -774,7 +772,6 @@ def view_friends(request):
     return render(request, "social_distribution/friends.html", {"friends": friends})
 
 @api_view(['GET', 'DELETE', 'PUT'])
-@rate_limit(max_requests=1000, time_window=60)
 def posts_detail(request, author_id, post_id):
     """
     GET [local, remote] get the public post whose serial is POST_ID
@@ -825,7 +822,6 @@ def posts_detail(request, author_id, post_id):
         return Response(serializer.errors, status=400)
 
 @api_view(['GET'])
-@rate_limit(max_requests=1000, time_window=60)
 def get_post_by_fqid(request, post_fqid):
     """
     GET [remote] get the public post whose URL is POST_FQID
@@ -855,7 +851,6 @@ def get_post_by_fqid(request, post_fqid):
     return Response(serializer.data)
 
 @api_view(['GET',"POST"])
-@rate_limit(max_requests=1000, time_window=60)
 def author_posts(request, author_id):
     """
     GET [local, remote] get the recent posts from author AUTHOR_ID (paginated)
@@ -995,7 +990,6 @@ def create_post(request, author_id):
         })
 
 @api_view(['GET'])
-@rate_limit(max_requests=1000, time_window=60)
 def get_post_image(request, author_id, post_id):
     """
     GET [local]: get the public post converted to binary as an image.
@@ -1041,7 +1035,6 @@ def get_post_image(request, author_id, post_id):
     return HttpResponse(binary_image_data, content_type=mime_type)
 
 @api_view(['GET'])
-@rate_limit(max_requests=1000, time_window=60)
 def get_postimage_by_fqid(request, post_fqid):
     """
     GET [remote]: get the public post converted to binary as an image.
@@ -1106,8 +1099,8 @@ def get_followers_api(request, author_id):
     })
 
 def is_remote(request):
-    incoming_host = request.get_host()  # e.g., "[2605:fd00:4:1001:f816:3eff:fe2c:1382]"
-    expected_host = urlparse(settings.BASE_URL).netloc  # strips 'http://' and gives same format
+    incoming_host = re.search(r"(http[s]?://[a-zA-Z0-9\[\]:.-]+)", request.data.get("id")).group(0)  # e.g., "http://[2605:fd00:4:1001:f816:3eff:fe2c:1382]"
+    expected_host = settings.BASE_URL
     return incoming_host != expected_host
 
 def send_object(object_data, host, author_fqid):
@@ -1132,7 +1125,6 @@ def send_object(object_data, host, author_fqid):
 
 @api_view(["POST"])
 @authentication_classes([])
-@rate_limit(max_requests=10, time_window=60)
 @rate_limit(max_requests=1000, time_window=60)
 def inbox(request, author_id):
     data = request.data
@@ -1227,7 +1219,7 @@ def inbox(request, author_id):
 
             # Iterate through fields
             data_dict = {}
-            for field in ["title", "id", "page", "description", "content_type", "content", "author", "comments", "likes", "published", "visibility"]:
+            for field in ["title", "id", "page", "description", "contentType", "content", "author", "comments", "likes", "published", "visibility"]:
                 field_data = data.get(field)
                 if not field_data:
                     return Response({"detail": "Missing %s" % field}, status=400)
@@ -1566,7 +1558,6 @@ def inbox(request, author_id):
     
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
-@rate_limit(max_requests=1000, time_window=60)
 def modify_follower_api(request, author_id, foreign_author_encoded=None):
     """
     API endpoint to get, add, or remove a follower for the given author.
@@ -1745,6 +1736,11 @@ def commented(request, author_id):
                 if response.status_code != 201:
                     Comment.objects.filter(fqid=comment_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to post author."}, status=500)
+            
+            else:
+                # Send the comment to the inbox of the post author
+                post = get_object_or_404(Post, id=post_id)
+                send_post_to_remote(request, post.author, post)
 
             return Response(serializer.data, status=201)
         return Response(status=400, data=serializer.errors)
@@ -1980,7 +1976,10 @@ def like_post(request, author_id, post_id):
                 if response.status_code not in [201, 200]:
                     PostLike.objects.filter(fqid=like_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to post author."}, status=500)
-
+            else:
+                # Send the updated post object to inboxes
+                post = Post.objects.get(fqid=post_id)
+                send_post_to_remote(request, post.author, post)
 
         else:
             return Response(status=400, data={"error": serializer.errors})
@@ -2039,6 +2038,14 @@ def like_comment(request, author_id, comment_id):
                 if response.status_code not in [201, 200]:
                     CommentLike.objects.filter(fqid=like_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to comment author."}, status=500)
+            else:
+                # Send the updated comment object to inboxes
+                comment = Comment.objects.get(fqid=comment_id)
+                post = Post.objects.get(id=comment.post_id)
+                if comment.host == post.host:
+                    send_post_to_remote(request, post.author, post)
+                else:
+                    send_object(CommentSerializer(comment).data, comment.author.host, comment.author.fqid)
 
         else:
             return Response(status=400, data={"error": serializer.errors})
