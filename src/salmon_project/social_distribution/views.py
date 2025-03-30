@@ -915,12 +915,21 @@ def author_posts(request, author_id):
         return Response(serializer.errors, status=400)
            
 def send_post_to_remote(request, author, post):
-    for target_author in Author.objects.filter(following=author):
+    for target_author in Author.objects.filter(following=author).exclude(host=settings.BASE_URL):
         try:
             if post.visibility == "FRIENDS" and not author.is_friends_with(target_author):
                 continue
-            remote_inbox_url = f"{target_author.host}/api/authors/{target_author.id}/inbox/"
-            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10)
+            
+            remote_node = RemoteNode.objects.filter(host=target_author.host).first()
+            if not remote_node:
+                messages.error(request, f"Remote node not found for {target_author.display_name}.")
+                continue
+            if not remote_node.username or not remote_node.password:
+                messages.error(request, f"Remote node credentials are missing for {target_author.display_name}.")
+                continue
+
+            remote_inbox_url = f"{target_author.fqid}/inbox/"
+            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10, auth=(remote_node.username, remote_node.password))
             if response.status_code in [200, 201]:
                 messages.success(request, f"Post sent to remote follower {target_author.display_name}.")
             else:
@@ -1100,6 +1109,26 @@ def is_remote(request):
     incoming_host = request.get_host()  # e.g., "[2605:fd00:4:1001:f816:3eff:fe2c:1382]"
     expected_host = urlparse(settings.BASE_URL).netloc  # strips 'http://' and gives same format
     return incoming_host != expected_host
+
+def send_object(object_data, host, author_fqid):
+    """
+    Send object data to the remote node.
+    """
+    remote_node = RemoteNode.objects.filter(host=host).first()
+
+    if not remote_node:
+        return Response("No outgoing connection to remote node.", status=404)
+    if not remote_node.username or not remote_node.password:
+        return Response("Remote node credentials are missing.", status=401)
+    
+    # Send the object to the remote node's inbox
+    
+    inbox_url = f"{author_fqid}/inbox/"
+    try:
+        response = requests.post(inbox_url, json=object_data, timeout=10, auth=(remote_node.username, remote_node.password))
+        return response
+    except requests.exceptions.RequestException as e:
+        return Response(f"Error sending object: {str(e)}", status=500)
 
 @api_view(["POST"])
 @authentication_classes([])
@@ -1282,9 +1311,18 @@ def inbox(request, author_id):
                 try:
                     comment = Comment.objects.get(fqid=object_fqid)
                     Clike, created = CommentLike.objects.get_or_create(fqid=like_fqid,defaults={"object": comment,"author": sender,"published": parse_datetime(published)})
+                    comment_data = CommentSerializer(comment).data
                     if not created:
                         Clike.delete()
+                        # send new comment object to inbox
+                        if comment.post.author.host != settings.BASE_URL:
+                            # send the object to the remote node's inbox
+                            send_object(comment_data, comment.post.author.host, comment.post.author.fqid)
                         return Response({"detail": "Comment like removed."}, status=200)
+                    
+                    if comment.post.author.host != settings.BASE_URL:
+                        # send the object to the remote node's inbox
+                        send_object(comment_data, comment.post.author.host, comment.post.author.fqid)
                     return Response({"detail": "Comment like stored."}, status=201)
                 except Comment.DoesNotExist:
                     return Response({"detail": "Target comment not found."}, status=404)
@@ -1296,6 +1334,8 @@ def inbox(request, author_id):
                     Plike, created = PostLike.objects.get_or_create(fqid=like_fqid,defaults={"object": post,"author": sender,"published": parse_datetime(published)})
                     if not created:
                         Plike.delete()
+                        # send the updated post object to inboxes
+                        send_post_to_remote(request, post.author, post)
                         return Response({"detail": "Post like removed."}, status=200)
                     post_url = f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/"
                     notification = { 
@@ -1369,6 +1409,10 @@ def inbox(request, author_id):
                 "published": comment.published,
                 "post_url": post_url
             }
+
+            # Send the updated post object to inboxes
+            send_post_to_remote(request, post.author, post)
+
             return Response({"detail": "Comment and embedded likes stored.", "notification": notification}, status=201)
         
         # === POST  ===
