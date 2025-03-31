@@ -137,6 +137,20 @@
             </form>
         {% endif %}
         </div>
+
+        {% if user.is_authenticated and user.author.id == author.id %}
+            <div class="post-actions">
+                <!-- Dropdown for Edit/Delete options -->
+                <div class="dropdown">
+                    <button class="dropdown-toggle">&#8942;</button>
+                    <div class="dropdown-menu">
+                        <a href="{% url 'edit_post' author.id post.id %}">Edit</a>
+                        <a href="{% url 'delete_post_local' author.id post.id %}">Delete</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
         
         <!-- Comment Section (initially hidden, slides down) -->
         <div class="comment-section">
