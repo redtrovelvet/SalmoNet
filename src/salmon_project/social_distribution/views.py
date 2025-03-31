@@ -669,14 +669,15 @@ def all_authors(request):
                     "profile_image": remote_author["profileImage"]
                 }
                 )  
-
+                remote_author_obj.page = f"/authors/{remote_author_obj.id}/"
+                
                 if not created:
                     remote_author_obj.username = remote_author["displayName"]
                     remote_author_obj.display_name = remote_author["displayName"]
                     remote_author_obj.host = node.host
                     remote_author_obj.profile_image = remote_author["profileImage"]
                     remote_author_obj.save()
-
+                
                 if remote_author_obj not in authors:
                     authors.append(remote_author_obj)
 
