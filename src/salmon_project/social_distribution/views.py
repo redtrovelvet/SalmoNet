@@ -115,17 +115,23 @@ def profile(request, author_id):
     except AttributeError:
         current_user = None
 
-    if current_user is not None and current_user.id == post_author.id:
-        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
-    elif current_user is not None and post_author.is_friends_with(current_user):
-        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
-    elif current_user is not None and post_author.is_following(current_user):
-        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "UNLISTED"]).order_by("-created_at")
-    else:
-        posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC"]).order_by("-created_at")        
+    filtered_posts = []
+    for post in posts:
+        if current_user is not None and current_user.id == post_author.id:
+            if post.visibility in ["PUBLIC", "FRIENDS", "UNLISTED"]:
+                filtered_posts.append(post)
+        elif current_user is not None and post_author.is_friends_with(current_user):
+            if post.visibility in ["PUBLIC", "FRIENDS", "UNLISTED"]:
+                filtered_posts.append(post)
+        elif current_user is not None and post_author.is_following(current_user):
+            if post.visibility in ["PUBLIC", "UNLISTED"]:
+                filtered_posts.append(post)
+        else:
+            if post.visibility == "PUBLIC":
+                filtered_posts.append(post)        
 
     # Serialize posts
-    serialized_posts = PostSerializer(posts, many=True).data.copy()
+    serialized_posts = PostSerializer(filtered_posts, many=True).data.copy()
 
     rendered_posts = []
     for i in range(len(serialized_posts)):
