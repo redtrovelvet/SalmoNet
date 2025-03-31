@@ -32,7 +32,7 @@
     {% if post.content_type == "text/plain" %}
         <div>{{ post.rendered_content }}</div>
     {% elif post.content_type == "text/markdown" %}
-        <div>{{ post.rendered_content|safe }}</div>
+      <div class="markdown-content">{{ post.rendered_content|safe }}</div>
     {% elif post.content_type == "image/png;base64" %}
         <img src="data:image/png;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
     {% elif post.content_type == "image/jpeg;base64" %}
