@@ -29,6 +29,7 @@ from urllib.parse import urlparse
 from django.core.cache import cache
 import base64
 from django.db.models import Q
+from datetime import datetime
 
 # Create your views here.
 def index(request):
@@ -103,6 +104,7 @@ def rate_limit(max_requests, time_window):
         return wrapper
     return decorator
 
+
 def profile(request, author_id):
     '''
     renders the profile page for an author
@@ -125,12 +127,34 @@ def profile(request, author_id):
         posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC"]).order_by("-created_at")        
 
     # Serialize posts
-    serialized_posts = PostSerializer(posts, many=True).data.copy()
+    local_posts = PostSerializer(posts, many=True).data
+
+    remote_posts = []
+    if post_author.host.rstrip('/') != settings.BASE_URL.rstrip('/'):
+        remote_url = f"{post_author.fqid}/posts/?size=100"
+        try:
+            r = requests.get(remote_url, timeout=10)
+            if r.status_code == 200:
+                remote_data = r.json()
+                remote_posts = remote_data.get("src", [])
+        except Exception as e:
+            print("Error fetching remote posts:", e)
+
+    combined_posts = local_posts + remote_posts
+
+    def get_date(post):
+        date_str = post.get("published") or post.get("createdAt")
+        try:
+            return datetime.fromisoformat(date_str)
+        except Exception:
+            return datetime.min
+
+    sorted_posts = sorted(combined_posts, key=get_date, reverse=True)
 
     rendered_posts = []
-    for i in range(len(serialized_posts)):
+    for i in range(len(sorted_posts)):
         p = posts[i]
-        sp = serialized_posts[i]
+        sp = sorted_posts[i]
         if p.content_type == "text/markdown":
             safe_content = p.content
         else:
