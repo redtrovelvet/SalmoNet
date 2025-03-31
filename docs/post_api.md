@@ -725,3 +725,73 @@ An HTTP response displaying the image from the image post with uuid = 123e4567-e
 
 ---
 
+### 8. **Get Image Post By FQID**
+
+#### **Endpoint**: `GET /api/posts/{POST_FQID}/image`
+
+#### **When to Use**
+
+- Use this endpoint to retrieve an image post converted to binary format.
+- It supports both local and remote requests.
+- Returns a 404 Not Found if the specified post is not an image.
+
+#### **How to Use**
+
+- Send a `GET` request to the endpoint with the `POST_FQID` in the URL.
+- The returned binary data is suitable for rendering in image tags, or for proxying/caching purposes.
+
+#### **Why to Use**
+
+- To fetch the actual image data of a post when the post represents an image.
+- Useful for displaying images embedded in Markdown or in client applications.
+
+#### **Request**
+
+- **URL Parameters**:
+  - `POST_FQID`: Fully qualified ID (FQID) of the image post (e.g., `http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174004`).
+
+#### **Response**
+
+- **Status Code**: `200 OK` (success), `403 Forbidden` (friends-only post without authentication), `404 Not Found` (post not found).
+
+#### **Examples**
+
+- **Public Post**:
+
+```bash
+  curl -X GET http://127.0.0.1:8000/api/posts/http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174004/image/
+```
+Response:
+An HTTP response displaying the image from the image post with FQID = http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174004 
+
+- **Friends-Only Post (Unauthenticated)**:
+
+```bash
+  curl -X GET http://127.0.0.1:8000/api/posts/http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174005/image/
+```
+
+  - If user is not logged in:
+  Response:
+
+```json
+  {
+    "detail": "Authentication required."
+  }
+```
+
+  - If user is not a friend:
+  Response:
+
+```json
+  {
+    "detail": "You are not friends with the author."
+  }
+```
+
+  - If user is a friend:
+  Response:
+
+An HTTP response displaying the image from the image post with FQID = http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174005
+
+
+---
