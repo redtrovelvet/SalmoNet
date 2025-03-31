@@ -136,6 +136,20 @@ class PostingTests(APITestCase):
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         self.assertTrue(Post.objects.filter(content="New Post").exists())
+
+    # NEW
+    def test_create_post_unauthorized(self):
+        """
+        Test POST /api/authors/{AUTHOR_ID}/posts/ with unauthorized user.
+        """
+        url = reverse("create_post", args=[self.author.id])
+        data = {
+            "content": "New Post",
+            "visibility": "PUBLIC"
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(Post.objects.filter(content="New Post").exists())
         
     def test_delete_post(self):
         """
@@ -179,6 +193,7 @@ class PostingTests(APITestCase):
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    # CHANGE
     def test_get_post_by_fqid(self):
         """
         Test GET /api/posts/{POST_FQID}/ to get a post by its fully qualified ID.
@@ -186,7 +201,7 @@ class PostingTests(APITestCase):
         url = reverse("get_post_by_fqid", args=[self.public_post.fqid])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["content"], "This is a public post.") # type:ignore
+        self.assertEqual(response.data["content"], "This is a public post.") 
         
     def test_get_author_posts(self):
         """
@@ -195,7 +210,7 @@ class PostingTests(APITestCase):
         url = reverse("author_posts", args=[self.author.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["src"]), 2)  # Two public posts # type:ignore
+        self.assertEqual(len(response.data["src"]), 2)  # Two public posts 
 
     def test_get_author_posts_authenticated(self):
         """
@@ -205,7 +220,18 @@ class PostingTests(APITestCase):
         url = reverse("author_posts", args=[self.author.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["src"]), 3) # Two public posts and one friends-only post # type:ignore
+        self.assertEqual(len(response.data["src"]), 3) # Two public posts and one friends-only post
+
+    # NEW
+    def test_get_author_posts_as_friend(self):
+        """
+        Test GET /api/authors/{AUTHOR_ID}/posts/ with authenticated friend.
+        """
+        self.client.force_authenticate(user=self.friend_user)
+        url = reverse("author_posts", args=[self.author.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["src"]), 3) # Two public posts and one friends-only post
         
     def test_get_post_image(self):
         """
@@ -221,6 +247,25 @@ class PostingTests(APITestCase):
         Test GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/image/ for a non-image post.
         """
         url = reverse("get_post_image", args=[self.author.id, self.public_post.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    # NEW
+    def test_get_post_by_fqid(self):
+        """
+        Test GET /api/posts/{POST_FQID}/image/ to get a post by its fully qualified ID.
+        """
+        url = reverse("get_postimage_by_fqid", args=[self.image_post.fqid])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response["Content-Type"], "image/jpeg")
+    
+    # NEW
+    def test_get_post_by_fqid_not_found(self):
+        """
+        Test GET /api/posts/{POST_FQID}/image/ for a non-image post.
+        """
+        url = reverse("get_postimage_by_fqid", args=[self.public_post.fqid])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

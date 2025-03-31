@@ -906,6 +906,8 @@ def get_post_by_fqid(request, post_fqid):
     serializer = PostSerializer(post)
     return Response(serializer.data)
 
+@permission_classes([IsAuthenticated])
+@rate_limit(max_requests=1000, time_window=60)
 @api_view(['GET',"POST"])
 def author_posts(request, author_id):
     """
