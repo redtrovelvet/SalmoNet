@@ -9,4 +9,6 @@ nav:
     - Commented: commented_api.md
     - Likes: likes_api.md
     - Liked: liked_api.md
+    - Inbox: inbox_api.md
+    - Node Management: node_management_api.md
 theme: readthedocs
