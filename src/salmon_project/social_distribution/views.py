@@ -167,7 +167,7 @@ def profile(request, author_id):
 
         rendered_posts.append({
             "id": sp["id"],
-            "author": sp["author"]
+            "author": sp["author"],
             "raw_content": sp["content"],
             "rendered_content": html_content,
             "content_type": sp["content_type"],
