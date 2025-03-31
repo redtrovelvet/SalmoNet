@@ -296,3 +296,127 @@ Request: POST http://127.0.0.1:8000/api/authors/111/inbox/
 
 ---
 
+### 4. Send a Comment:
+
+**Endpoint:** `POST /api/authors/{AUTHOR_ID}/inbox/`
+
+#### **When to Use**
+Use this endpoint when an an author wants to send a comment to a post created by author with author uuid = {AUTHOR_ID}. This is typically used for node-to-node communication.
+
+#### **How to Use**
+Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the author whose post the comment is being made on. The body should be a JSON object representing the comment.
+
+#### **Why to Use**
+ - Use this endpoint when implementing node to node functionality for sending a comment to a post.
+
+ #### **Request**
+
+- **URL Parameters**:
+  - `AUTHOR_ID`: UUID of the target author whose post is being commented on (e.g., `222`).
+
+- **Body**:
+
+```json
+{
+    "type":"comment",
+    "author":{
+        "type":"author",
+        "id":"http://nodeaaaa/api/authors/111",
+        "page":"http://nodeaaaa/authors/greg",
+        "host":"http://nodeaaaa/api/",
+        "displayName":"Greg Johnson",
+        "github": "http://github.com/gjohnson",
+        "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+    },
+    "comment":"Sick Olde English",
+    "contentType":"text/markdown",
+    "published":"2015-03-09T13:07:04+00:00",
+    "id": "http://nodeaaaa/api/authors/111/commented/130",
+    "post": "http://nodebbbb/api/authors/222/posts/249",
+    "likes":{
+        "type":"likes",
+        "page":"http://nodeaaaa/authors/222/posts/249",
+        "id":"http://nodeaaaa/api/authors/111/commented/130/likes",
+        "page_number":1,
+        "size":50,
+        "count": 9001,
+        "src":[
+            {
+                "type":"like",
+                "author":{
+                    "type":"author",
+                    "id":"http://nodebbbb/api/authors/222",
+                    "host":"http://nodebbbb/api/",
+                    "displayName":"Lara Croft",
+                    "page":"http://nodebbbb/authors/222",
+                    "github": "http://github.com/laracroft",
+                    "profileImage": "http://nodebbbb/api/authors/222/posts/217/image"
+                },
+                "published":"2015-03-09T13:07:04+00:00",
+                "id": "http://nodeaaaa/api/authors/222/liked/255",
+                "object": "http://nodeaaaa/api/authors/111/commented/130"
+            }
+        ]
+    },
+}
+```
+
+- **Status Code**: `401 Unauthorized` (Request from an unauthorized node), `201 Created` (Comment & likes successfully created), `400 Bad Request` (Missing author/post/comment text/comment fqid data in POST body and if object type for like is neither a post or comment), `404 Not Found` (Target post/ sender not found in database)
+
+
+#### Example:
+Request: POST http://127.0.0.1:8000/api/authors/222/inbox/
+
+
+#### **Response** 
+
+- If an unauthorized node sends the request:
+```json
+  {
+    "detail": "Unauthorized"
+  }
+```
+
+- If author information is missing in the POST body:
+```json
+  {
+    "detail": "Missing author data."
+  }
+```
+
+- If comment text/ comment fqid is missing in the POST body:
+```json
+  {
+    "detail": "Missing comment text or comment fqid."
+  }
+```
+
+- If post information is missing in the POST body:
+```json
+  {
+    "detail": "Missing post field."
+  }
+```
+
+- If target post is not found in the database:
+```json
+  {
+    "detail": "Target post not found."
+  }
+```
+
+- If author (sender of the request) is not found in the database:
+```json
+  {
+    "detail": "Sender author not found in database."
+  }
+```
+
+- If comment and its associated comment likes are not in the database and are successfully created:
+```json
+  {
+    "detail": "Comment and embedded likes stored."
+  }
+```
+
+---
