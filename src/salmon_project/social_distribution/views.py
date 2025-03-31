@@ -136,12 +136,13 @@ def profile(request, author_id):
             r = requests.get(remote_url, timeout=10)
             if r.status_code == 200:
                 remote_data = r.json()
+                # Expect remote posts to be in a field "src"
                 remote_posts = remote_data.get("src", [])
         except Exception as e:
             print("Error fetching remote posts:", e)
 
     combined_posts = local_posts + remote_posts
-
+    
     def get_date(post):
         date_str = post.get("published") or post.get("createdAt")
         try:
