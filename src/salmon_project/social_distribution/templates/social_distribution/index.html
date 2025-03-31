@@ -30,22 +30,22 @@
         </p>
       </div>
       
-      <!-- Main content container for the rest of the post -->
-      <div class="main-content">
-        {% if post.text %}
-          <div>{{ post.text|safe }}</div>
-        {% endif %}
-        
-        {% if post.image %}
-          <img src="{{ post.image.url }}" alt="Post Image" class="post-image">
-        {% endif %}
-        
-        {% if post.video %}
-          <video class="post-video" controls>
-            <source src="{{ post.video.url }}" type="video/mp4">
-            Your browser does not support the video tag.
-          </video>
-        {% endif %}
+      {% if post.content_type == "text/plain" %}
+        <div>{{ post.rendered_content }}</div>
+      {% elif post.content_type == "text/markdown" %}
+      <div class="markdown-content">{{ post.rendered_content|safe }}</div>
+      {% elif post.content_type == "image/png;base64" %}
+        <img src="data:image/png;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
+      {% elif post.content_type == "image/jpeg;base64" %}
+        <img src="data:image/jpeg;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
+      {% elif post.content_type == "application/base64" %}
+        <video class="post-application" controls>
+          <source src="data:application/base64,{{ post.raw_content }}" type="video/mp4">
+          Your browser does not support the application tag.
+        </video>
+      {% else %}
+      <div>{{ post.content }}</div>
+      {% endif %}
         
         <p class="post-meta">Posted on {{ post.created_at }}</p>
         

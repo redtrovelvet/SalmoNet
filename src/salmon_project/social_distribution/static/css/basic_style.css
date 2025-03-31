@@ -619,4 +619,9 @@ h2 {
   width: 100%;
 }
 
-
+.markdown-content img {
+  max-width: 100%; 
+  height: auto; 
+  display: block; 
+  margin: 15px 0; 
+}

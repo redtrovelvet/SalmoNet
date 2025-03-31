@@ -29,7 +29,7 @@ class CommentTests(TestCase):
         self.post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Test Post",
+            content="Test Post",
             visibility="PUBLIC"
         )
 
@@ -193,7 +193,7 @@ class LikeTests(TestCase):
         self.post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Test Post",
+            content="Test Post",
             visibility="PUBLIC"
         )
 

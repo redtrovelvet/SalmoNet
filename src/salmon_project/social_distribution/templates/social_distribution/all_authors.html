@@ -27,7 +27,11 @@
                             <div class="author-name hover-effect">{{ author.display_name }}</div>
                         </a>
                     </h3>
-                    <p>Username: {{ author.username }}</p>
+                    {% if author.host != user.author.host %}
+                        <p>Remote: {{ author.host }}</p>
+                    {% else %}
+                        <p>Username: {{ author.username }}</p>
+                    {% endif %}
                 </div>
                 <div class="author-actions">
                     {% if user.is_authenticated and user.author != author %}

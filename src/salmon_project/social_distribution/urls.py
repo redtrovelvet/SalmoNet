@@ -17,6 +17,7 @@ urlpatterns = [
     path("api/connect/", views.connect_node, name="connect_node"),
     path("api/add_remote_node/", views.add_remote_node, name="add_remote_node"),
     path("api/remove_connection/", views.remove_connection, name="remove_connection"),
+    path("api/connect_external/", views.connect_external, name="connect_external"),
 
     # Extra User-Facing Views (from following/friend branch)
     path("authors/", views.all_authors, name="all_authors"),
@@ -32,6 +33,7 @@ urlpatterns = [
     
     # Authors API
     path("api/authors/", views.get_authors, name="get_authors"),
+    path("api/authors", views.get_authors, name="get_authors"),
 
     # Single Author API
     path("api/authors/<uuid:author_id>/", views.author_details, name="author_details"),
@@ -45,7 +47,7 @@ urlpatterns = [
 
 
     # Inbox API (used for follow requests in our API)
-    re_path(r"^api/authors/(?P<id>.+)/inbox/$", views.inbox, name="inbox"),
+    re_path(r"^api/authors/(?P<author_id>[^/]+)/inbox/?$", views.inbox, name="inbox"),
   
 
 

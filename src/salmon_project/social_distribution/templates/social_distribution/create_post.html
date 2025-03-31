@@ -18,20 +18,13 @@
 
         <!-- Text area for either plain text or markdown -->
         <div>
-            <label for="text">Text:</label>
-            <textarea name="text" id="text" rows="5" cols="40"></textarea>
+            <label for="content">Content:</label>
+            <textarea name="content" id="content" rows="5" cols="40"></textarea>
         </div>
-
-        <!-- Optional image upload (kept) -->
+        
         <div>
-            <label for="image">Image:</label>
-            <input type="file" name="image" id="image">
-        </div>
-
-        <!-- Optional video upload (kept) -->
-        <div>
-            <label for="video">Video:</label>
-            <input type="file" name="video" id="video">
+            <label for="media_file">Upload Media (optional):</label>
+            <input type="file" name="media_file" id="media_file" accept="image/*,application/*">
         </div>
 
         <!-- Visibility -->
@@ -46,5 +39,16 @@
         
         <button type="submit">Create Post</button>
     </form>
+
+    {% if errors %}
+        <div style="color:red;">
+            <p>Could not create post. Please fix the following errors:</p>
+            <ul>
+            {% for field, msgs in errors.items %}
+                <li><strong>{{ field }}:</strong> {{ msgs }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

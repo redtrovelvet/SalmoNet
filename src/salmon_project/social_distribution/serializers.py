@@ -26,7 +26,7 @@ class AuthorSerializer(serializers.Serializer):
         """
         returns full API URL for the author
         """
-        return f"{obj.host}/api/authors/{obj.id}"
+        return f"{obj.fqid}"
     
     def create(self, validated_data):
         """
@@ -53,9 +53,10 @@ class AuthorSerializer(serializers.Serializer):
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         base_host = instance.host.rstrip('/')
-        representation["id"] = f"{base_host}/api/authors/{instance.id}"
-        representation["host"] = f"{base_host}/api/"
+        representation["id"] = instance.fqid
+        representation["host"] = f"{instance.host}/api/"
         representation["page"] = f"{base_host}/authors/{instance.id}"
+        representation["profile_image"] = f"{base_host}/media/{instance.profile_image}"
         representation.pop("username", None)
         return {snake_to_camel(key): value for key, value in representation.items()}
 
@@ -80,8 +81,8 @@ class CommentLikeSerializer(serializers.Serializer):
 
         # Add the fields to the representation in the correct format
         representation["author"] = AuthorSerializer(instance.author).data
-        representation["id"] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
-        representation["object"] = f"{host}/api/authors/{instance.object.author.id}/commented/{instance.object.id}"
+        representation["id"] = instance.fqid
+        representation["object"] = f"{instance.object.fqid}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
     def to_internal_value(self, data):
@@ -122,15 +123,15 @@ class CommentSerializer(serializers.Serializer):
         host = settings.BASE_URL
 
         representation["author"] = AuthorSerializer(instance.author).data
-        representation["id"] = f"{host}/api/authors/{instance.author.id}/commented/{instance.id}"
-        representation["post"] = f"{host}/api/authors/{instance.post.author.id}/posts/{instance.post.id}"
+        representation["id"] = instance.fqid
+        representation["post"] = f"{instance.post.fqid}"
         representation["page"] = f"{host}/authors/{instance.post.author.id}/posts/{instance.post.id}"
         likes = CommentLike.objects.filter(object=instance.id)
         serialized_likes = CommentLikeSerializer(likes, many=True).data
         likes_data = {
             "type": "likes",
             "page": f"{host}/authors/{instance.author.id}/comments/{instance.id}",
-            "id": f"{host}/api/authors/{instance.author.id}/commented/{instance.id}/likes",
+            "id": f"{instance.fqid}/likes",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_likes), 50),
             "count": len(serialized_likes),
@@ -174,8 +175,8 @@ class PostLikeSerializer(serializers.Serializer):
 
         # Add the fields to the representation in the correct format
         representation["author"] = AuthorSerializer(instance.author).data
-        representation["id"] = f"{host}/api/authors/{instance.author.id}/liked/{instance.id}"
-        representation["object"] = f"{host}/api/authors/{instance.object.author.id}/posts/{instance.object.id}"
+        representation["id"] = instance.fqid
+        representation["object"] = f"{instance.object.fqid}"
         return {snake_to_camel(key): value for key, value in representation.items()}
     
     def to_internal_value(self, data):
@@ -189,12 +190,13 @@ class PostSerializer(serializers.ModelSerializer):
     likes = LikesListSerializer(read_only=True)
     class Meta:
         model = Post
-        fields = ["type", "id", "author", "text", "image", "video", "content_type", "visibility", "created_at", "updated_at", "comments", "likes"]
+        fields = ["type", "id", "author", "content", "content_type", "visibility", "created_at", "updated_at", "comments", "likes"]
         read_only_fields = ["type", "id", "author", "created_at", "updated_at", "comments", "likes"]
 
     def validate(self, attrs):
-        if "text" not in attrs and "image" not in attrs and "video" not in attrs:
-            raise serializers.ValidationError("A post must contain text, image, or video.")
+        has_file = self.context.get("has_file", False)
+        if not has_file and (not attrs.get("content")):
+            raise serializers.ValidationError("A post must contain text or an uploaded file.")
         return attrs
     
     def create(self, validated_data):
@@ -207,14 +209,34 @@ class PostSerializer(serializers.ModelSerializer):
         """
         returns full API URL for the author
         """
-        return f"{obj.author.host}/api/authors/{obj.author.id}/posts/{obj.id}"
+        return f"{obj.fqid}"
     
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        representation["id"] = self.get_id(instance)
-        representation["type"] = "post"
-        representation["author"] = AuthorSerializer(instance.author).data
-
+        ct = instance.content_type
+        if ct == "text/plain":
+            title = "plain text post"
+            description = "plain text post"
+        elif ct == "text/markdown":
+            title = "markdown post"
+            description = "markdown post"
+        elif ct in ["image/png;base64", "image/jpeg;base64", "application/base64"]:
+            title = "base64 post"
+            description = "base64 post"
+        else:
+            title = ""
+            description = ""
+        
+        representation = {
+            "type": "post",
+            "title": title,
+            "id": instance.fqid,
+            "page": f"{instance.author.host.rstrip('/')}/authors/{instance.author.id}/posts/{instance.id}",
+            "description": description,
+            "contentType": instance.content_type,
+            "content": instance.content,
+            "author": AuthorSerializer(instance.author).data,
+        }
 
         # Get the host
         host = settings.BASE_URL
@@ -224,7 +246,7 @@ class PostSerializer(serializers.ModelSerializer):
         comments_data = {
             "type": "comments",
             "page": f"{host}/authors/{instance.author.id}/posts/{instance.id}",
-            "id": f"{host}/api/authors/{instance.author.id}/posts/{instance.id}/comments",
+            "id": f"{instance.fqid}/comments",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_comments), 5),
             "count": len(serialized_comments),
@@ -236,11 +258,15 @@ class PostSerializer(serializers.ModelSerializer):
         likes_data = {
             "type": "likes",
             "page": f"{host}/authors/{instance.author.id}/posts/{instance.id}",
-            "id": f"{host}/api/authors/{instance.author.id}/posts/{instance.id}/likes",
+            "id": f"{instance.fqid}/likes",
             "page_number": 1, # TODO: make this number variable
             "size": min(len(serialized_likes), 50),
             "count": len(serialized_likes),
             "src": serialized_likes
         }
         representation["likes"] = LikesListSerializer(likes_data).data
+
+        representation["published"] = instance.created_at.isoformat()
+        representation["visibility"] = instance.visibility
+
         return {snake_to_camel(key): value for key, value in representation.items()}

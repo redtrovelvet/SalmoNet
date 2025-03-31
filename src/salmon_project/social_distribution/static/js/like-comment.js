@@ -13,7 +13,7 @@ function send_comment_like(event) {
     .then(response => response.json())
     .then(data => {
         const likeCount = this.closest(".comment").querySelector(".like-count");
-        likeCount.textContent = data.like_count;
+        likeCount.textContent = parseInt(likeCount.textContent) + data.like_count;
         this.closest(".comment").querySelector("button").classList.toggle("btn-liked");
     })
     .catch(error => {
@@ -36,7 +36,7 @@ function send_post_like(event) {
     .then(response => response.json())
     .then(data => {
         const likeCount = this.closest(".post").querySelector(".like-count");
-        likeCount.textContent = data.like_count;
+        likeCount.textContent = parseInt(likeCount.textContent) + data.like_count;
         this.closest(".post").querySelector("button").classList.toggle("btn-liked");
     })
     .catch(error => {

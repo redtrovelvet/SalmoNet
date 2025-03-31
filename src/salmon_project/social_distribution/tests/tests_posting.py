@@ -5,6 +5,7 @@ from social_distribution.models import Author, Post
 import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
+import base64
 
 class PostingTests(APITestCase):
     def setUp(self):
@@ -61,24 +62,23 @@ class PostingTests(APITestCase):
         self.public_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="This is a public post.",
+            content="This is a public post.",
             visibility="PUBLIC"
         )
 
         self.friends_only_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="This is a friends-only post.",
+            content="This is a friends-only post.",
             visibility="FRIENDS"
         )
 
         self.image_post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Test Image Post",
+            content=base64.b64encode(b"fake_image_data").decode("utf-8"),
             visibility="PUBLIC",
-            content_type="image/jpeg",
-            image=SimpleUploadedFile("test_image.jpg", b"fake_image_data", content_type="image/jpeg")
+            content_type="image/jpeg;base64"
         )
 
     def test_get_public_post(self):
@@ -89,7 +89,7 @@ class PostingTests(APITestCase):
         url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
         response = self.client.get(url)  # No authentication needed
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["text"], "This is a public post.")  # type:ignore
+        self.assertEqual(response.data["content"], "This is a public post.")  # type:ignore
 
     def test_get_friends_only_post_as_friend(self):
         """
@@ -100,7 +100,7 @@ class PostingTests(APITestCase):
         url = reverse("posts_detail", args=[self.author.id, self.friends_only_post.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["text"], "This is a friends-only post.") # type:ignore
+        self.assertEqual(response.data["content"], "This is a friends-only post.") # type:ignore
 
     def test_get_friends_only_post_as_non_friend(self):
         """
@@ -130,12 +130,12 @@ class PostingTests(APITestCase):
         self.client.force_authenticate(user=self.user) # type:ignore
         url = reverse("create_post", args=[self.author.id])
         data = {
-            "text": "New Post",
+            "content": "New Post",
             "visibility": "PUBLIC"
         }
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-        self.assertTrue(Post.objects.filter(text="New Post").exists())
+        self.assertTrue(Post.objects.filter(content="New Post").exists())
         
     def test_delete_post(self):
         """
@@ -163,11 +163,11 @@ class PostingTests(APITestCase):
         """
         self.client.force_authenticate(user=self.user) # type:ignore
         url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
-        data = {"text": "Edited Post"}
+        data = {"content": "Edited Post"}
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.public_post.refresh_from_db()
-        self.assertEqual(self.public_post.text, "Edited Post")
+        self.assertEqual(self.public_post.content, "Edited Post")
 
     def test_update_post_unauthorized(self):
         """
@@ -175,7 +175,7 @@ class PostingTests(APITestCase):
         """
         self.client.force_authenticate(user=self.non_friend_user) # type:ignore
         url = reverse("posts_detail", args=[self.author.id, self.public_post.id])
-        data = {"text": "Edited Post"}
+        data = {"content": "Edited Post"}
         response = self.client.put(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -186,7 +186,7 @@ class PostingTests(APITestCase):
         url = reverse("get_post_by_fqid", args=[self.public_post.fqid])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["text"], "This is a public post.") # type:ignore
+        self.assertEqual(response.data["content"], "This is a public post.") # type:ignore
         
     def test_get_author_posts(self):
         """
@@ -195,7 +195,7 @@ class PostingTests(APITestCase):
         url = reverse("author_posts", args=[self.author.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)  # Two public posts # type:ignore
+        self.assertEqual(len(response.data["src"]), 2)  # Two public posts # type:ignore
 
     def test_get_author_posts_authenticated(self):
         """
@@ -205,7 +205,7 @@ class PostingTests(APITestCase):
         url = reverse("author_posts", args=[self.author.id])
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 3) # Two public posts and one friends-only post # type:ignore
+        self.assertEqual(len(response.data["src"]), 3) # Two public posts and one friends-only post # type:ignore
         
     def test_get_post_image(self):
         """

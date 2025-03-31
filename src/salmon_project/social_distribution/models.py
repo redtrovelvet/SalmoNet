@@ -20,7 +20,7 @@ class Author(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="author", null=True, blank=True)
     #<END GENERATED></END>
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    username = models.CharField(max_length=100, unique=True)
+    username = models.CharField(max_length=100)
     fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     following = models.ManyToManyField('self', symmetrical=False, blank=True)
     display_name = models.CharField(max_length=100, default="Display Name")
@@ -56,19 +56,16 @@ class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     fqid = models.URLField(unique=True, editable=False, null=True, blank=True)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    text = models.TextField(null=True, blank=True)
-    image = models.ImageField(upload_to="images/", null=True, blank=True)
-    video = models.FileField(upload_to="videos/", null=True, blank=True,
-                             validators=[FileExtensionValidator(allowed_extensions=["mp4", "mov", "avi"])])
+    content = models.TextField(default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now_add=True)
 
     CONTENT_TYPE_CHOICES = [
         ("text/plain", "Plain Text"),
         ("text/markdown", "CommonMark"),
-        ("image/png", "PNG Image"),
-        ("image/jpeg", "JPEG Image"),
-        ("video/mp4", "MP4 Video"),
+        ("image/png;base64", "PNG Image (Base64)"),
+        ("image/jpeg;base64", "JPEG Image (Base64)"),
+        ("application/base64", "Base64 Data"),
     ]
     content_type = models.CharField(choices=CONTENT_TYPE_CHOICES, default="text/plain", max_length=100)
     
@@ -194,3 +191,5 @@ class RemoteNode(models.Model):
     host = models.URLField(unique=True)
     outgoing = models.BooleanField()
     incoming = models.BooleanField()
+    username = models.CharField(max_length=100, null=True, blank=True)
+    password = models.CharField(max_length=100, null=True, blank=True)
