@@ -361,7 +361,7 @@ Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} wi
 }
 ```
 
-- **Status Code**: `401 Unauthorized` (Request from an unauthorized node), `201 Created` (Comment & likes successfully created), `400 Bad Request` (Missing author/post/comment text/comment fqid data in POST body and if object type for like is neither a post or comment), `404 Not Found` (Target post/ sender not found in database)
+- **Status Code**: `401 Unauthorized` (Request from an unauthorized node), `201 Created` (Comment & likes successfully created), `400 Bad Request` (Missing author/post/comment text/comment fqid data in POST body), `404 Not Found` (Target post/ sender not found in database)
 
 
 #### Example:
@@ -416,6 +416,173 @@ Request: POST http://127.0.0.1:8000/api/authors/222/inbox/
 ```json
   {
     "detail": "Comment and embedded likes stored."
+  }
+```
+
+---
+
+### 5. Send a Post:
+
+**Endpoint:** `POST /api/authors/{AUTHOR_ID}/inbox/`
+
+#### **When to Use**
+Use this endpoint when an an author wants to send a post to an author with author uuid = {AUTHOR_ID}. This is typically used for node-to-node communication for sending posts to remote followers/friends.
+
+#### **How to Use**
+Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the author to who the post is being sent to. The body should be a JSON object representing the post.
+
+#### **Why to Use**
+ - Use this endpoint when implementing node to node functionality for sending a post to remote followes/friends.
+ - Also used to send a post to remote followers/friends after the post has been edited or deleted.
+
+ #### **Request**
+
+- **URL Parameters**:
+  - `AUTHOR_ID`: UUID of the target author who the post is being sent to (e.g., `222`).
+
+- **Body**:
+
+```json
+{
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://nodebbbb/api/authors/222/posts/249",
+    "page": "http://nodebbbb/authors/222/posts/293",
+    "description":"plain text post",
+
+    "contentType":"text/plain",
+    "content":"Test Post"
+    "author":{
+        "type":"author",
+        "id":"http://nodebbbb/api/authors/222",
+        "host":"http://nodebbbb/api/",
+        "displayName":"Lara Croft",
+        "page":"http://nodebbbb/authors/222",
+        "github": "http://github.com/laracroft",
+        "profileImage": "http://nodebbbb/api/authors/222/posts/217/image"
+    },
+    "comments":{
+        "type":"comments",
+        "page":"http://nodebbbb/authors/222/posts/249",
+        "id":"http://nodebbbb/api/authors/222/posts/249/comments"
+        "page_number":1,
+        "size":5,
+        "count": 1023,
+        "src":[
+            {
+                "type":"comment",
+                "author":{
+                    "type":"author",
+                    "id":"http://nodeaaaa/api/authors/111",
+                    "page":"http://nodeaaaa/authors/greg",
+                    "host":"http://nodeaaaa/api/",
+                    "displayName":"Greg Johnson",
+                    "github": "http://github.com/gjohnson",
+                    "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                },
+                "comment":"Sick Olde English",
+                "contentType":"text/markdown",
+                "published":"2015-03-09T13:07:04+00:00",
+                "id":"http://nodeaaaa/api/authors/111/commented/130",
+                "post": "http://nodebbbb/api/authors/222/posts/249",
+                "page": "http://nodebbbb/authors/222/posts/249"
+                "likes": {
+                    "type": "likes",
+                    "id": "http://nodeaaaa/api/authors/111/commented/130/likes",
+                    "page": "http://nodeaaaa/authors/greg/comments/130/likes",
+                    "page_number": 1,
+                    "size": 50,
+                    "count": 0,
+                    "src": [],
+                },
+            }
+        ]
+    },
+    "likes":{
+        "type":"likes",
+        "page":"http://nodeaaaa/authors/222/posts/249",
+        "id":"http://nodeaaaa/api/authors/222/posts/249/likes",
+        "page_number":1,
+        "size":50,
+        "count": 9001,
+        "src":[
+            {
+                "type":"like",
+                "author":{
+                    "type":"author",
+                    "id":"http://nodeaaaa/api/authors/111",
+                    "page":"http://nodeaaaa/authors/greg",
+                    "host":"http://nodeaaaa/api/",
+                    "displayName":"Greg Johnson",
+                    "github": "http://github.com/gjohnson",
+                    "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
+                },
+                "published":"2015-03-09T13:07:04+00:00",
+                "id":"http://nodeaaaa/api/authors/111/liked/166",
+                "object": "http://nodebbbb/authors/222/posts/249"
+            }
+        ]
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"PUBLIC"
+}
+```
+
+- **Status Code**: `401 Unauthorized` (Request from an unauthorized node), `201 Created` (Post and associated objects created/updated/deleted), `400 Bad Request` (Missing author data/post id in POST body and unsupported request/type for inbox)
+
+
+#### Example:
+Request: POST http://127.0.0.1:8000/api/authors/111/inbox/
+
+
+#### **Response** 
+
+- If an unauthorized node sends the request:
+```json
+  {
+    "detail": "Unauthorized"
+  }
+```
+
+- If author information/post id is missing in the POST body:
+```json
+  {
+    "detail": "Missing post ID or author data."
+  }
+```
+
+- If POST body does not contain an object of type Like, Comment, Post, Follow Request:
+```json
+  {
+    "detail": "Unsupported type for inbox."
+  }
+```
+
+If request is neither remote or local:
+```json
+  {
+    "detail": "Unsupported request."
+  }
+```
+
+- If the Post is created along with its associated objects - Comments, Post Likes, Comment Likes:
+```json
+  {
+    "detail": "Post and associated objects processed."
+  }
+```
+
+- If the Post and its associated objects are updated:
+```json
+  {
+    "detail": "Post and associated objects processed."
+  }
+```
+
+- If the Post and its associated objects are deleted (soft delete by changing visibility of post and deleting likes, comments):
+```json
+  {
+    "detail": "Post and associated objects processed."
   }
 ```
 
