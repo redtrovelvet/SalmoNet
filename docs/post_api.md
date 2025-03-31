@@ -83,6 +83,29 @@
 ```bash
   curl -X GET http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/
 ```
+Response:
+
+```json
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"PUBLIC"
+  }
 
 - **Friends-Only Post (Unauthenticated)**:
 
@@ -110,6 +133,29 @@
 
   - If user is a friend:
   Response:
+
+```json
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"PUBLIC"
+  }
+```
 
 ```json
     {
@@ -422,4 +468,186 @@
   curl -X POST http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/ -H "Authorization: Token <auth_token>" -H "Content-Type: application/json" -d '{"text": "New Post", "visibility": "PUBLIC"}'
 ```
 
+### 6. **Get a Specific Post by FQID**
+
+#### **Endpoint**: `GET /api/posts/{POST_FQID}/`
+
+#### **When to Use**
+
+- Use this endpoint to retrieve the details of a specific post by its FQID.
+
+#### **How to Use**
+
+- Send a `GET` request to the endpoint with the `POST_FQID` in the URL.
+- If the post is friends-only, the user must be authenticated.
+
+#### **Why to Use**
+
+- To fetch a single post for display or editing.
+- To verify the existence of a post.
+- To display the post without needing to separately supply the author's identifier.
+
+#### **Request**
+
+- **URL Parameters**:
+  - `POST_FQID`: Fully Qualified ID (FQID) of the post (e.g., `http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001`).
+
+#### **Response**
+
+- **Status Code**: `200 OK` (success), `403 Forbidden` (Authentication required.), `404 Not Found` (post not found).
+- **Body**:
+
+```json
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"PUBLIC"
+  }
+```
+
+```json
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post for Friends!",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"FRIENDS"
+  }
+```
+
+#### **Examples**
+
+- **Public Post**:
+
+```bash
+  curl -X GET http://127.0.0.1:8000/api/posts/http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/
+```
+Response:
+
+```json
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"PUBLIC"
+  }
+```
+
+
+- **Friends-Only Post (Unauthenticated)**:
+
+```bash
+  curl -X GET http://127.0.0.1:8000/api/posts/http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002/
+```
+
+  - If user is not logged in:
+  Response:
+
+```json
+  {
+    "detail": "Authentication required."
+  }
+```
+
+  - If user is not a friend:
+  Response:
+
+```json
+  {
+    "detail": "You are not friends with the author."
+  }
+```
+
+  - If user is a friend:
+  Response:
+
+```json
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"PUBLIC"
+  }
+```
+
+```json
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post for Friends!",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"FRIENDS"
+  }
+```
+
+---
 
