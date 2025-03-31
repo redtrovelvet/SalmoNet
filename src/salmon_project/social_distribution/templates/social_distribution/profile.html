@@ -8,7 +8,7 @@
 <div class="profile-container">
     <div class="profile-header">
         {% if author.profile_image %}
-            <img src="{{ author.profile_image.url }}" alt="Profile Picture" class="profile-pic" width="150">
+            <img src="{{ author.profile_image }}" alt="Profile Picture" class="profile-pic" width="150">
         {% else %}
             <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="profile-pic" width="150">
         {% endif %}
@@ -83,8 +83,8 @@
         <div class="post-header">
         <p>
             <a href="{% url 'profile' post.author.id %}" class="profile-link">
-            {% if post.author.profile_image and post.author.profile_image.url %}
-                <img src="{{ post.author.profile_image.url }}" alt="Profile Picture" class="avatar">
+            {% if post.author.profile_image %}
+                <img src="{{ post.author.profile_image }}" alt="Profile Picture" class="avatar">
             {% else %}
                 <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="avatar">
             {% endif %}
