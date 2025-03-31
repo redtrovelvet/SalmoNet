@@ -12,7 +12,7 @@ https://stackoverflow.com/questions/62124568/how-to-edit-users-profile-view-with
 <div class="content">
     <h1>Edit Your Profile</h1>
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post">
         {% csrf_token %}
         <div class="edit form-group">
             <label for="display_name">Display Name:</label>
@@ -26,7 +26,7 @@ https://stackoverflow.com/questions/62124568/how-to-edit-users-profile-view-with
 
         <div class="edit form-group">
             <label for="profile_image">Profile Image:</label>
-            <input type="file" id="profile_image" name="profile_image" accept="image/*">
+            <input type="url" id="profile_image" name="profile_image" value="{{ author.profile_image }}" placeholder="https://example.com/path/to/image.ext">
         </div>
 
         <button type="submit" class="edit">Save Changes</button>
