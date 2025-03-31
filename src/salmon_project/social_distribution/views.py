@@ -862,9 +862,10 @@ def posts_detail(request, author_id, post_id):
     elif request.method == "DELETE":
         # Only the author can delete their post.
         if author.user != request.user:
-            return Response(status=403)
+            return Response({"Authentication credentials were not provided."}, status=403)
         post.visibility = "DELETED"
         post.save()
+        return Response({"detail": "Post Deleted."}, status=204)
         return Response(status=204)
     
     elif request.method == "PUT":
@@ -906,6 +907,8 @@ def get_post_by_fqid(request, post_fqid):
     serializer = PostSerializer(post)
     return Response(serializer.data)
 
+@permission_classes([IsAuthenticated])
+@rate_limit(max_requests=1000, time_window=60)
 @api_view(['GET',"POST"])
 def author_posts(request, author_id):
     """
