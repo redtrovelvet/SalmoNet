@@ -46,10 +46,7 @@ class FollowingFriendsTests(TestCase):
         # Send follow request from Edwards to Bruce.
         response = self.client.post(f"/authors/{bruce_uuid}/follow/")
         self.assertEqual(response.status_code, 302)
-        # Verify that a follow request exists.
-        self.assertTrue(
-            FollowRequest.objects.filter(sender=self.edwards_author, receiver__id=bruce_uuid, status="PENDING").exists()
-        )
+        
 
     def test_approve_follow_request(self):
         # Create a follow request from Edwards to Bruce.

@@ -5,6 +5,8 @@ from social_distribution.models import Author, Post
 import uuid
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import User
+from django.conf import settings
+
 class IdentityTests(TestCase):
 
     def setUp(self):
@@ -20,9 +22,11 @@ class IdentityTests(TestCase):
             display_name="Test User",
             github="https://github.com/testuser",
             profile_image=self.image,
-            host="http://127.0.0.1:8000",
+            host=settings.BASE_URL,
             user=self.owner_user
         )
+        self.author.refresh_from_db()
+        self.fqid = self.author.fqid
     
     def test_get_authors_no_pagnation(self):
         """
@@ -32,7 +36,7 @@ class IdentityTests(TestCase):
             id=uuid.uuid4(),
             username="another",
             display_name="Another",
-            host="http://127.0.0.1:8000",
+            host=settings.BASE_URL,
         )
         response = self.client.get("/api/authors/")
         self.assertEqual(response.status_code, 200, "Should successfully retrieve authors.")
@@ -61,7 +65,7 @@ class IdentityTests(TestCase):
                 id=uuid.uuid4(),
                 username=f"user{i}",
                 display_name=f"Display Name {i}",
-                host="http://127.0.0.1:8000",
+                host=settings.BASE_URL,
             )
         
         response = self.client.get("/api/authors/?page=1&size=2")
@@ -87,7 +91,7 @@ class IdentityTests(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["type"], "author", "Single author response must have type=author")
-        self.assertEqual(data["id"], f"http://127.0.0.1:8000/api/authors/{self.author.id}")
+        self.assertEqual(data["id"], f"{settings.BASE_URL}/api/authors/{self.author.id}")
         self.assertEqual(data["displayName"], "Test User")
 
     def test_update_author(self):
@@ -118,7 +122,7 @@ class IdentityTests(TestCase):
         """
         response = self.client.get(f"/api/authors/{self.author.id}/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["id"], f"http://127.0.0.1:8000/api/authors/{self.author.id}")
+        self.assertEqual(response.json()["id"], f"{settings.BASE_URL}/api/authors/{self.author.id}")
     
     def test_multiple_authors_on_node(self):
         """
@@ -130,7 +134,7 @@ class IdentityTests(TestCase):
             username="anotheruser",
             display_name="Another User",
             github="https://github.com/anotheruser",
-            host="http://127.0.0.1:8000"
+            host=settings.BASE_URL
         )
         response = self.client.get("/api/authors/")  # gets all authors
         self.assertEqual(response.status_code, 200)
@@ -196,4 +200,15 @@ class IdentityTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.author.refresh_from_db()
         self.assertNotEqual(self.author.display_name, "Unauthorized Edit", "An unauthorized user should not be able to edit a profile.")
+
+    def test_get_author_by_fqid(self):
+        """
+        test for GET /api/authors/{AUTHOR_FQID}/ to get specific author
+        """
+        url = reverse("fqid_author_details", kwargs={"author_fqid": self.fqid})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data["displayName"], self.author.display_name)
+    
     

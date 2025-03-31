@@ -220,3 +220,66 @@ display_name (string): the display name of the author.<br />
 github (string, URL): author's github link.<br />
 profile_mage (string, URL): a link to the author's profile image.<br />
 page (string, URL): The HTML page to view this author’s public profile.<br />
+
+### 3.Get a Specific Author through Fqid
+
+**Endpoint:** 'GET /api/authors/{author_fqid}/'
+
+#### When the API endpoint should be used
+
+Use this endpoint when you need to retrieve details for a specific author by providing their fqid.
+This endpoint works for both local and remote authors; the FQID should be provided in a percent‑encoded format if it contains special characters.
+
+#### How the API endpoint should be used
+
+Send a GET request to '/api/authors/{author_fqid}/'.
+Replace {author_id} with the actual FQID of the author.
+
+#### Why the API endpoint should or should not be used
+
+- Use when you only have an author’s FQID and need to obtain their full details. Typically for authors of remote nodes
+- Don't use if have the local UUID of an author, then use GET '/api/authors/{author_id}/'
+
+#### 1st Example
+
+Request: GET <http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/api/authors/http://%5B2605:fd00:4:1001:f816:3eff:fe15:dafe%5D/api/authors/bf530b3d-fa9b-4bf6-a42a-e9a44a331fa2/>
+
+Response:  A JSON object representing the updated author's details:
+``` json
+{
+    "type": "author",
+    "id": "http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/api/authors/bf530b3d-fa9b-4bf6-a42a-e9a44a331fa2",
+    "host": "http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/api/",
+    "displayName": "git",
+    "github": "http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/authors/bf530b3d-fa9b-4bf6-a42a-e9a44a331fa2/edit/None",
+    "profileImage": "https://static.vecteezy.com/system/resources/thumbnails/028/126/843/small/close-up-of-blue-flowers-with-drops-of-water-on-dark-background-beautiful-macro-colorful-flowers-generative-ai-photo.jpg",
+    "page": "http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/authors/bf530b3d-fa9b-4bf6-a42a-e9a44a331fa2"
+}
+```
+
+#### 2nd Example
+
+Request: GET <http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/api/authors/http://%5B2605:fd00:4:1001:f816:3eff:fe15:dafe%5D/api/authors/873c326a-aea5-47dc-84f6-d91c0e0dfe06/>
+
+Response:  A JSON object representing the updated author's details:
+``` json
+{
+    "type": "author",
+    "id": "http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/api/authors/873c326a-aea5-47dc-84f6-d91c0e0dfe06",
+    "host": "http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/api/",
+    "displayName": "cat",
+    "github": null,
+    "profileImage": null,
+    "page": "http://[2605:fd00:4:1001:f816:3eff:fe15:dafe]/authors/873c326a-aea5-47dc-84f6-d91c0e0dfe06"
+}
+```
+
+#### Explantion of JSON Field
+
+type (string): always set to author because this object represents an author.<br />
+id (string, URL): the unique identifier of the author.<br />
+host (string, URL): url of the node where the author is.
+display_name (string): the display name of the author.<br />
+github (string, URL): author's github link.<br />
+profile_mage (string, URL): a link to the author's profile image.<br />
+page (string, URL): The HTML page to view this author’s public profile.<br />
