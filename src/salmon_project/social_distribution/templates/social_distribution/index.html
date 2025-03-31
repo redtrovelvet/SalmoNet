@@ -14,7 +14,7 @@
     <button class="tablink" onclick="filterPosts('friends', this)">Friends-Only</button>
   </div>
   {% for post in posts %}
-    <!-- Each post in its own block with margin, border, and padding -->
+    <!-- Each post block -->
     <div class="post" data-visibility="{{ post.visibility }}">
       
       <div class="post-header">
@@ -33,7 +33,7 @@
       {% if post.content_type == "text/plain" %}
         <div>{{ post.rendered_content }}</div>
       {% elif post.content_type == "text/markdown" %}
-      <div class="markdown-content">{{ post.rendered_content|safe }}</div>
+        <div class="markdown-content">{{ post.rendered_content|safe }}</div>
       {% elif post.content_type == "image/png;base64" %}
         <img src="data:image/png;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
       {% elif post.content_type == "image/jpeg;base64" %}
@@ -44,40 +44,36 @@
           Your browser does not support the application tag.
         </video>
       {% else %}
-      <div>{{ post.content }}</div>
+        <div>{{ post.content }}</div>
       {% endif %}
-        
-        <p class="post-meta">Posted on {{ post.created_at }}</p>
-        
-        {% if user.is_authenticated and author is not None %}
-          <form method="post" action="{% url 'like_post' author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ author.id }}">
-            {% csrf_token %}
-            <input type="hidden" name="type" value="like">
-            <!-- Like icon button -->
-            <button type="submit" class="like-icon-btn">
-              <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
-            </button>
-            <span class="like-text">Likes: <span class="like-count">{{ post.likes.count }}</span></span>
-            
-            {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
-              
-              <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/">
-                  <img src="{% static 'img/share.png' %}" alt="Share" class="share-icon">
-              </button>
-              <span class="share-text"><strong>Share Link</strong></span>
-            {% endif %}
-
-            
-            <button type="button" class="comment-icon-btn comment-toggle-btn">
-                <img src="{% static 'img/comment.png' %}" alt="Comment" class="comment-icon">
-            </button>
-            <span class="comment-text"><strong>Comments</strong></span>
-
-          </form>
-        {% endif %}
-      </div>
+          
+      <p class="post-meta">Posted on {{ post.created_at }}</p>
       
+      {% if user.is_authenticated and author is not None %}
+        <form method="post" action="{% url 'like_post' author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ author.id }}">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="like">
+          <!-- Like icon button -->
+          <button type="submit" class="like-icon-btn">
+            <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
+          </button>
+          <span class="like-text">Likes: <span class="like-count">{{ post.likes.count }}</span></span>
+          
+          {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
+            <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/">
+              <img src="{% static 'img/share.png' %}" alt="Share" class="share-icon">
+            </button>
+            <span class="share-text"><strong>Share Link</strong></span>
+          {% endif %}
+
+          <button type="button" class="comment-icon-btn comment-toggle-btn">
+            <img src="{% static 'img/comment.png' %}" alt="Comment" class="comment-icon">
+          </button>
+          <span class="comment-text"><strong>Comments</strong></span>
+        </form>
+      {% endif %}
       
+      <!-- Moved Comment Section inside .post -->
       <div class="comment-section">
         <h3>Comments</h3>
         <div class="comments">
@@ -115,9 +111,8 @@
         {% endif %}
       </div>
     </div>
-  
-  
-  {% endfor %}
+{% endfor %}
+
 </div> <!-- end all-posts container -->
 
 <!-- Show alert for failed post viewing -->
