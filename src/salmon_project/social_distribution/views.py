@@ -1610,7 +1610,7 @@ def inbox(request, author_id):
 
             # Delete any comments associated with the remote post that are not in the incoming list
             Comment.objects.filter(post=post).exclude(fqid__in=incoming_comment_fqids).delete()
-            return Response({"detail": "Post and associated objects processed."}, status=201 if created else 200)
+            return Response({"detail": "Post and associated objects processed."}, status=201)
 
         else:
             return Response({"detail": "Unsupported type for inbox."}, status=400)
