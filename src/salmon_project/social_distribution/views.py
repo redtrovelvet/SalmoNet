@@ -29,7 +29,6 @@ from urllib.parse import urlparse
 from django.core.cache import cache
 import base64
 from django.db.models import Q
-from datetime import datetime
 
 # Create your views here.
 def index(request):
@@ -104,7 +103,6 @@ def rate_limit(max_requests, time_window):
         return wrapper
     return decorator
 
-
 def profile(request, author_id):
     '''
     renders the profile page for an author
@@ -127,38 +125,17 @@ def profile(request, author_id):
         posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC"]).order_by("-created_at")        
 
     # Serialize posts
-    local_posts = PostSerializer(posts, many=True).data
-
-    remote_posts = []
-    if post_author.host.rstrip('/') != settings.BASE_URL.rstrip('/'):
-        remote_url = f"{post_author.fqid}/posts/?size=100"
-        try:
-            r = requests.get(remote_url, timeout=10)
-            if r.status_code == 200:
-                remote_data = r.json()
-                # Expect remote posts to be in a field "src"
-                remote_posts = remote_data.get("src", [])
-        except Exception as e:
-            print("Error fetching remote posts:", e)
-
-    combined_posts = local_posts + remote_posts
-
-    def get_date(post):
-        date_str = post.get("published") or post.get("created_at")
-        try:
-            return datetime.fromisoformat(date_str)
-        except Exception:
-            return datetime.min
-
-    sorted_posts = sorted(combined_posts, key=get_date, reverse=True)
+    serialized_posts = PostSerializer(posts, many=True).data.copy()
 
     rendered_posts = []
-    for sp in sorted_posts:
-        if sp["content_type"] == "text/markdown":
-            safe_content = sp["content"]
+    for i in range(len(serialized_posts)):
+        p = posts[i]
+        sp = serialized_posts[i]
+        if p.content_type == "text/markdown":
+            safe_content = p.content
         else:
-            safe_content = escape(sp["content"])
-        html_content = render_markdown_if_needed(safe_content, sp["content_type"])
+            safe_content = escape(p.content)
+        html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
         for comment in post_comments:
@@ -166,13 +143,13 @@ def profile(request, author_id):
             comments.append(comment)
 
         rendered_posts.append({
-            "id": sp["id"],
-            "author": sp["author"],
-            "raw_content": sp["content"],
+            "id": p.id,
+            "author": p.author,
+            "raw_content": p.content,      
             "rendered_content": html_content,
-            "content_type": sp["content_type"],
-            "visibility": sp["visibility"],
-            "created_at": sp.get("created_at") or sp.get("published"),
+            "content_type": p.content_type,
+            "visibility": p.visibility,
+            "created_at": p.created_at,
             "comments": comments,
             "likes": sp["likes"],
         })
