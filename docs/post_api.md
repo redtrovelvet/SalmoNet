@@ -31,18 +31,48 @@
 - **Body**:
 
 ```json
-  {
-    "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
-    "type": "post",
-    "author": {
-      "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
-      "displayName": "Test User",
-      "github": "https://github.com/testuser"
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
     },
-    "text": "Test Post",
-    "visibility": "PUBLIC",
-    "contentType": "text/plain",
-    "created_at": "2023-10-01T12:00:00Z"
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"PUBLIC"
+  }
+```
+
+```json
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post for Friends!",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"FRIENDS"
   }
 ```
 
@@ -82,18 +112,25 @@
   Response:
 
 ```json
-  {
-    "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
-    "type": "post",
-    "author": {
-      "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
-      "displayName": "Test User",
-      "github": "https://github.com/testuser"
+    {
+    "type":"post",
+    "title":"plain text post",
+    "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
+    "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
+    "description":"plain text post",
+    "contentType":"text/plain",
+    "content":"Test Post for Friends!",
+    "author":{
+        "type":"author",
+        "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+        "host":"http://127.0.0.1:8000/api/",
+        "displayName":"Test User",
+        "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+        "github": "https://github.com/testuser",
+        "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
     },
-    "text": "Test Post",
-    "visibility": "PUBLIC",
-    "contentType": "text/plain",
-    "created_at": "2023-10-01T12:00:00Z"
+    "published":"2015-03-09T13:07:04+00:00",
+    "visibility":"FRIENDS"
   }
 ```
 
@@ -115,7 +152,7 @@
 
 #### **Why to Use**
 
-- This endpoint soft-deletes the post by setting its visibility to "DELETED". The post is no longer visible but remains in the database for potential auditing or recovery.
+- This endpoint soft-deletes the post by setting its visibility to "DELETED". The post is no longer visible but remains in the database.
 
 #### **Request**
 
@@ -133,6 +170,14 @@
 
 ```bash
   curl -X DELETE http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/ -H "Authorization: Token <auth_token>"
+```
+
+ Response:
+
+```json
+  {
+    "detail": "Post Deleted."
+  }
 ```
 
 - **Unauthorized User**:
@@ -179,8 +224,7 @@
 
 ```json
   {
-    "text": "Updated Post",
-    "visibility": "PUBLIC"
+    "content": "Updated Post",
   }
 ```
 
@@ -192,8 +236,7 @@
 ```json
   {
     "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
-    "text": "Updated Post",
-    "visibility": "PUBLIC"
+    "content": "Updated Post",
   }
 ```
 
@@ -202,7 +245,7 @@
 - **Successful Update**:
 
 ```bash
-  curl -X PUT http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/ -H "Authorization: Token <auth_token>" -H "Content-Type: application/json" -d '{"text": "Updated Post"}'
+  curl -X PUT http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/ -H "Authorization: Token <auth_token>" -H "contentType: text/plain" -d '{"text": "Updated Post"}'
 ```
 
 - **Invalid Data**:
@@ -254,18 +297,43 @@
 
 ```json
   {
-    "type": "posts",
-    "items": [
-      {
-        "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
-        "text": "Test Post",
-        "visibility": "PUBLIC",
-        "created_at": "2023-10-01T12:00:00Z"
-      }
-    ],
-    "page": 1,
-    "size": 10,
-    "count": 1
+    "type":"posts",
+    "page_number":1,
+    "size":10,
+    "count": 9001,
+    "src":[
+        
+        {
+          "type":"post",
+          "title":"plain text post",
+          "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+          "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001",
+          "description":"plain text post",
+          "contentType":"text/plain",
+          "content":"Test Post",
+          "author":{
+              "type":"author",
+              "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+              "host":"http://127.0.0.1:8000/api/",
+              "displayName":"Test User",
+              "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+              "github": "https://github.com/testuser",
+              "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+          },
+          "published":"2015-03-09T13:07:04+00:00",
+          "visibility":"PUBLIC"
+        },
+        { "type":"post", /* ... the rest of the post object */ },
+        { "type":"post", /* ... the rest of the post object */ },
+        { "type":"post", /* ... the rest of the post object */ },
+        { "type":"post", /* ... the rest of the post object */ },
+        { "type":"post", /* ... the rest of the post object */ },
+        { "type":"post", /* ... the rest of the post object */ },
+        { "type":"post", /* ... the rest of the post object */ },
+        { "type":"post", /* ... the rest of the post object */ },
+        { "type":"post", /* ... the rest of the post object */ },
+    ]
+
   }
 ```
 
@@ -325,11 +393,24 @@
 
 ```json
   {
-    "id": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002",
-    "text": "New Post",
-    "visibility": "PUBLIC",
-    "contentType": "text/plain",
-    "created_at": "2023-10-01T12:00:00Z"
+  "type":"post",
+  "title":"plain text post",
+  "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174011",
+  "page": "http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174011",
+  "description":"plain text post",
+  "contentType":"text/plain",
+  "content":"New Post",
+  "author":{
+      "type":"author",
+      "id":"http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000",
+      "host":"http://127.0.0.1:8000/api/",
+      "displayName":"Test User",
+      "page":"http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000",
+      "github": "https://github.com/testuser",
+      "profileImage": "http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image"
+    },
+  "published":"2015-03-09T13:07:04+00:00",
+  "visibility":"PUBLIC"
   }
 ```
 
@@ -340,3 +421,5 @@
 ```bash
   curl -X POST http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/ -H "Authorization: Token <auth_token>" -H "Content-Type: application/json" -d '{"text": "New Post", "visibility": "PUBLIC"}'
 ```
+
+
