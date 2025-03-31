@@ -5,7 +5,7 @@
 **Endpoint:** `POST /api/authors/{AUTHOR_ID}/inbox/`
 
 #### **When to Use**
-Use this endpoint when an author (actor) wants to send a follow request to another author (object) via their inbox. This is typically used for node-to-node communication.
+Use this endpoint when an author (actor) wants to send a follow request to another author (object). This is typically used for node-to-node communication.
 
 #### **How to Use**
 Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the target author. The body should be a JSON object representing the follow request.
@@ -91,13 +91,13 @@ Request: POST http://127.0.0.1:8000/api/authors/222/inbox/
 **Endpoint:** `POST /api/authors/{AUTHOR_ID}/inbox/`
 
 #### **When to Use**
-Use this endpoint when an an author wants to send a like on a post (object) created by author with author uuid = {AUTHOR_ID} via their inbox. This endpoint is also used to unlike a post through the same method since it checks if the post like already exists in our database and then deletes it. This is typically used for node-to-node communication.
+Use this endpoint when an an author wants to send a like on a post (object) created by author with author uuid = {AUTHOR_ID}. This endpoint is also used to unlike a post through the same method since it checks if the post like already exists in {AUTHOR_ID}'s database and then deletes it. This is typically used for node-to-node communication.
 
 #### **How to Use**
 Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the author whose post is being liked. The body should be a JSON object representing the like.
 
 #### **Why to Use**
- - Use this endpoint when implementing node to node like functionality for a post.
+ - Use this endpoint when implementing node to node functionality for liking a post.
 
  #### **Request**
 
@@ -124,7 +124,7 @@ Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} wi
 }
 ```
 
-- **Status Code**: `401 Unauthorized` (Request from an unauthorrized node), `200 OK` (Post like removed since it already exists in our database), `201 Created` (Post like successfuly created), `400 Bad Request` (Missing author/object data in POST body and if object type for like is neither a post or comment), `404 Not Found` (Target post (object)/ author not found in database)
+- **Status Code**: `401 Unauthorized` (Request from an unauthorized node), `200 OK` (Post like removed since it already exists in our database), `201 Created` (Post like successfuly created), `400 Bad Request` (Missing author/object data in POST body and if object type for like is neither a post or comment), `404 Not Found` (Target post (object)/ author not found in database)
 
 
 #### Example:
@@ -190,3 +190,109 @@ Request: POST http://127.0.0.1:8000/api/authors/222/inbox/
 ```
 
 ---
+
+### 3. Send a Comment Like:
+
+**Endpoint:** `POST /api/authors/{AUTHOR_ID}/inbox/`
+
+#### **When to Use**
+Use this endpoint when an an author wants to send a like on a comment (object) created by author with author uuid = {AUTHOR_ID}. This endpoint is also used to unlike a comment through the same method since it checks if the comment like already exists in {AUTHOR_ID}'s database and then deletes it. This is typically used for node-to-node communication.
+
+#### **How to Use**
+Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the author whose comment is being liked. The body should be a JSON object representing the like.
+
+#### **Why to Use**
+ - Use this endpoint when implementing node to node functionality for liking a comment.
+
+ #### **Request**
+
+- **URL Parameters**:
+  - `AUTHOR_ID`: UUID of the target author whose comment is being liked (e.g., `111`).
+
+- **Body**:
+
+```json
+{
+    "type":"like",
+    "author":{
+        "type":"author",
+        "id":"http://nodebbbb/api/authors/222",
+        "host":"http://nodebbbb/api/",
+        "displayName":"Lara Croft",
+        "page":"http://nodebbbb/authors/222",
+        "github": "http://github.com/laracroft",
+        "profileImage": "http://nodebbbb/api/authors/222/posts/217/image"
+    },
+    "published":"2015-03-09T13:07:04+00:00",
+    "id": "http://nodeaaaa/api/authors/222/liked/255",
+    "object": "http://nodeaaaa/api/authors/111/commented/130"
+}
+```
+
+- **Status Code**: `401 Unauthorized` (Request from an unauthorized node), `200 OK` (Comment like removed since it already exists in our database), `201 Created` (Comment like successfuly created), `400 Bad Request` (Missing author/object data in POST body and if object type for like is neither a post or comment), `404 Not Found` (Target comment (object)/ author not found in database)
+
+
+#### Example:
+Request: POST http://127.0.0.1:8000/api/authors/111/inbox/
+
+
+#### **Response** 
+
+- If an unauthorized node sends the request:
+```json
+  {
+    "detail": "Unauthorized"
+  }
+```
+
+- If author information is missing in the POST body:
+```json
+  {
+    "detail": "Missing author data."
+  }
+```
+
+- If comment (object) is missing in the POST body:
+```json
+  {
+    "detail": "Missing object field."
+  }
+```
+
+- If comment (object) is not found in the database:
+```json
+  {
+    "detail": "Target comment not found."
+  }
+```
+
+- If author (sender of the request) is not found in the database:
+```json
+  {
+    "detail": "Sender author not found in database."
+  }
+```
+
+- If comment like doesn't already exist in the database and is successfully created:
+```json
+  {
+    "detail": "Comment like stored."
+  }
+```
+
+- If comment like already exists in the database and is successfully removed (unliked):
+```json
+  {
+    "detail": "Comment like removed."
+  }
+```
+
+- If object is neither a post or a comment:
+```json
+  {
+    "detail": "Unrecognized object type for like."
+  }
+```
+
+---
+
