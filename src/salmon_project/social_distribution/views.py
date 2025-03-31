@@ -709,7 +709,7 @@ def view_follow_requests(request):
                 "username": like.author.username  # Include username explicitly
             },
             "published": like.published,
-            "post_url": f"{like.object.author.host}/authors/{like.object.author.id}/posts/{like.object.id}/view/"
+            "post_url": f"{settings.BASE_URL}/authors/{like.object.author.id}/posts/{like.object.id}/"
         })
     
     # Notifications for likes on comments on posts owned by the current user.
@@ -723,7 +723,7 @@ def view_follow_requests(request):
             },
             "published": like.published,
             "liked_comment": like.object.comment,
-            "post_url": f"{like.object.post.author.host}/authors/{like.object.post.author.id}/posts/{like.object.post.id}/view/"
+            "post_url": f"{settings.BASE_URL}/authors/{like.object.post.author.id}/posts/{like.object.post.id}/"
         })
     
     # Notifications for new comments on posts owned by the current user.
@@ -737,7 +737,7 @@ def view_follow_requests(request):
             },
             "comment": comment.comment,
             "published": comment.published,
-            "post_url": f"{comment.post.author.host}/authors/{comment.post.author.id}/posts/{comment.post.id}/view/"
+            "post_url": f"{settings.BASE_URL}/authors/{comment.post.author.id}/posts/{comment.post.id}/"
         })
     
     following_notifications = []
@@ -751,7 +751,7 @@ def view_follow_requests(request):
                 "username": post.author.username  # Include username explicitly
             },
             "published": post.created_at,
-            "post_url": f"{post.author.host}/authors/{post.author.id}/posts/{post.id}/view/"
+            "post_url": f"{settings.BASE_URL}/authors/{post.author.id}/posts/{post.id}/"
         })
     
     # Sort notifications by published date descending (latest first)
