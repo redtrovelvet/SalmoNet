@@ -31,13 +31,30 @@ document.addEventListener('DOMContentLoaded', function() {
     addNodeForm.addEventListener("submit", function(event) {
         event.preventDefault();
         let address = document.getElementById("node_address").value;
-        if (!address.startsWith("http://") && !address.startsWith("https://")) {
-            address = "http://" + address;
-            this.querySelector("#node_address").value = address;
-        }
+        let fetch_url = address + "/api/connect/";
 
-        // TODO: make sure the port is included in the address
-        let fetch_url = address + ":8000/api/connect/";
+        let external = document.getElementById("external").checked;
+
+        if (external) {
+            fetch_url = "/api/connect_external/";
+            fetch(fetch_url, {
+                method: "POST",
+                body: new FormData(this),
+                headers: {
+                    'X-CSRFToken': new FormData(this).get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                    addNodeMessage.textContent = "Node added successfully.";
+                    addNodeMessage.style.color = "green";
+                    return response.json();
+                }
+                throw new Error("Network response was not ok.");
+            })
+            return;
+        }
         
         fetch(fetch_url, {
             method: "POST",

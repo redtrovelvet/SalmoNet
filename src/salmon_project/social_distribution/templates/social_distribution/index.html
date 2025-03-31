@@ -14,106 +14,105 @@
     <button class="tablink" onclick="filterPosts('friends', this)">Friends-Only</button>
   </div>
   {% for post in posts %}
-  <!-- Each post in its own block with margin, border, and padding -->
-  <div style="margin-bottom: 1em; border: 1px solid #ccc; padding: 1em;" class="post" data-visibility="{{ post.visibility }}">
-    
-    <p>
-      {% if post.author.profile_image and post.author.profile_image.url %}
-        <!-- Author has an uploaded profile image -->
-        <img src="{{ post.author.profile_image.url }}" alt="Profile Picture" class="avatar">
-      {% else %}
-        <!-- Author does not have a profile image: show default avatar -->
-        <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="avatar">
-      {% endif %}
-      <strong>{{ post.author.display_name }}</strong>
-    </p>
-    
-
-    {% if post.text %}
-      <!-- If 'content_type' was text/markdown, post.text is HTML -->
-      <div>{{ post.text|safe }}</div>
-    {% endif %}
-
-    {% if post.image %}
-      <img src="{{ post.image.url }}" alt="Post Image" class="post-image">
-    {% endif %}
-
-    {% if post.video %}
-      <video class="post-video" controls>
-        <source src="{{ post.video.url }}" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-    {% endif %}
-
-    <p class="post-meta">Posted on {{ post.created_at }}</p>
-
-    {% if user.is_authenticated and author is not None %}
-      <form method="post" action="{% url 'like_post' author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ author.id }}">
-        {% csrf_token %}
-        <input type="hidden" name="type" value="like">
-        <!-- Icon button for liking -->
-        <button type="submit" class="like-icon-btn">
-          <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
-        </button>
-        <!-- Non-clickable text for like count -->
-        <span class="like-text">Likes: <span class="like-count">{{ post.likes.count }}</span></span>
-        
-        {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
-        
-            <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/">
-                <img src="{% static 'img/share.png' %}" alt="Share" class="share-icon">
-            </button>
-            <!-- Bold text next to the share icon -->
-            <span class="share-text"><strong>Share Link</strong></span>
-        {% endif %}
-
+    <!-- Each post block -->
+    <div class="post" data-visibility="{{ post.visibility }}">
       
-      </form>
-    {% endif %}
-
-    
-
-    <h3>Comments</h3>
-    <div class="comments">
-      <ul>
-        {% for comment in post.comments %}
-          <li class="comment">
-            <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
-            {% if user.is_authenticated and author is not None %}
-            <form method="post" action="{% url 'like_comment' author.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ author.id }}">
-              {% csrf_token %}
-              <input type="hidden" name="type" value="like">
-              <!-- Icon button for liking the comment -->
-              <button type="submit" class="like-icon-btn">
-                <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
-              </button>
-              <!-- Non-clickable like text with bold styling -->
-              <span class="like-text"><strong> <strong class="like-count">{{ comment.likes.count }}</strong></strong></span>
-            </form>
+      <div class="post-header">
+        <p>
+          <a href="{% url 'profile' post.author.id %}" class="profile-link">
+            {% if post.author.profile_image %}
+              <img src="{{ post.author.profile_image }}" alt="Profile Picture" class="avatar">
+            {% else %}
+              <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="avatar">
+            {% endif %}
+            <strong class="hover-effect">{{ post.author.display_name }}</strong>
+          </a>          
+        </p>
+      </div>
+      
+      {% if post.content_type == "text/plain" %}
+        <div>{{ post.rendered_content }}</div>
+      {% elif post.content_type == "text/markdown" %}
+        <div class="markdown-content">{{ post.rendered_content|safe }}</div>
+      {% elif post.content_type == "image/png;base64" %}
+        <img src="data:image/png;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
+      {% elif post.content_type == "image/jpeg;base64" %}
+        <img src="data:image/jpeg;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
+      {% elif post.content_type == "application/base64" %}
+        <video class="post-application" controls>
+          <source src="data:application/base64,{{ post.raw_content }}" type="video/mp4">
+          Your browser does not support the application tag.
+        </video>
+      {% else %}
+        <div>{{ post.content }}</div>
+      {% endif %}
+          
+      <p class="post-meta">Posted on {{ post.created_at }}</p>
+      
+      {% if user.is_authenticated and author is not None %}
+        <form method="post" action="{% url 'like_post' author.id post.id %}" class="like-post" likes="{{ post.likes.src }}" author="{{ author.id }}">
+          {% csrf_token %}
+          <input type="hidden" name="type" value="like">
+          <!-- Like icon button -->
+          <button type="submit" class="like-icon-btn">
+            <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
+          </button>
+          <span class="like-text">Likes: <span class="like-count">{{ post.likes.count }}</span></span>
+          
+          {% if post.visibility == 'PUBLIC' or post.visibility == 'UNLISTED' %}
+            <button type="button" class="share-icon-btn" data-copy="{{ request.scheme }}://{{ request.get_host }}/authors/{{ post.author.id }}/posts/{{ post.id }}/">
+              <img src="{% static 'img/share.png' %}" alt="Share" class="share-icon">
+            </button>
+            <span class="share-text"><strong>Share Link</strong></span>
           {% endif %}
 
-          </li>
-        {% endfor %}
-      </ul>
-    </div>
-
-   
-
-
-    {% if user.is_authenticated and author is not None %}
-      <div class="add-comment">
-        <form method="post" action="{% url 'commented' author.id %}" class="comment-form">
-          {% csrf_token %}
-          <input type="hidden" name="type" value="comment">
-          <textarea name="comment" rows="2" placeholder="Write a comment..."></textarea>
-          <input type="hidden" name="post" value="{{ post.id }}">
-          <input type="hidden" name="contentType" value="text/plain">
-          <button type="submit" class="btn btn-comment">Comment</button>
+          <button type="button" class="comment-icon-btn comment-toggle-btn">
+            <img src="{% static 'img/comment.png' %}" alt="Comment" class="comment-icon">
+          </button>
+          <span class="comment-text"><strong>Comments</strong></span>
         </form>
+      {% endif %}
+      
+      <!-- Moved Comment Section inside .post -->
+      <div class="comment-section">
+        <h3>Comments</h3>
+        <div class="comments">
+          <ul>
+            {% for comment in post.comments %}
+              <li class="comment">
+                <span>{{ comment.author.displayName }}: {{ comment.comment }}</span>
+                {% if user.is_authenticated and author is not None %}
+                  <form method="post" action="{% url 'like_comment' author.id comment.id %}" class="like-comment" likes="{{ comment.likes.src }}" author="{{ author.id }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="type" value="like">
+                    <button type="submit" class="like-icon-btn">
+                      <img src="{% static 'img/heart.png' %}" alt="Like" class="like-icon">
+                    </button>
+                    <span class="like-text"><strong class="like-count">{{ comment.likes.count }}</strong></span>
+                  </form>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% if user.is_authenticated and author %}
+          <div class="add-comment">
+            <form method="post" action="{% url 'commented' author.id %}" class="comment-form">
+              {% csrf_token %}
+              <input type="hidden" name="type" value="comment">
+              <textarea name="comment" rows="2" placeholder="Write a comment..."></textarea>
+              <input type="hidden" name="post" value="{{ post.id }}">
+              <input type="hidden" name="contentType" value="text/plain">
+              <button type="submit" class="btn btn-comment">Comment</button>
+            </form>
+          </div>
+        {% else %}
+          <p>Please <a href="{% url 'login' %}">log in</a> to comment.</p>
+        {% endif %}
       </div>
-    {% endif %}
-  </div> <!-- end single post container -->
-  {% endfor %}
+    </div>
+{% endfor %}
+
 </div> <!-- end all-posts container -->
 
 <!-- Show alert for failed post viewing -->
@@ -128,26 +127,6 @@
 </script>
 {% endif %}
 
-<!-- to filter posts based on friends-only checkbox -->
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-  const checkbox = document.getElementById("friendsOnlyFilter");
-  checkbox.addEventListener("change", function() {
-    const posts = document.querySelectorAll(".post");
-    posts.forEach(function(post) {
-      if (checkbox.checked) {
-        if (post.getAttribute("data-visibility") !== "FRIENDS") {
-          post.style.display = "none";
-        } else {
-          post.style.display = "";
-        }
-      } else {
-        post.style.display = "";
-      }
-    });
-  });
-});
-</script>
 
 <script>
   // 'filterType' is either 'to show all posts or to show only FRIENDS posts.

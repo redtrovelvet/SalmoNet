@@ -105,6 +105,8 @@ h2 {
     margin-bottom: 20px;
     padding: 20px;
     max-width: 800px;
+    padding-top: 35px;
+    padding-bottom: 25px;
 }
 
 .post-author {
@@ -157,7 +159,7 @@ h2 {
     border-radius: 5px;
     padding: 10px;
     margin-bottom: 10px;
-    display: flex;             /* Added to enable Flexbox */
+    display: flex;             
     justify-content: space-between;  /* Pushes child elements apart */
     align-items: center; 
 }
@@ -350,6 +352,7 @@ h2 {
     vertical-align: middle;
     font-size: 14px;
     margin-left: 8px;
+    font-weight: bold;
   }
   
   
@@ -439,5 +442,186 @@ h2 {
     white-space: nowrap;
 }
   
-  
-  
+.button {
+    padding: 8px 15px;                
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+    display: inline-block;
+    text-align: center;
+}
+
+
+.button.delete {
+    background-color: #e74c3c;       
+    color: white;
+}
+
+.button.delete:hover {
+    background-color: #c0392b;        
+    animation: shake 0.82s cubic-bezier(.36, .07, .19, .97) both;
+    transform: translate3d(0, 0, 0);
+    perspective: 1000px;
+}
+
+.button.cancel {
+    background-color: #7f8c8d;       
+    color: white;
+}
+
+.button.cancel:hover {
+    background-color: #95a5a6;       
+    animation: none;
+}
+
+@keyframes shake {
+  10%, 90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%, 80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%, 50%, 70% {
+    transform: translate3d(-2px, 0, 0);
+  }
+  40%, 60% {
+    transform: translate3d(2px, 0, 0);
+  }
+}
+
+.profile-link {
+    cursor: pointer;
+    text-decoration: none;  
+    color: inherit;         
+}
+
+.profile-link:hover {
+    text-decoration: none;  
+}
+
+.comment-section {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+
+
+.post.show-comments .comment-section {
+  max-height: 600px; 
+}
+
+.comment-toggle-btn {
+  background: none;       
+  border: none;           
+  padding: 0;             
+  margin-left: 10px;      
+  vertical-align: middle; 
+  cursor: pointer;
+  transition: none;       
+  outline: none;          
+}
+
+.comment-toggle-btn:hover {
+  background: none;       
+}
+
+.comment-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 5px 0 10px;
+  vertical-align: middle;
+  outline: none; 
+}
+
+.comment-icon-btn:focus {
+  outline: none;
+}
+
+
+.comment-icon {
+  width: 24px;
+  height: 24px;
+  transition: filter 0.3s ease;
+}
+
+.comment-icon-btn:hover .comment-icon {
+
+  filter: invert(30%) sepia(100%) saturate(2000%) hue-rotate(90deg) brightness(90%) contrast(90%);
+}
+
+.comment-text {
+  font-weight: bold;
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+
+.post-header,
+.main-content {
+  transition: transform 0.5s ease;
+}
+
+.post.show-comments .post-header,
+.post.show-comments .main-content {
+  transform: translateY(-50px);
+}
+
+.view-post {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  padding: 20px;
+  max-width: 800px;
+  padding-top: 35px;
+  padding-bottom: 25px;
+  margin-top: 75px;  /* NEW: top margin increased to at least 75px */
+}
+
+.hover-effect {
+  background-image: linear-gradient(
+    to right,
+    salmon,
+    salmon 50%,
+    #000 50%
+  );
+  background-size: 200% 100%;
+  background-position: -100%;
+  display: inline-block;
+  padding: 5px 0;
+  position: relative;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: all 0.3s ease-in-out;
+}
+
+.hover-effect::before {
+  content: '';
+  background: salmon;
+  display: block;
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 3px;
+  transition: all 0.3s ease-in-out;
+}
+
+.hover-effect:hover {
+  background-position: 0;
+}
+
+.hover-effect:hover::before {
+  width: 100%;
+}
+
+.markdown-content img {
+  max-width: 100%; 
+  height: auto; 
+  display: block; 
+  margin: 15px 0; 
+}

@@ -29,7 +29,7 @@ class CommentTests(TestCase):
         self.post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Test Post",
+            content="Test Post",
             visibility="PUBLIC"
         )
 
@@ -135,7 +135,7 @@ class CommentTests(TestCase):
         test for GET /api/authors/{AUTHOR_FQID}/commented to get all comments by an author
         """
         assert self.author2.fqid
-        url = reverse("commented", args=[quote_plus(self.author2.fqid)])
+        url = reverse("commented_fqid", args=[quote_plus(self.author2.fqid)])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         for comment in response.json():
@@ -193,7 +193,7 @@ class LikeTests(TestCase):
         self.post = Post.objects.create(
             id=uuid.uuid4(),
             author=self.author,
-            text="Test Post",
+            content="Test Post",
             visibility="PUBLIC"
         )
 
@@ -271,12 +271,12 @@ class LikeTests(TestCase):
         response = self.client.get(url)
         self.validate_likes_object(response, "post")
 
-    def test_get_likes(self):
+    def test_get_post_likes_fqid(self):
         """
         test for GET /api/posts/{POST_FQID}/likes/ to get all likes on a post
         """
         assert self.post.fqid
-        url = reverse("get_post_likes", args=[quote_plus(self.post.fqid)])
+        url = reverse("get_post_likes_fqid", args=[quote_plus(self.post.fqid)])
         response = self.client.get(url)
         self.validate_likes_object(response, "post")
 
@@ -331,7 +331,7 @@ class LikeTests(TestCase):
         test for GET /api/authors/{AUTHOR_FQID}/liked to get all likes by an author
         """
         assert self.author3.fqid
-        url = reverse("get_author_liked", args=[quote_plus(self.author3.fqid)])
+        url = reverse("get_author_liked_fqid", args=[quote_plus(self.author3.fqid)])
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.json(), "The response should not be empty")

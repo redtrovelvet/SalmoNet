@@ -6,30 +6,74 @@
 
 <div class="content authors-list">
     <h1>All Authors</h1>
-    {% for author in authors %}
+    
+    <form class="example" method="get" action="{% url 'search_authors' %}">
+      <input type="text" placeholder="Search by username..." name="search">
+      <button type="submit">
+          <img src="{% static 'img/search.png' %}" alt="Search Icon">
+      </button>
+    </form>
+    
+    {% if message %}
+      <p class="search-message">{{ message }}</p>
+    {% endif %}
+    
+    {% for author in page_obj %}
         <div class="author">
-            {# Wrap the display name in a hyperlink to the author's profile #}
-            <h3><a href="{% url 'profile' author.id %}"><div class="author-name">{{ author.display_name }}</a></h3>  {# NEW: Link added #}
-            
-            <p>Username: {{ author.username }}</p>
-
-            {# Check if the current user is logged in and is not viewing their own profile #}
-            {% if user.is_authenticated and user.author != author %}
-                {% if author in user.author.following.all %}
-                    {# Use a form for unfollow so that a POST request is sent (if you wish to require POST) #}
-                    <form action="{% url 'unfollow_author' author.id %}" method="post" style="display:inline;">
-                        {% csrf_token %}  {# NEW: CSRF token added #}
-                        <button type="submit">Unfollow</button>
-                    </form>
-                {% else %}
-                    {# Use a form for follow so that a POST request is sent #}
-                    <form action="{% url 'send_follow_request' author.id %}" method="post" style="display:inline;">
-                        {% csrf_token %}  {# NEW: CSRF token added #}
-                        <button type="submit">Follow</button>
-                    </form>
-                {% endif %}
-            {% endif %}
+            <div class="author-header">
+                <div class="author-info">
+                    <h3>
+                        <a href="{% url 'profile' author.id %}">
+                            <div class="author-name hover-effect">{{ author.display_name }}</div>
+                        </a>
+                    </h3>
+                    {% if author.host != user.author.host %}
+                        <p>Remote: {{ author.host }}</p>
+                    {% else %}
+                        <p>Username: {{ author.username }}</p>
+                    {% endif %}
+                </div>
+                <div class="author-actions">
+                    {% if user.is_authenticated and user.author != author %}
+                        {% if author in user.author.following.all %}
+                            <form action="{% url 'unfollow_author' author.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="unfollow-btn">Unfollow</button>
+                            </form>
+                        {% else %}
+                            <form action="{% url 'send_follow_request' author.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="follow-btn">Follow</button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
         </div>
     {% endfor %}
+
+    <div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+    {% else %}
+        <a href="#">&laquo;</a>
+    {% endif %}
+    
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+            <a class="active" href="?page={{ num }}">{{ num }}</a>
+        {% else %}
+            <a href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+    {% else %}
+        <a href="#">&raquo;</a>
+    {% endif %}
+</div>
+
+    
 </div>
 {% endblock %}
