@@ -115,11 +115,12 @@ def profile(request, author_id):
     except AttributeError:
         current_user = None
 
+    posts = Post.objects.filter(author=post_author).exclude(visibility="DELETED").order_by("-created_at")
+
     filtered_posts = []
     for post in posts:
         if current_user is not None and current_user.id == post_author.id:
-            if post.visibility in ["PUBLIC", "FRIENDS", "UNLISTED"]:
-                filtered_posts.append(post)
+            filtered_posts.append(post)
         elif current_user is not None and post_author.is_friends_with(current_user):
             if post.visibility in ["PUBLIC", "FRIENDS", "UNLISTED"]:
                 filtered_posts.append(post)
