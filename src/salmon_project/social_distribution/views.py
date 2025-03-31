@@ -14,6 +14,9 @@ from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.utils.html import escape
+from django.core.validators import validate_slug
+from django.core.exceptions import ValidationError
+
 
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -403,7 +406,7 @@ def delete_post_local(request, author_id, post_id):
 # --- API Endpoints ---
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def set_node_info(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -427,7 +430,7 @@ def set_node_info(request):
     return Response("GET request not allowed", status=405)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def add_remote_node(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -456,7 +459,7 @@ def add_remote_node(request):
     return Response("GET request not allowed", status=405)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def connect_node(request):
     if request.method == "POST":
         local_node = NodeInfo.objects.first()
@@ -485,7 +488,7 @@ def connect_node(request):
         return Response("Unauthorized", status=401)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def connect_external(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -515,7 +518,7 @@ def connect_external(request):
     return Response("GET request not allowed", status=405)
             
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def remove_connection(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -908,7 +911,7 @@ def get_post_by_fqid(request, post_fqid):
     return Response(serializer.data)
 
 @permission_classes([IsAuthenticated])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 @api_view(['GET',"POST"])
 def author_posts(request, author_id):
     """
@@ -993,7 +996,7 @@ def send_post_to_remote(request, author, post):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def create_post(request, author_id):
     """
     POST [local] create a new post but generate a new ID
@@ -1002,7 +1005,6 @@ def create_post(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     if author.user != request.user:
         return Response(status=403)
-    
     
     content = request.data.get("content", "")
     media_file = request.FILES.get("media_file", None)
@@ -1143,7 +1145,7 @@ def get_postimage_by_fqid(request, post_fqid):
 # ================= NEW: Followers and Follow Request API Endpoints =================
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_followers_api(request, author_id):
     """
     API: GET /api/authors/{author_id}/followers/
@@ -1184,7 +1186,7 @@ def send_object(object_data, host, author_fqid):
 
 @api_view(["POST"])
 @authentication_classes([])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def inbox(request, author_id):
     data = request.data
     receiver = get_object_or_404(Author, id=author_id)
@@ -1688,7 +1690,7 @@ def modify_follower_api(request, author_id, foreign_author_encoded=None):
 
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def api_send_follow_request(request, author_id):
     """
     API: send a follow request to the author with id=author_id.
@@ -1714,7 +1716,7 @@ def api_send_follow_request(request, author_id):
 
 # ========================== COMMENTS ==========================
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_comments(request, post_id, author_id=None):
     '''
     API: returns all comments for a post in the form of a "comments" object
@@ -1750,7 +1752,7 @@ def get_comments(request, post_id, author_id=None):
     return Response(comments_data)
 
 @api_view(["GET", "POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def commented(request, author_id):
     '''
     API: returns all comments made by an author, or allows an author to post a comment
@@ -1817,7 +1819,7 @@ def commented(request, author_id):
         return Response(serializer.data)
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_comment(request, comment_id, author_id=None, post_id=None):
     '''
     API: returns a specific comment
@@ -1844,7 +1846,7 @@ def get_comment(request, comment_id, author_id=None, post_id=None):
 
 # ========================== LIKES ==========================
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_post_likes(request, post_id, author_id=None):
     '''
     API: returns all likes for a post
@@ -1884,7 +1886,7 @@ def get_post_likes(request, post_id, author_id=None):
     return Response(likes_data)
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_comment_likes(request, author_id, post_id, comment_id):
     '''
     API: returns all likes for a comment
@@ -1921,7 +1923,7 @@ def get_comment_likes(request, author_id, post_id, comment_id):
     return Response(likes_data)
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_author_liked(request, author_id):
     '''
     API: returns all likes made by an author
@@ -1957,7 +1959,7 @@ def get_author_liked(request, author_id):
     return Response(likes_data)
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_like(request, like_id, author_id=None):
     '''
     API: returns a specific like
@@ -1989,7 +1991,7 @@ def get_like(request, like_id, author_id=None):
     return Response(serializer.data)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def like_post(request, author_id, post_id):
     '''
     API: allows an author to like a post
@@ -2054,7 +2056,7 @@ def like_post(request, author_id, post_id):
     return Response({"like_count": like_count}, status=201)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def like_comment(request, author_id, comment_id):
     '''
     API: allows an author to like a comment
