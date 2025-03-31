@@ -589,6 +589,7 @@ def send_follow_request(request, author_id):
             "type": "follow",
             "summary": f"{current_author.display_name} wants to follow {target_author.display_name}",
             "actor": AuthorSerializer(current_author).data,
+            "object": AuthorSerializer(target_author).data,
         }
 
         try:
@@ -1764,7 +1765,7 @@ def commented(request, author_id):
                 else:
                     return Response({"detail": "Remote node credentials not found."}, status=404)
 
-                if response.status_code != 201:
+                if response.status_code not in [201, 200]:
                     Comment.objects.filter(fqid=comment_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to post author."}, status=500)
             
