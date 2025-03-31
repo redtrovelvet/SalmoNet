@@ -167,10 +167,9 @@ def edit_profile(request, author_id):
     if not request.user.is_authenticated or request.user != author.user:
         return HttpResponseForbidden("You are not allowed to edit this profile.")
     if request.method == "POST":
-        author.display_name = request.POST.get("display_name", author.display_name)
-        author.github = request.POST.get("github", author.github)
-        if "profile_image" in request.FILES:
-            author.profile_image = request.FILES["profile_image"] 
+        author.display_name = request.POST.get("display_name", "").strip()
+        author.github = request.POST.get("github", "").strip()
+        author.profile_image = request.POST.get("profile_image", "").strip()
         author.save()
         return redirect("profile", author_id=author.id)
     return render(request, "social_distribution/edit_profile.html", {"author": author})

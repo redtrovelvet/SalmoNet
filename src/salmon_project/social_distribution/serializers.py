@@ -56,7 +56,7 @@ class AuthorSerializer(serializers.Serializer):
         representation["id"] = instance.fqid
         representation["host"] = f"{instance.host}/api/"
         representation["page"] = f"{base_host}/authors/{instance.id}"
-        representation["profile_image"] = f"{base_host}/media/{instance.profile_image}"
+        representation["profileImage"] = instance.profile_image
         representation.pop("username", None)
         return {snake_to_camel(key): value for key, value in representation.items()}
 
