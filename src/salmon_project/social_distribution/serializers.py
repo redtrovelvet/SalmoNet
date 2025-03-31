@@ -19,7 +19,7 @@ class AuthorSerializer(serializers.Serializer):
     host = serializers.URLField()
     display_name = serializers.CharField(max_length=100, allow_null=True, required=False, default="Display Name")
     github = serializers.URLField(allow_null=True, required=False)
-    profile_image = serializers.CharField(allow_null=True, required=False)
+    profile_image = serializers.URLField(allow_null=True, required=False)
     username = serializers.CharField(max_length=100)
 
     def get_id(self, obj):
@@ -56,6 +56,7 @@ class AuthorSerializer(serializers.Serializer):
         representation["id"] = instance.fqid
         representation["host"] = f"{instance.host}/api/"
         representation["page"] = f"{base_host}/authors/{instance.id}"
+        representation["profile_image"] = f"{base_host}/media/{instance.profile_image}"
         representation.pop("username", None)
         return {snake_to_camel(key): value for key, value in representation.items()}
 

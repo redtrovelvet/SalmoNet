@@ -59,7 +59,10 @@ def index(request):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        safe_content = escape(p.content)
+        if p.content_type == "text/markdown":
+            safe_content = p.content
+        else:
+            safe_content = escape(p.content)
         html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
@@ -127,7 +130,10 @@ def profile(request, author_id):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        safe_content = escape(p.content)
+        if p.content_type == "text/markdown":
+            safe_content = p.content
+        else:
+            safe_content = escape(p.content)
         html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
@@ -163,9 +169,7 @@ def edit_profile(request, author_id):
         author.display_name = request.POST.get("display_name", author.display_name)
         author.github = request.POST.get("github", author.github)
         if "profile_image" in request.FILES:
-            file = request.FILES["profile_image"]
-            encoded = base64.b64encode(file.read()).decode('utf-8')
-            author.profile_image = encoded 
+            author.profile_image = request.FILES["profile_image"] 
         author.save()
         return redirect("profile", author_id=author.id)
     return render(request, "social_distribution/edit_profile.html", {"author": author})
@@ -251,7 +255,10 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
     serialized_post = PostSerializer(post).data
-    safe_content = escape(post.content)
+    if post.content_type == "text/markdown":
+        safe_content = post.content
+    else:
+        safe_content = escape(post.content)
     html_content = render_markdown_if_needed(safe_content, post.content_type)
     post_comments = serialized_post["comments"]["src"]
     comments = []
@@ -292,12 +299,33 @@ def view_post(request, author_id, post_id):
 
 def render_markdown_if_needed(text, content_type):
     """
-    If content_type is 'text/markdown', convert 'text' to HTML using commonmark.
-    Otherwise, return the text as-is (plain text).
+    Render text to HTML, handling both markdown and base64 images properly
     """
     if content_type == "text/markdown":
-        return commonmark.commonmark(text or "")
-    return text or "" 
+        # First escape the text to prevent XSS
+        safe_text = escape(text or "")
+        
+        pattern = r'!\[([^\]]*)\]\(data:image/([^;]+);base64,([^\)]+)\)'
+
+        # this function was written by deepseek, prompt: why is my markrdown not rendering images that are base64 encoded (picture of function)?
+        # Replace markdown image syntax with HTML img tags for base64 images
+        def replace_base64_images(match):
+            alt = escape(match.group(1))
+            img_type = match.group(2)
+            base64_data = match.group(3)
+            return f'<img src="data:image/{img_type};base64,{base64_data}" alt="{alt}">'
+        #end of function#
+
+        processed_text = re.sub(pattern, replace_base64_images, safe_text)
+        html = commonmark.commonmark(processed_text)
+        
+        return html
+    elif content_type in ["image/png;base64", "image/jpeg;base64"]:
+        return f'<img src="data:image/{content_type.split(";")[0]};base64,{text}">'
+    elif content_type == "application/base64":
+        return f'<video controls><source src="data:application/base64,{text}"></video>'
+    else:
+        return escape(text or "")
 
 def admin_controls(request):
     if not request.user.is_superuser:
@@ -356,9 +384,12 @@ def delete_post_local(request, author_id, post_id):
         return HttpResponseForbidden("You are not allowed to delete this post.")
     
     if request.method == "GET":
-       safe_content = escape(post.content)
-       rendered_text = render_markdown_if_needed(safe_content, post.content_type)
-       return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
+        if post.content_type == "text/markdown":
+            safe_content = post.content
+        else:
+            safe_content = escape(post.content)
+        rendered_text = render_markdown_if_needed(safe_content, post.content_type)
+        return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
     post.visibility = "DELETED"
 
@@ -452,6 +483,36 @@ def connect_node(request):
                 )
                 return Response("Connected", status=201)
         return Response("Unauthorized", status=401)
+
+@api_view(["POST"])
+@rate_limit(max_requests=1000, time_window=60)
+def connect_external(request):
+    if not request.user.is_superuser:
+        return Response("Forbidden", status=403)
+    
+    if request.method == "POST":
+        host = request.POST["host"]
+        username = request.POST["username"]
+        password = request.POST["password"]
+        remote_node, created = RemoteNode.objects.get_or_create(
+            host=host,
+            defaults={
+                "outgoing": True,
+                "incoming": True,
+                "username": username,
+                "password": password
+            })
+        
+        if not created:
+            remote_node.outgoing = True
+            remote_node.incoming = True
+            remote_node.username = username
+            remote_node.password = password
+            remote_node.save()
+            
+        return Response("Node info created", status=201)
+        
+    return Response("GET request not allowed", status=405)
             
 @api_view(["POST"])
 @rate_limit(max_requests=1000, time_window=60)
@@ -561,6 +622,7 @@ def send_follow_request(request, author_id):
             "type": "follow",
             "summary": f"{current_author.display_name} wants to follow {target_author.display_name}",
             "actor": AuthorSerializer(current_author).data,
+            "object": AuthorSerializer(target_author).data,
         }
 
         try:
@@ -1736,7 +1798,7 @@ def commented(request, author_id):
                 else:
                     return Response({"detail": "Remote node credentials not found."}, status=404)
 
-                if response.status_code != 201:
+                if response.status_code not in [201, 200]:
                     Comment.objects.filter(fqid=comment_data["id"]).delete()
                     return Response({"detail": "Failed to send notification to post author."}, status=500)
             

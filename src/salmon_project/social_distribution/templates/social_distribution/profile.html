@@ -8,7 +8,7 @@
 <div class="profile-container">
     <div class="profile-header">
         {% if author.profile_image %}
-            <img src="data:image/png;base64,{{ author.profile_image }}" alt="Profile Picture" class="profile-pic" width="150">
+            <img src="{{ author.profile_image.url }}" alt="Profile Picture" class="profile-pic" width="150">
         {% else %}
             <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="profile-pic" width="150">
         {% endif %}
@@ -83,7 +83,7 @@
             {% if post.content_type == "text/plain" %}
                 <div>{{ post.rendered_content }}</div>
             {% elif post.content_type == "text/markdown" %}
-                <div>{{ post.rendered_content|safe }}</div>
+                <div class="markdown-content">{{ post.rendered_content|safe }}</div>
             {% elif post.content_type == "image/png;base64" %}
                 <img src="data:image/png;base64,{{ post.raw_content }}" alt="Post Image" class="post-image">
             {% elif post.content_type == "image/jpeg;base64" %}

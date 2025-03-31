@@ -66,3 +66,7 @@
 .remove-node {
     margin-left: 10px;
 }
+
+#external {
+    width: fit-content;    
+}

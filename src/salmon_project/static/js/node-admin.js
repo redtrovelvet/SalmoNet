@@ -32,6 +32,29 @@ document.addEventListener('DOMContentLoaded', function() {
         event.preventDefault();
         let address = document.getElementById("node_address").value;
         let fetch_url = address + "/api/connect/";
+
+        let external = document.getElementById("external").checked;
+
+        if (external) {
+            fetch_url = "/api/connect_external/";
+            fetch(fetch_url, {
+                method: "POST",
+                body: new FormData(this),
+                headers: {
+                    'X-CSRFToken': new FormData(this).get('csrfmiddlewaretoken')
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                    addNodeMessage.textContent = "Node added successfully.";
+                    addNodeMessage.style.color = "green";
+                    return response.json();
+                }
+                throw new Error("Network response was not ok.");
+            })
+            return;
+        }
         
         fetch(fetch_url, {
             method: "POST",
