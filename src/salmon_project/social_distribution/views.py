@@ -528,25 +528,6 @@ def remove_connection(request):
             return Response("Outgoing connection removed", status=200)
         return Response("Connection not found", status=404)
 
-'''
-@api_view(["GET"])
-def get_authors(request):
-    API: returns all authors in local node
-    
-    page_num = int(request.GET.get("page", 1))
-    size = int(request.GET.get("size", 5))
-
-    authors_qs = Author.objects.all().order_by("id")
-    paginator = Paginator(authors_qs, size)
-    page_obj = paginator.get_page(page_num)
-
-    serializer = AuthorSerializer(page_obj, many=True)
-    return Response({
-        "type": "authors",
-        "authors": serializer.data  
-    })
-'''
-
 @api_view(["GET"])
 @rate_limit(max_requests=100, time_window=60)
 def get_authors(request):
@@ -677,7 +658,7 @@ def all_authors(request):
                 remote_author["display_name"] = remote_author["displayName"]
                 remote_author["username"] = remote_author["displayName"]
 
-                remote_author_obj, _  = Author.objects.get_or_create(
+                remote_author_obj, created = Author.objects.get_or_create(
                 fqid=remote_author["fqid"],
                 defaults={
                     "username": remote_author["displayName"],
@@ -688,6 +669,14 @@ def all_authors(request):
                     "profile_image": remote_author["profileImage"]
                 }
                 )  
+
+                if not created:
+                    remote_author_obj.username = remote_author["displayName"]
+                    remote_author_obj.display_name = remote_author["displayName"]
+                    remote_author_obj.host = node.host
+                    remote_author_obj.profile_image = remote_author["profileImage"]
+                    remote_author_obj.save()
+
                 if remote_author_obj not in authors:
                     authors.append(remote_author_obj)
 
