@@ -23,7 +23,7 @@
             <div class="author-header">
                 <div class="author-info">
                     <h3>
-                        <a href="{{ author.page }}">
+                        <a href="{% url 'profile' author.id %}">
                             <div class="author-name hover-effect">{{ author.display_name }}</div>
                         </a>
                     </h3>
