@@ -4,28 +4,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Social Distribution{% endblock %}</title>
     <link rel="stylesheet" type="text/css"  href="{% static "css/basic_style.css" %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 </head>
 <nav class="navbar">
-    <h1>Social Distribution</h1>
-    <ul>
+    <h1 class="navbar-title">Social Distribution</h1>
+    <ul class="navbar-links">
         <li><a href="{% url 'index' %}"><i class="fa-solid fa-home"></i> Home</a></li>
         {% if user.is_authenticated %}
             {% if user.author %}
                 <li><a href="{% url 'profile' user.author.id %}"><i class="fa-solid fa-user"></i> Profile</a></li>
+                <li><a href="#"><i class="fa-regular fa-square-plus"></i> Create Post </a></li>  
             {% endif %}
             <li><a href="{% url 'all_authors' %}"><i class="fa-solid fa-users"></i> All Authors</a></li>  
-            <li><a href="{% url 'view_follow_requests' %}"><i class="fa-solid fa-bell"></i> Inbox </a></li>  
+            <li><a href="{% url 'view_follow_requests' %}"><i class="fa-solid fa-bell"></i> Inbox </a></li> 
+            
             
             {% if user.is_superuser %}
             <li><a href="{% url 'admin_controls' %}"><i class="fa-solid fa-user-shield"></i> Admin</a></li>
             {% endif %}
-
-            <li><a href="{% url 'logout' %}"><i class="fa-solid fa-sign-out-alt"></i> Logout</a></li>
-
         {% else %}
             <li><a href="{% url 'login' %}"><i class="fa-solid fa-sign-in-alt"></i> Login</a></li>
             <li><a href="{% url 'register' %}"><i class="fa-solid fa-user-plus"></i> Register</a></li>
         {% endif %}
     </ul>
+    
+    {% if user.is_authenticated %}
+    <div class="nav-profile">
+        <div class="profile-content">
+            {% if author.profile_image %}
+                <img src="{{ author.profile_image }}" alt="Profile Picture" class="profile-pic">
+            {% else %}
+                <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="profile-pic">
+            {% endif %}
+            <span class="display-name">{{ author.display_name }}</span>
+            <a href="{% url 'logout' %}" class="logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i></a>
+        </div>
+    </div>
+    {% endif %}
 </nav>
