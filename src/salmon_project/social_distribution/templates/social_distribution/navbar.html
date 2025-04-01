@@ -9,23 +9,23 @@
 <nav class="navbar">
     <h1>Social Distribution</h1>
     <ul>
-        <li><a href="{% url 'index' %}"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="{% url 'index' %}"><i class="fa-solid fa-home"></i> Home</a></li>
         {% if user.is_authenticated %}
             {% if user.author %}
-                <li><a href="{% url 'profile' user.author.id %}"><i class="fas fa-user"></i> Profile</a></li>
+                <li><a href="{% url 'profile' user.author.id %}"><i class="fa-solid fa-user"></i> Profile</a></li>
             {% endif %}
-            <li><a href="{% url 'all_authors' %}"><i class="fas fa-users"></i> All Authors</a></li>  
+            <li><a href="{% url 'all_authors' %}"><i class="fa-solid fa-users"></i> All Authors</a></li>  
             <li><a href="{% url 'view_follow_requests' %}"><i class="fa-solid fa-bell"></i> Inbox </a></li>  
             
             {% if user.is_superuser %}
-            <li><a href="{% url 'admin_controls' %}"><i class="fas fa-user-shield"></i> Admin</a></li>
+            <li><a href="{% url 'admin_controls' %}"><i class="fa-solid fa-user-shield"></i> Admin</a></li>
             {% endif %}
 
-            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            <li><a href="{% url 'logout' %}"><i class="fa-solid fa-sign-out-alt"></i> Logout</a></li>
 
         {% else %}
-            <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-            <li><a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a></li>
+            <li><a href="{% url 'login' %}"><i class="fa-solid fa-sign-in-alt"></i> Login</a></li>
+            <li><a href="{% url 'register' %}"><i class="fa-solid fa-user-plus"></i> Register</a></li>
         {% endif %}
     </ul>
 </nav>
