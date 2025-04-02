@@ -325,6 +325,8 @@ def render_markdown_if_needed(text, content_type):
         return html
     elif content_type in ["image/png;base64", "image/jpeg;base64"]:
         return f'<img src="data:image/{content_type.split(";")[0]};base64,{text}">'
+    elif content_type == "video/mp4;base64":
+        return f'<video controls><source src="data:video/mp4;base64,{text}" type="video/mp4"></video>'
     elif content_type == "application/base64":
         return f'<video controls><source src="data:application/base64,{text}"></video>'
     else:

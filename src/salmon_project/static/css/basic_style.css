@@ -36,7 +36,7 @@ ul.messages li.error {
 body, html {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Poppins', sans-serif;
     height: 100%;
     overflow-x: hidden;
 }
@@ -116,7 +116,7 @@ body, html {
   width: 3px;
   background: white;
   transform: scaleY(0);
-  transition: transform 0.2s, width 0.4s cubic-bezier(1, 0, 0, 1) 0.2s;
+  transition: transform 0.2s;
 }
 
 .navbar-links a:hover::before {
@@ -155,10 +155,10 @@ body, html {
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.display-name {
+.display-text {
   font-weight: 500;
   flex-grow: 1;
   white-space: nowrap;
@@ -228,6 +228,9 @@ h2 {
 .post-meta {
     font-size: 14px;
     color: gray;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
 }
 
 /* Button styles */
@@ -427,6 +430,9 @@ h2 {
     object-fit: cover;         
   }
 
+.like-post {
+  padding: 10px 0 10px 0;
+}
 
 .like-icon-btn {
     background: none;
@@ -500,7 +506,7 @@ h2 {
 
 .share-text {
     vertical-align: middle;
-    font-size: 13px;
+    font-size: 15px;
     margin-left: 4px;
     font-weight: bold;
 }
@@ -511,7 +517,6 @@ h2 {
     max-width: 800px; 
     margin: 0 auto 20px auto; 
     display: flex;
-    border-bottom: 1px solid #ccc;
   }
   
   .tablink {
@@ -519,6 +524,7 @@ h2 {
     padding: 14px 16px;
     font-size: 17px;
     border: none;
+    border-radius: 20px 20px 0 0;
     cursor: pointer;
     background-color: #f1f1f1;
     transition: background-color 0.3s;
@@ -531,9 +537,9 @@ h2 {
   
 
   .tablink.active {
-    background-color: #ffc0b4;
-    color: #000;
+    color: #333;
     font-weight: bold;
+    border-bottom: 3px solid #ffc0b4;
   }
 
 .remove-media label {

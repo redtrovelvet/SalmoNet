@@ -16,7 +16,7 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.follow-title h1, h2 {
+.inbox h1, h2 {
     color: #333;
     margin-bottom: 20px;
     font-size: 28px;
@@ -46,6 +46,7 @@ body {
 .inbox a {
     color: #017075;
     text-decoration: none;
+    font-weight: bold;
 }
 
 .inbox a:hover {
