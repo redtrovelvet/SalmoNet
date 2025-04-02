@@ -85,6 +85,11 @@ p a:hover {
     border-radius: 5px;
 }
 
+.refister-form:focus {
+    border: 2px solid #ff9a8b;
+    box-shadow: 0 0 0 4px rgb(234 76 137 / 10%);
+}
+
 /* Style the submit button */
 button {
     background-color: #017075;

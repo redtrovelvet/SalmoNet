@@ -299,15 +299,6 @@ h2 {
 }
 
 /* Form styles */
-.form-container {
-    max-width: 400px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
 .form-group {
     margin-bottom: 15px;
 }
@@ -320,8 +311,13 @@ h2 {
 .form-group input {
     width: 100%;
     padding: 8px;
-    border: 1px solid var(--border-color);
+    border: 1px solid #ff9a8b;
     border-radius: 4px;
+}
+
+.form-group:focus {
+    border: 2px solid #ff9a8b;
+    box-shadow: 0 0 0 4px rgb(234 76 137 / 10%);
 }
 
 /* Responsive design */
