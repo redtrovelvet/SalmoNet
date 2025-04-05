@@ -619,7 +619,7 @@ def send_follow_request(request, author_id):
             
             remote_inbox_url = f"{target_author.fqid}/inbox/"
             if remote_node.username and remote_node.password:
-                response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10, auth=(remote_node.username, remote_node.password))
+                response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
             else:
                 messages.error(request, "Remote node credentials are missing.")
                 return redirect('profile', author_id=target_author.id)
@@ -654,7 +654,7 @@ def all_authors(request):
         if not node.username or not node.password:
             continue
 
-        response = requests.get(f"{node.host}/api/authors/")
+        response = requests.get(f"{node.host}/api/authors/", headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"}, auth=(node.username, node.password))
         if response.status_code == 200:
             remote_authors = response.json()["authors"]
             for remote_author in remote_authors:
@@ -988,7 +988,7 @@ def send_post_to_remote(request, author, post):
                 continue
 
             remote_inbox_url = f"{target_author.fqid}/inbox/"
-            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10, auth=(remote_node.username, remote_node.password))
+            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
             if response.status_code in [200, 201]:
                 messages.success(request, f"Post sent to remote follower {target_author.display_name}.")
             else:
@@ -1181,7 +1181,7 @@ def send_object(object_data, host, author_fqid):
     
     inbox_url = f"{author_fqid}/inbox/"
     try:
-        response = requests.post(inbox_url, json=object_data, timeout=10, auth=(remote_node.username, remote_node.password))
+        response = requests.post(inbox_url, json=object_data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
         return response
     except requests.exceptions.RequestException as e:
         return Response(f"Error sending object: {str(e)}", status=500)
@@ -1795,7 +1795,7 @@ def commented(request, author_id):
                     return Response({"detail": "Remote node not found."}, status=404)
                 
                 if remote_node.username and remote_node.password:
-                    response = requests.post(f"{author_fqid}/inbox/", json=comment_data, auth=(remote_node.username, remote_node.password))
+                    response = requests.post(f"{author_fqid}/inbox/", json=comment_data, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
                 else:
                     return Response({"detail": "Remote node credentials not found."}, status=404)
 
@@ -2038,7 +2038,7 @@ def like_post(request, author_id, post_id):
                 if not remote_node:
                     return Response({"detail": "Remote node not found."}, status=404)
                 if remote_node.username and remote_node.password:
-                    response = requests.post(f"{author_fqid}/inbox/", json=like_data, auth=(remote_node.username, remote_node.password))
+                    response = requests.post(f"{author_fqid}/inbox/", json=like_data, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
                 else:
                     return Response({"detail": "Remote node credentials not found."}, status=404)
                 
