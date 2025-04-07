@@ -132,7 +132,7 @@ form.example input[type="text"]::placeholder {
     color: #9e9ea7;
 }
 
-form.example input[type="text"]:focus, form.example input[type="text"]:hover  {
+form.example input[type="text"]:focus {
     width: 100%;
     outline: none;
     border-color: #ff9a8b;

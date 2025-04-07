@@ -15,7 +15,7 @@
         {% if user.is_authenticated %}
             {% if user.author %}
                 <li><a href="{% url 'profile' user.author.id %}"><i class="fa-solid fa-user"></i> Profile</a></li>
-                <li><a href="#"><i class="fa-regular fa-square-plus"></i> Create Post </a></li>  
+                <li><a href="{% url 'profile' user.author.id %}#post-form"><i class="fa-regular fa-square-plus"></i> Create Post </a></li>  
             {% endif %}
             <li><a href="{% url 'all_authors' %}"><i class="fa-solid fa-users"></i> All Authors</a></li>  
             <li><a href="{% url 'view_follow_requests' %}"><i class="fa-solid fa-bell"></i> Inbox </a></li> 
