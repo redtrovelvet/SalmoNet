@@ -649,7 +649,9 @@ h2 {
   width: 24px;
   height: 24px;
   transition: filter 0.3s ease;
+  filter: invert(73%) sepia(50%) saturate(450%) hue-rotate(330deg) brightness(85%) contrast(110%);
 }
+
 
 .comment-icon-btn:hover .comment-icon {
 
