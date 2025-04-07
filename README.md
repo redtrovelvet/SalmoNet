@@ -1,4 +1,4 @@
-# Team Name: Salmon
+# CMPUT404-Salmon-Project-SocialDistribution
 
 ## Team Members:
 - Carlin Boyles
