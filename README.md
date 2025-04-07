@@ -39,7 +39,7 @@ MIT License
   -  docker-compose.yml: containers for django app, caddy, and postgress reverse proxy
   -  Dockerfile
   -  .env: environemnt variables used in production
-- .devcontainer/: devcontainer configurstion for local development
+- .devcontainer/: devcontainer configuration for local development
   - devcontainer.json
   - .env: specifications for local ev variables
   - Dockerfile: for the dev environemnt
