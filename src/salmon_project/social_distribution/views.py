@@ -63,10 +63,7 @@ def index(request):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        if p.content_type == "text/markdown":
-            safe_content = p.content
-        else:
-            safe_content = escape(p.content)
+        safe_content = p.content
         html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
@@ -134,10 +131,7 @@ def profile(request, author_id):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        if p.content_type == "text/markdown":
-            safe_content = p.content
-        else:
-            safe_content = escape(p.content)
+        safe_content = p.content
         html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
@@ -258,10 +252,7 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
     serialized_post = PostSerializer(post).data
-    if post.content_type == "text/markdown":
-        safe_content = post.content
-    else:
-        safe_content = escape(post.content)
+    safe_content = post.content
     html_content = render_markdown_if_needed(safe_content, post.content_type)
     post_comments = serialized_post["comments"]["src"]
     comments = []
@@ -389,10 +380,7 @@ def delete_post_local(request, author_id, post_id):
         return HttpResponseForbidden("You are not allowed to delete this post.")
     
     if request.method == "GET":
-        if post.content_type == "text/markdown":
-            safe_content = post.content
-        else:
-            safe_content = escape(post.content)
+        safe_content = post.content
         rendered_text = render_markdown_if_needed(safe_content, post.content_type)
         return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
