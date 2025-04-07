@@ -518,6 +518,7 @@ def remove_connection(request):
         if remote_node:
             remote_node.outgoing = False
             remote_node.save()
+            Author.objects.filter(host=remote_node.host).delete()
             return Response("Outgoing connection removed", status=200)
         return Response("Connection not found", status=404)
 
