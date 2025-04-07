@@ -63,10 +63,7 @@ def index(request):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        if p.content_type == "text/markdown":
-            safe_content = p.content
-        else:
-            safe_content = escape(p.content)
+        safe_content = p.content
         html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
@@ -117,7 +114,7 @@ def profile(request, author_id):
         current_user = request.user.author
     except AttributeError:
         current_user = None
-
+        
     if current_user is not None and current_user.id == post_author.id:
         posts = Post.objects.filter(author=post_author, visibility__in=["PUBLIC", "FRIENDS", "UNLISTED"]).order_by("-created_at")
     elif current_user is not None and post_author.is_friends_with(current_user):
@@ -134,10 +131,7 @@ def profile(request, author_id):
     for i in range(len(serialized_posts)):
         p = posts[i]
         sp = serialized_posts[i]
-        if p.content_type == "text/markdown":
-            safe_content = p.content
-        else:
-            safe_content = escape(p.content)
+        safe_content = p.content
         html_content = render_markdown_if_needed(safe_content, p.content_type)
         post_comments = sp["comments"]["src"]
         comments = []
@@ -258,10 +252,7 @@ def view_post(request, author_id, post_id):
     post = get_object_or_404(Post, id=post_id, author_id=author_id)
     post_author = get_object_or_404(Author, id=author_id)
     serialized_post = PostSerializer(post).data
-    if post.content_type == "text/markdown":
-        safe_content = post.content
-    else:
-        safe_content = escape(post.content)
+    safe_content = post.content
     html_content = render_markdown_if_needed(safe_content, post.content_type)
     post_comments = serialized_post["comments"]["src"]
     comments = []
@@ -325,6 +316,8 @@ def render_markdown_if_needed(text, content_type):
         return html
     elif content_type in ["image/png;base64", "image/jpeg;base64"]:
         return f'<img src="data:image/{content_type.split(";")[0]};base64,{text}">'
+    elif content_type == "video/mp4;base64":
+        return f'<video controls><source src="data:video/mp4;base64,{text}" type="video/mp4"></video>'
     elif content_type == "application/base64":
         return f'<video controls><source src="data:application/base64,{text}"></video>'
     else:
@@ -387,10 +380,7 @@ def delete_post_local(request, author_id, post_id):
         return HttpResponseForbidden("You are not allowed to delete this post.")
     
     if request.method == "GET":
-        if post.content_type == "text/markdown":
-            safe_content = post.content
-        else:
-            safe_content = escape(post.content)
+        safe_content = post.content
         rendered_text = render_markdown_if_needed(safe_content, post.content_type)
         return render(request, "social_distribution/delete_post.html", {"post": post, "rendered_text": rendered_text, "author": post.author})
     
@@ -528,6 +518,7 @@ def remove_connection(request):
         if remote_node:
             remote_node.outgoing = False
             remote_node.save()
+            Author.objects.filter(host=remote_node.host).delete()
             return Response("Outgoing connection removed", status=200)
         return Response("Connection not found", status=404)
 
@@ -617,7 +608,7 @@ def send_follow_request(request, author_id):
             
             remote_inbox_url = f"{target_author.fqid}/inbox/"
             if remote_node.username and remote_node.password:
-                response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10, auth=(remote_node.username, remote_node.password))
+                response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
             else:
                 messages.error(request, "Remote node credentials are missing.")
                 return redirect('profile', author_id=target_author.id)
@@ -652,7 +643,7 @@ def all_authors(request):
         if not node.username or not node.password:
             continue
 
-        response = requests.get(f"{node.host}/api/authors/")
+        response = requests.get(f"{node.host}/api/authors/", headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"}, auth=(node.username, node.password))
         if response.status_code == 200:
             remote_authors = response.json()["authors"]
             for remote_author in remote_authors:
@@ -986,7 +977,7 @@ def send_post_to_remote(request, author, post):
                 continue
 
             remote_inbox_url = f"{target_author.fqid}/inbox/"
-            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10, auth=(remote_node.username, remote_node.password))
+            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
             if response.status_code in [200, 201]:
                 messages.success(request, f"Post sent to remote follower {target_author.display_name}.")
             else:
@@ -1179,7 +1170,7 @@ def send_object(object_data, host, author_fqid):
     
     inbox_url = f"{author_fqid}/inbox/"
     try:
-        response = requests.post(inbox_url, json=object_data, timeout=10, auth=(remote_node.username, remote_node.password))
+        response = requests.post(inbox_url, json=object_data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
         return response
     except requests.exceptions.RequestException as e:
         return Response(f"Error sending object: {str(e)}", status=500)
@@ -1793,7 +1784,7 @@ def commented(request, author_id):
                     return Response({"detail": "Remote node not found."}, status=404)
                 
                 if remote_node.username and remote_node.password:
-                    response = requests.post(f"{author_fqid}/inbox/", json=comment_data, auth=(remote_node.username, remote_node.password))
+                    response = requests.post(f"{author_fqid}/inbox/", json=comment_data, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
                 else:
                     return Response({"detail": "Remote node credentials not found."}, status=404)
 
@@ -2036,7 +2027,7 @@ def like_post(request, author_id, post_id):
                 if not remote_node:
                     return Response({"detail": "Remote node not found."}, status=404)
                 if remote_node.username and remote_node.password:
-                    response = requests.post(f"{author_fqid}/inbox/", json=like_data, auth=(remote_node.username, remote_node.password))
+                    response = requests.post(f"{author_fqid}/inbox/", json=like_data, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
                 else:
                     return Response({"detail": "Remote node credentials not found."}, status=404)
                 

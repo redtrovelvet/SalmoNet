@@ -118,15 +118,26 @@ form.example input[type="text"] {
     width: 200px;         
     padding: 10px;
     font-size: 17px;
-    border: 1px solid grey;
-    background: #f1f1f1;
     box-sizing: border-box;
     -webkit-transition: width 0.4s ease-in-out;
-    transition: width 0.4s ease-in-out;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    outline: none;
+    background-color: #f3f3f4;
+    color: #0d0c22;
+    transition: .4s ease;
+}
+
+form.example input[type="text"]::placeholder {
+    color: #9e9ea7;
 }
 
 form.example input[type="text"]:focus {
     width: 100%;
+    outline: none;
+    border-color: #ff9a8b;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgb(234 76 137 / 10%);
 }
 
 form.example button img {
@@ -137,8 +148,16 @@ form.example button img {
     cursor: pointer; 
 }
 
+form.example button {
+    border: 2px solid transparent;
+    border-radius: 8px;
+    outline: none;
+    background-color: #f3f3f4;
+    border-color: #ff9a8b;
+}
+
 form.example button:hover {
-    background: #0b7dda;
+    background: rgb(234 76 137 / 10%);
 }
 
 .search-message {
@@ -161,12 +180,14 @@ form.example button:hover {
     transition: background-color 0.3s;
     margin: 0 2px;
     border: 1px solid #ddd;
+    border-radius: 8px;
 }
 
 .pagination a.active {
     background-color: #ffc0b4;
     color: white;
-    border: 1px solid #ffc0b4;;
+    border: 1px solid #ffc0b4;
+    border-radius: 8px;
 }
 
 .pagination a:hover:not(.active) {

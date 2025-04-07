@@ -1,6 +1,6 @@
 /* General Styles */
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: 'Poppins', sans-serif;
     background-color: #f5f5f5;
     color: #333;
     margin: 0;
@@ -16,10 +16,11 @@ body {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2 {
+.inbox h1, h2 {
     color: #333;
     margin-bottom: 20px;
     font-size: 28px;
+    text-align: center;
 }
 
 .inbox ul {
@@ -45,6 +46,7 @@ h1, h2 {
 .inbox a {
     color: #017075;
     text-decoration: none;
+    font-weight: bold;
 }
 
 .inbox a:hover {

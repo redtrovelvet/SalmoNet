@@ -10,7 +10,7 @@
     margin-bottom: 20px;
 }
 
-.profile-pic {
+.profile-pict {
     width: 150px;
     height: 150px;
     border-radius: 50%;
@@ -40,7 +40,7 @@
 
 /* Post Form Styling */
 .post-form {
-    background: #f9f9f9;
+    background: white;
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 20px;
@@ -59,6 +59,11 @@
     margin: 8px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
+}
+
+.post-form:focus {
+    border: 2px solid #ff9a8b;
+    box-shadow: 0 0 0 4px rgb(234 76 137 / 10%);
 }
 
 .post-form .btn {
@@ -267,3 +272,62 @@
     }
 }
 
+.markdown-content img {
+    max-width: 100%; 
+    height: auto; 
+    display: block; 
+    margin: 15px 0; 
+}
+
+/* Ensure each post card can position its dropdown */
+.post-card {
+    position: relative;
+}
+
+/* Container for the dropdown */
+.dropdown {
+    position: absolute;
+    top: 10px;   
+    right: 10px; 
+}
+
+/* Styling for the three-dots toggle button */
+.dropdown-toggle {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 30px;   
+    right: 0;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    z-index: 100;
+    min-width: 100px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* When active, show the dropdown */
+.dropdown-menu.show {
+    display: block;
+}
+
+/* Style the links inside the dropdown menu */
+.dropdown-menu a {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+    color: #333;
+    transition: background 0.3s;
+}
+
+.dropdown-menu a:hover {
+    background: #f0f0f0;
+}
