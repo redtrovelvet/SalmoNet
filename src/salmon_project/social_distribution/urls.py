@@ -46,7 +46,7 @@ urlpatterns = [
     re_path(r'^api/posts/(?P<post_fqid>https?.+)/image/$',views.get_postimage_by_fqid,name="get_postimage_by_fqid"),
 
 
-    # Inbox API (used for follow requests in our API)
+    # Inbox API 
     re_path(r"^api/authors/(?P<author_id>[^/]+)/inbox/?$", views.inbox, name="inbox"),
   
 

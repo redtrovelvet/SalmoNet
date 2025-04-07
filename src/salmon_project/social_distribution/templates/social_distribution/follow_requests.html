@@ -3,9 +3,10 @@
 
 {% block content %}
 <link rel="stylesheet" type="text/css" href="{% static 'css/follow_requests.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 
 <div class="content inbox">
-    <h1>Follow Requests</h1>
+    <h1 class="follow-title">Follow Requests</h1>
     {% if follow_requests %}
         <ul>
             {% for req in follow_requests %}
@@ -30,7 +31,7 @@
         <p>No follow requests.</p>
     {% endif %}
     
-    <h2>Notifications</h2>
+    <h2 class="follow-title">Notifications</h2>
     {% if like_notifications %}
         <ul>
             {% for notification in like_notifications %}
@@ -53,7 +54,7 @@
         <p>No notifications.</p>
     {% endif %}
     
-    <h2>Check Out Your Following’s Newest Posts</h2>
+    <h2 class="follow-title">Check Out Your Following’s Newest Posts</h2>
     {% if following_notifications %}
         <ul>
             {% for notification in following_notifications %}

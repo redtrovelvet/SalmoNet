@@ -8,9 +8,9 @@
 <div class="profile-container">
     <div class="profile-header">
         {% if author.profile_image %}
-            <img src="{{ author.profile_image }}" alt="Profile Picture" class="profile-pic" width="150">
+            <img src="{{ author.profile_image }}" alt="Profile Picture" class="profile-pict" width="150">
         {% else %}
-            <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="profile-pic" width="150">
+            <img src="{% static 'img/avatar.png' %}" alt="Default Profile Picture" class="profile-pict" width="150">
         {% endif %}
 
 
@@ -47,8 +47,8 @@
                 <label for="content">Content:</label>
                 <textarea name="content" id="content" rows="4"></textarea>
 
-                <label for="media_file">Upload Media (optional):</label>
-                <input type="file" name="media_file" id="media_file" accept="image/*,application/*">
+                <label for="media_file">Upload Media:</label>
+                <input type="file" name="media_file" id="media_file" accept="image/*,application/*,video/mp4,video/webm,video/ogg">
            
                 <label for="visibility">Visibility:</label>
                 <select name="visibility" id="visibility">
@@ -144,8 +144,8 @@
                 <div class="dropdown">
                     <button class="dropdown-toggle">&#8942;</button>
                     <div class="dropdown-menu">
-                        <a href="{% url 'edit_post' author.id post.id %}">Edit</a>
-                        <a href="{% url 'delete_post_local' author.id post.id %}">Delete</a>
+                        <a href="{% url 'edit_post' author.id post.id %}"><i class="fa-solid fa-pencil"></i> Edit</a>
+                        <a href="{% url 'delete_post_local' author.id post.id %}"><i class="fa-solid fa-trash"></i> Delete</a>
                     </div>
                 </div>
             </div>

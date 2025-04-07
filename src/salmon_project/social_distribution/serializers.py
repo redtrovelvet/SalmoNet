@@ -56,7 +56,14 @@ class AuthorSerializer(serializers.Serializer):
         representation["id"] = instance.fqid
         representation["host"] = f"{instance.host}/api/"
         representation["page"] = f"{base_host}/authors/{instance.id}"
-        representation["profileImage"] = instance.profile_image
+        if instance.profile_image is None:
+            representation["profileImage"] = ""
+        else:
+            representation["profileImage"] = instance.profile_image
+        if instance.github is None:
+            representation["github"] = ""
+        else:
+            representation["github"] = instance.github
         representation.pop("username", None)
         return {snake_to_camel(key): value for key, value in representation.items()}
 

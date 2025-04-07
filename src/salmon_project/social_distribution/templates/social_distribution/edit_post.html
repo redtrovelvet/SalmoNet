@@ -1,12 +1,14 @@
 {% extends "social_distribution/base.html" %}
-
+{% load static %}
 {% block title %}Edit Post{% endblock %}
 
 {% block content %}
-<div class="content">
+<link rel="stylesheet" type="text/css" href="{% static 'css/profile.css' %}">
+
+<div class="content post-form">
     <h2>Edit Post</h2>
     <!-- New container for form styling -->
-    <div class="form-container">
+    <div>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             
@@ -39,7 +41,7 @@
             {% endif %}
 
             <div class="form-group">
-                <label for="media_file">Replace Media (optional):</label>
+                <label for="media_file">Replace Media:</label>
                 <input type="file" name="media_file" id="media_file">
                 <p class="help-text">Any file uploaded here that is not a PNG or JPEG will be saved as application/base64.</p>
             </div>

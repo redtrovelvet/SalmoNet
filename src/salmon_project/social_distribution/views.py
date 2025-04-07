@@ -14,6 +14,9 @@ from django.conf import settings
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from django.utils.html import escape
+from django.core.validators import validate_slug
+from django.core.exceptions import ValidationError
+
 
 # https://www.pythontutorial.net/django-tutorial/django-registration/
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -322,6 +325,8 @@ def render_markdown_if_needed(text, content_type):
         return html
     elif content_type in ["image/png;base64", "image/jpeg;base64"]:
         return f'<img src="data:image/{content_type.split(";")[0]};base64,{text}">'
+    elif content_type == "video/mp4;base64":
+        return f'<video controls><source src="data:video/mp4;base64,{text}" type="video/mp4"></video>'
     elif content_type == "application/base64":
         return f'<video controls><source src="data:application/base64,{text}"></video>'
     else:
@@ -403,7 +408,7 @@ def delete_post_local(request, author_id, post_id):
 # --- API Endpoints ---
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def set_node_info(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -427,7 +432,7 @@ def set_node_info(request):
     return Response("GET request not allowed", status=405)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def add_remote_node(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -456,7 +461,7 @@ def add_remote_node(request):
     return Response("GET request not allowed", status=405)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def connect_node(request):
     if request.method == "POST":
         local_node = NodeInfo.objects.first()
@@ -485,7 +490,7 @@ def connect_node(request):
         return Response("Unauthorized", status=401)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def connect_external(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -515,7 +520,7 @@ def connect_external(request):
     return Response("GET request not allowed", status=405)
             
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def remove_connection(request):
     if not request.user.is_superuser:
         return Response("Forbidden", status=403)
@@ -614,7 +619,7 @@ def send_follow_request(request, author_id):
             
             remote_inbox_url = f"{target_author.fqid}/inbox/"
             if remote_node.username and remote_node.password:
-                response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10, auth=(remote_node.username, remote_node.password))
+                response = requests.post(remote_inbox_url, json=follow_request_data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
             else:
                 messages.error(request, "Remote node credentials are missing.")
                 return redirect('profile', author_id=target_author.id)
@@ -649,7 +654,7 @@ def all_authors(request):
         if not node.username or not node.password:
             continue
 
-        response = requests.get(f"{node.host}/api/authors/")
+        response = requests.get(f"{node.host}/api/authors/", headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"}, auth=(node.username, node.password))
         if response.status_code == 200:
             remote_authors = response.json()["authors"]
             for remote_author in remote_authors:
@@ -908,7 +913,7 @@ def get_post_by_fqid(request, post_fqid):
     return Response(serializer.data)
 
 @permission_classes([IsAuthenticated])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 @api_view(['GET',"POST"])
 def author_posts(request, author_id):
     """
@@ -983,7 +988,7 @@ def send_post_to_remote(request, author, post):
                 continue
 
             remote_inbox_url = f"{target_author.fqid}/inbox/"
-            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10, auth=(remote_node.username, remote_node.password))
+            response = requests.post(remote_inbox_url, json=PostSerializer(post).data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
             if response.status_code in [200, 201]:
                 messages.success(request, f"Post sent to remote follower {target_author.display_name}.")
             else:
@@ -993,7 +998,7 @@ def send_post_to_remote(request, author, post):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def create_post(request, author_id):
     """
     POST [local] create a new post but generate a new ID
@@ -1002,7 +1007,6 @@ def create_post(request, author_id):
     author = get_object_or_404(Author, id=author_id)
     if author.user != request.user:
         return Response(status=403)
-    
     
     content = request.data.get("content", "")
     media_file = request.FILES.get("media_file", None)
@@ -1143,7 +1147,7 @@ def get_postimage_by_fqid(request, post_fqid):
 # ================= NEW: Followers and Follow Request API Endpoints =================
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_followers_api(request, author_id):
     """
     API: GET /api/authors/{author_id}/followers/
@@ -1177,14 +1181,14 @@ def send_object(object_data, host, author_fqid):
     
     inbox_url = f"{author_fqid}/inbox/"
     try:
-        response = requests.post(inbox_url, json=object_data, timeout=10, auth=(remote_node.username, remote_node.password))
+        response = requests.post(inbox_url, json=object_data, timeout=10, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
         return response
     except requests.exceptions.RequestException as e:
         return Response(f"Error sending object: {str(e)}", status=500)
 
 @api_view(["POST"])
 @authentication_classes([])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def inbox(request, author_id):
     data = request.data
     receiver = get_object_or_404(Author, id=author_id)
@@ -1610,7 +1614,7 @@ def inbox(request, author_id):
 
             # Delete any comments associated with the remote post that are not in the incoming list
             Comment.objects.filter(post=post).exclude(fqid__in=incoming_comment_fqids).delete()
-            return Response({"detail": "Post and associated objects processed."}, status=201 if created else 200)
+            return Response({"detail": "Post and associated objects processed."}, status=201)
 
         else:
             return Response({"detail": "Unsupported type for inbox."}, status=400)
@@ -1688,7 +1692,7 @@ def modify_follower_api(request, author_id, foreign_author_encoded=None):
 
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def api_send_follow_request(request, author_id):
     """
     API: send a follow request to the author with id=author_id.
@@ -1714,7 +1718,7 @@ def api_send_follow_request(request, author_id):
 
 # ========================== COMMENTS ==========================
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_comments(request, post_id, author_id=None):
     '''
     API: returns all comments for a post in the form of a "comments" object
@@ -1750,7 +1754,7 @@ def get_comments(request, post_id, author_id=None):
     return Response(comments_data)
 
 @api_view(["GET", "POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def commented(request, author_id):
     '''
     API: returns all comments made by an author, or allows an author to post a comment
@@ -1791,7 +1795,7 @@ def commented(request, author_id):
                     return Response({"detail": "Remote node not found."}, status=404)
                 
                 if remote_node.username and remote_node.password:
-                    response = requests.post(f"{author_fqid}/inbox/", json=comment_data, auth=(remote_node.username, remote_node.password))
+                    response = requests.post(f"{author_fqid}/inbox/", json=comment_data, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
                 else:
                     return Response({"detail": "Remote node credentials not found."}, status=404)
 
@@ -1817,7 +1821,7 @@ def commented(request, author_id):
         return Response(serializer.data)
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_comment(request, comment_id, author_id=None, post_id=None):
     '''
     API: returns a specific comment
@@ -1844,7 +1848,7 @@ def get_comment(request, comment_id, author_id=None, post_id=None):
 
 # ========================== LIKES ==========================
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_post_likes(request, post_id, author_id=None):
     '''
     API: returns all likes for a post
@@ -1884,7 +1888,7 @@ def get_post_likes(request, post_id, author_id=None):
     return Response(likes_data)
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_comment_likes(request, author_id, post_id, comment_id):
     '''
     API: returns all likes for a comment
@@ -1921,7 +1925,7 @@ def get_comment_likes(request, author_id, post_id, comment_id):
     return Response(likes_data)
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_author_liked(request, author_id):
     '''
     API: returns all likes made by an author
@@ -1957,7 +1961,7 @@ def get_author_liked(request, author_id):
     return Response(likes_data)
 
 @api_view(["GET"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def get_like(request, like_id, author_id=None):
     '''
     API: returns a specific like
@@ -1989,7 +1993,7 @@ def get_like(request, like_id, author_id=None):
     return Response(serializer.data)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def like_post(request, author_id, post_id):
     '''
     API: allows an author to like a post
@@ -2034,7 +2038,7 @@ def like_post(request, author_id, post_id):
                 if not remote_node:
                     return Response({"detail": "Remote node not found."}, status=404)
                 if remote_node.username and remote_node.password:
-                    response = requests.post(f"{author_fqid}/inbox/", json=like_data, auth=(remote_node.username, remote_node.password))
+                    response = requests.post(f"{author_fqid}/inbox/", json=like_data, auth=(remote_node.username, remote_node.password), headers={"X-Original-Host": "http://35ed4.yeg.rac.sh/api/"})
                 else:
                     return Response({"detail": "Remote node credentials not found."}, status=404)
                 
@@ -2054,7 +2058,7 @@ def like_post(request, author_id, post_id):
     return Response({"like_count": like_count}, status=201)
 
 @api_view(["POST"])
-@rate_limit(max_requests=1000, time_window=60)
+@rate_limit(max_requests=500, time_window=60)
 def like_comment(request, author_id, comment_id):
     '''
     API: allows an author to like a comment
