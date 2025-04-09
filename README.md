@@ -15,6 +15,7 @@ Docs: https://uofa-cmput404.github.io/w25-project-mod-salmon/
 <img width="1440" alt="Screenshot 2025-04-07 at 4 01 07 AM" src="https://github.com/user-attachments/assets/ffe4e8a0-7843-4f6d-9ef4-5c86404ef2c7" />
 
 ## Video
+https://youtu.be/RLeqbPTvaUE
 
 ## Fully Connected Groups
 - ForestGreen
