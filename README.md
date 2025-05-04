@@ -4,17 +4,17 @@ A distributed social networking platform inspired by the ActivityPub protocol. I
 
 Originally developed as a group project for CMPUT404 at the University of Alberta.
 
-Team Members:
+See this [web page](https://uofa-cmput404.github.io/general/project.html) for a description of the project
+
+Docs: https://uofa-cmput404.github.io/w25-project-mod-salmon/
+
+##Team Members:
 - Carlin Boyles
 - Ethan Chung
 - Ryan Edwards
 - Gitanjali Ghugare
 - Harshita Handa
 - Jesugbenga Omoniwa
-
-See this [web page](https://uofa-cmput404.github.io/general/project.html) for a description of the project
-
-Docs: https://uofa-cmput404.github.io/w25-project-mod-salmon/
 
 ## Images
 <img width="1440" alt="Screenshot 2025-04-07 at 3 53 28 AM" src="https://github.com/user-attachments/assets/dd351f37-1f70-4b1d-955f-ac9750ae9ebf" /> 
