@@ -1,4 +1,7 @@
 # CMPUT404-Project-SocialDistribution
+
+Originally developed as a group project for CMPUT404 at the University of Alberta.
+
 Team: Salmon
 
 See this [web page](https://uofa-cmput404.github.io/general/project.html) for a description of the project
