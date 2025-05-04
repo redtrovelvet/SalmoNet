@@ -1,8 +1,16 @@
-# CMPUT404-Project-SocialDistribution
+# SalmoNet
+
+A distributed social networking platform inspired by the ActivityPub protocol. It allows users to create posts, follow other users across federated nodes, and interact through likes and comments.
 
 Originally developed as a group project for CMPUT404 at the University of Alberta.
 
-Team: Salmon
+## Team Members:
+- Carlin Boyles
+- Ethan Chung
+- Ryan Edwards
+- Gitanjali Ghugare
+- Harshita Handa
+- Jesugbenga Omoniwa
 
 See this [web page](https://uofa-cmput404.github.io/general/project.html) for a description of the project
 
@@ -28,14 +36,6 @@ https://youtu.be/RLeqbPTvaUE
 
 ## License
 MIT License
-
-## Team Members:
-- Carlin Boyles
-- Ethan Chung
-- Ryan Edwards
-- Gitanjali Ghugare
-- Harshita Handa
-- Jesugbenga Omoniwa
 
 ## Structure
 - .deployment: production deployment setup
