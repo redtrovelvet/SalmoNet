@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Posts - Social Distribution</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Posts";
+        var mkdocs_page_input_path = "post_api.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Social Distribution
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">APIs</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../author_api/">Authors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../following_friends_api/">Following/Friends</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Posts</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-get-a-specific-post">1. Get a Specific Post</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#endpoint-get-apiauthorsauthor_idpostspost_id">Endpoint: GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#request">Request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-delete-a-post">2. Delete a Post</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#endpoint-delete-apiauthorsauthor_idpostspost_id">Endpoint: DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_1">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_1">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_1">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#request_1">Request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_1">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples_1">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3-update-a-post">3. Update a Post</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#endpoint-put-apiauthorsauthor_idpostspost_id">Endpoint: PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_2">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_2">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_2">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#request_2">Request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_2">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples_2">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-get-posts-by-author">4. Get Posts by Author</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#endpoint-get-apiauthorsauthor_idposts">Endpoint: GET /api/authors/{AUTHOR_ID}/posts/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_3">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_3">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_3">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#request_3">Request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_3">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples_3">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5-create-a-post">5. Create a Post</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#endpoint-post-apiauthorsauthor_idposts">Endpoint: POST /api/authors/{AUTHOR_ID}/posts/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_4">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_4">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_4">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#request_4">Request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_4">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples_4">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#6-get-a-specific-post-by-fqid">6. Get a Specific Post by FQID</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#endpoint-get-apipostspost_fqid">Endpoint: GET /api/posts/{POST_FQID}/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_5">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_5">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_5">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#request_5">Request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_5">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples_5">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#7-get-image-post">7. Get Image Post</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#endpoint-get-apiauthorsauthor_idpostspost_idimage">Endpoint: GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/image</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_6">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_6">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_6">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#request_6">Request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_6">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples_6">Examples</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#8-get-image-post-by-fqid">8. Get Image Post By FQID</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#endpoint-get-apipostspost_fqidimage">Endpoint: GET /api/posts/{POST_FQID}/image</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_7">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_7">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_7">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#request_7">Request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_7">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples_7">Examples</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../comments_api/">Comments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../commented_api/">Commented</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../likes_api/">Likes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../liked_api/">Liked</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../inbox/">Inbox</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../node_management_api/">Node Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../malicious_user/">Malicious Users</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Social Distribution</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">APIs</li>
+      <li class="breadcrumb-item active">Posts</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="posts">Posts</h1>
+<h3 id="1-get-a-specific-post">1. <strong>Get a Specific Post</strong></h3>
+<h4 id="endpoint-get-apiauthorsauthor_idpostspost_id"><strong>Endpoint</strong>: <code>GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/</code></h4>
+<h4 id="when-to-use"><strong>When to Use</strong></h4>
+<ul>
+<li>Use this endpoint to retrieve the details of a specific post by its ID.</li>
+<li>Useful for displaying a single post on a user's profile or feed.</li>
+</ul>
+<h4 id="how-to-use"><strong>How to Use</strong></h4>
+<ul>
+<li>Send a <code>GET</code> request to the endpoint with the <code>AUTHOR_ID</code> and <code>POST_ID</code> in the URL.</li>
+<li>If the post is friends-only, the user must be authenticated.</li>
+</ul>
+<h4 id="why-to-use"><strong>Why to Use</strong></h4>
+<ul>
+<li>To fetch a single post for display or editing.</li>
+<li>To verify the existence of a post.</li>
+</ul>
+<h4 id="request"><strong>Request</strong></h4>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li><code>AUTHOR_ID</code>: UUID of the author (e.g., <code>123e4567-e89b-12d3-a456-426614174000</code>).</li>
+<li><code>POST_ID</code>: UUID of the post (e.g., <code>123e4567-e89b-12d3-a456-426614174001</code>).</li>
+</ul>
+<h4 id="response"><strong>Response</strong></h4>
+<ul>
+<li><strong>Status Code</strong>: <code>200 OK</code> (success), <code>403 Forbidden</code> (friends-only post without authentication), <code>404 Not Found</code> (post not found).</li>
+<li><strong>Body</strong>:</li>
+</ul>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;PUBLIC&quot;
+  }
+</code></pre>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post for Friends!&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;FRIENDS&quot;
+  }
+</code></pre>
+<h4 id="examples"><strong>Examples</strong></h4>
+<ul>
+<li><strong>Public Post</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;PUBLIC&quot;
+  }
+
+- **Friends-Only Post (Unauthenticated)**:
+
+```bash
+  curl -X GET http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002/
+</code></pre>
+<ul>
+<li>If user is not logged in:
+  Response:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Authentication required.&quot;
+  }
+</code></pre>
+<ul>
+<li>If user is not a friend:
+  Response:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;You are not friends with the author.&quot;
+  }
+</code></pre>
+<ul>
+<li>If user is a friend:
+  Response:</li>
+</ul>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;PUBLIC&quot;
+  }
+</code></pre>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post for Friends!&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;FRIENDS&quot;
+  }
+</code></pre>
+<hr />
+<h3 id="2-delete-a-post">2. <strong>Delete a Post</strong></h3>
+<h4 id="endpoint-delete-apiauthorsauthor_idpostspost_id"><strong>Endpoint</strong>: <code>DELETE /api/authors/{AUTHOR_ID}/posts/{POST_ID}/</code></h4>
+<h4 id="when-to-use_1"><strong>When to Use</strong></h4>
+<ul>
+<li>Use this endpoint to delete a post created by the authenticated author.</li>
+<li>Useful for removing outdated or incorrect posts.</li>
+</ul>
+<h4 id="how-to-use_1"><strong>How to Use</strong></h4>
+<ul>
+<li>Send a <code>DELETE</code> request to the endpoint with the <code>AUTHOR_ID</code> and <code>POST_ID</code> in the URL.</li>
+<li>The user must be authenticated as the author of the post.</li>
+</ul>
+<h4 id="why-to-use_1"><strong>Why to Use</strong></h4>
+<ul>
+<li>This endpoint soft-deletes the post by setting its visibility to "DELETED". The post is no longer visible but remains in the database.</li>
+</ul>
+<h4 id="request_1"><strong>Request</strong></h4>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li><code>AUTHOR_ID</code>: UUID of the author (e.g., <code>123e4567-e89b-12d3-a456-426614174000</code>).</li>
+<li><code>POST_ID</code>: UUID of the post (e.g., <code>123e4567-e89b-12d3-a456-426614174001</code>).</li>
+</ul>
+<h4 id="response_1"><strong>Response</strong></h4>
+<ul>
+<li><strong>Status Code</strong>: <code>204 No Content</code> (success), <code>403 Forbidden</code> (unauthorized user), <code>404 Not Found</code> (post not found).</li>
+</ul>
+<h4 id="examples_1"><strong>Examples</strong></h4>
+<ul>
+<li><strong>Successful Deletion</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X DELETE http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/ -H &quot;Authorization: Token &lt;auth_token&gt;&quot;
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Post Deleted.&quot;
+  }
+</code></pre>
+<ul>
+<li><strong>Unauthorized User</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X DELETE http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Authentication credentials were not provided.&quot;
+  }
+</code></pre>
+<hr />
+<h3 id="3-update-a-post">3. <strong>Update a Post</strong></h3>
+<h4 id="endpoint-put-apiauthorsauthor_idpostspost_id"><strong>Endpoint</strong>: <code>PUT /api/authors/{AUTHOR_ID}/posts/{POST_ID}/</code></h4>
+<h4 id="when-to-use_2"><strong>When to Use</strong></h4>
+<ul>
+<li>Use this endpoint to update the content of a post.</li>
+<li>Useful for correcting typos or updating information.</li>
+</ul>
+<h4 id="how-to-use_2"><strong>How to Use</strong></h4>
+<ul>
+<li>Send a <code>PUT</code> request to the endpoint with the <code>AUTHOR_ID</code> and <code>POST_ID</code> in the URL.</li>
+<li>Include the updated post data in the request body.</li>
+<li>The user must be authenticated as the author of the post.</li>
+</ul>
+<h4 id="why-to-use_2"><strong>Why to Use</strong></h4>
+<ul>
+<li>To modify an existing post without deleting and recreating it.</li>
+</ul>
+<h4 id="request_2"><strong>Request</strong></h4>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li><code>AUTHOR_ID</code>: UUID of the author (e.g., <code>123e4567-e89b-12d3-a456-426614174000</code>).</li>
+<li><code>POST_ID</code>: UUID of the post (e.g., <code>123e4567-e89b-12d3-a456-426614174001</code>).</li>
+<li><strong>Body</strong>:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;content&quot;: &quot;Updated Post&quot;,
+  }
+</code></pre>
+<h4 id="response_2"><strong>Response</strong></h4>
+<ul>
+<li><strong>Status Code</strong>: <code>200 OK</code> (success), <code>400 Bad Request</code> (invalid data), <code>403 Forbidden</code> (unauthorized user), <code>404 Not Found</code> (post not found).</li>
+<li><strong>Body</strong>:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;content&quot;: &quot;Updated Post&quot;,
+  }
+</code></pre>
+<h4 id="examples_2"><strong>Examples</strong></h4>
+<ul>
+<li><strong>Successful Update</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X PUT http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/ -H &quot;Authorization: Token &lt;auth_token&gt;&quot; -H &quot;contentType: text/plain&quot; -d '{&quot;text&quot;: &quot;Updated Post&quot;}'
+</code></pre>
+<ul>
+<li><strong>Invalid Data</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X PUT http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/ -H &quot;Authorization: Token &lt;auth_token&gt;&quot; -H &quot;Content-Type: application/json&quot; -d '{&quot;text&quot;: &quot;&quot;}'
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json">  {
+    &quot;text&quot;: [&quot;This field may not be blank.&quot;]
+  }
+</code></pre>
+<hr />
+<h3 id="4-get-posts-by-author">4. <strong>Get Posts by Author</strong></h3>
+<h4 id="endpoint-get-apiauthorsauthor_idposts"><strong>Endpoint</strong>: <code>GET /api/authors/{AUTHOR_ID}/posts/</code></h4>
+<h4 id="when-to-use_3"><strong>When to Use</strong></h4>
+<ul>
+<li>Use this endpoint to retrieve all posts by a specific author.</li>
+<li>Useful for displaying a user's profile or feed.</li>
+</ul>
+<h4 id="how-to-use_3"><strong>How to Use</strong></h4>
+<ul>
+<li>Send a <code>GET</code> request to the endpoint with the <code>AUTHOR_ID</code> in the URL.</li>
+<li>Pagination is supported using query parameters (<code>page</code> and <code>size</code>).</li>
+</ul>
+<h4 id="why-to-use_3"><strong>Why to Use</strong></h4>
+<ul>
+<li>To fetch a list of posts for display or analysis.</li>
+</ul>
+<h4 id="request_3"><strong>Request</strong></h4>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li><code>AUTHOR_ID</code>: UUID of the author (e.g., <code>123e4567-e89b-12d3-a456-426614174000</code>).</li>
+<li><strong>Query Parameters</strong>:</li>
+<li><code>page</code>: Page number (default: <code>1</code>).</li>
+<li><code>size</code>: Number of posts per page (default: <code>10</code>).</li>
+</ul>
+<h4 id="response_3"><strong>Response</strong></h4>
+<ul>
+<li><strong>Status Code</strong>: <code>200 OK</code> (success), <code>404 Not Found</code> (author not found).</li>
+<li><strong>Body</strong>:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;type&quot;:&quot;posts&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:10,
+    &quot;count&quot;: 9001,
+    &quot;src&quot;:[
+
+        {
+          &quot;type&quot;:&quot;post&quot;,
+          &quot;title&quot;:&quot;plain text post&quot;,
+          &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+          &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+          &quot;description&quot;:&quot;plain text post&quot;,
+          &quot;contentType&quot;:&quot;text/plain&quot;,
+          &quot;content&quot;:&quot;Test Post&quot;,
+          &quot;author&quot;:{
+              &quot;type&quot;:&quot;author&quot;,
+              &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+              &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+              &quot;displayName&quot;:&quot;Test User&quot;,
+              &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+              &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+              &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+          },
+          &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+          &quot;visibility&quot;:&quot;PUBLIC&quot;
+        },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+        { &quot;type&quot;:&quot;post&quot;, /* ... the rest of the post object */ },
+    ]
+
+  }
+</code></pre>
+<h4 id="examples_3"><strong>Examples</strong></h4>
+<ul>
+<li><strong>Fetch First Page</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/?page=1&amp;size=10
+</code></pre>
+<ul>
+<li><strong>Fetch Second Page</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/?page=2&amp;size=10
+</code></pre>
+<hr />
+<h3 id="5-create-a-post">5. <strong>Create a Post</strong></h3>
+<h4 id="endpoint-post-apiauthorsauthor_idposts"><strong>Endpoint</strong>: <code>POST /api/authors/{AUTHOR_ID}/posts/</code></h4>
+<h4 id="when-to-use_4"><strong>When to Use</strong></h4>
+<ul>
+<li>Use this endpoint to create a new post.</li>
+<li>Useful for authors to share content.</li>
+</ul>
+<h4 id="how-to-use_4"><strong>How to Use</strong></h4>
+<ul>
+<li>Send a <code>POST</code> request to the endpoint with the <code>AUTHOR_ID</code> in the URL.</li>
+<li>Include the post data in the request body.</li>
+<li>The user must be authenticated as the author.</li>
+</ul>
+<h4 id="why-to-use_4"><strong>Why to Use</strong></h4>
+<ul>
+<li>To add new content to the platform.</li>
+</ul>
+<h4 id="request_4"><strong>Request</strong></h4>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li><code>AUTHOR_ID</code>: UUID of the author (e.g., <code>123e4567-e89b-12d3-a456-426614174000</code>).</li>
+<li><strong>Body</strong>:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;text&quot;: &quot;New Post&quot;,
+    &quot;visibility&quot;: &quot;PUBLIC&quot;,
+    &quot;contentType&quot;: &quot;text/plain&quot;
+  }
+</code></pre>
+<h4 id="response_4"><strong>Response</strong></h4>
+<ul>
+<li><strong>Status Code</strong>: <code>201 Created</code> (success), <code>400 Bad Request</code> (invalid data), <code>403 Forbidden</code> (unauthorized user).</li>
+<li><strong>Body</strong>:</li>
+</ul>
+<pre><code class="language-json">  {
+  &quot;type&quot;:&quot;post&quot;,
+  &quot;title&quot;:&quot;plain text post&quot;,
+  &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174011&quot;,
+  &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174011&quot;,
+  &quot;description&quot;:&quot;plain text post&quot;,
+  &quot;contentType&quot;:&quot;text/plain&quot;,
+  &quot;content&quot;:&quot;New Post&quot;,
+  &quot;author&quot;:{
+      &quot;type&quot;:&quot;author&quot;,
+      &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+      &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+      &quot;displayName&quot;:&quot;Test User&quot;,
+      &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+      &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+      &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+  &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+  &quot;visibility&quot;:&quot;PUBLIC&quot;
+  }
+</code></pre>
+<h4 id="examples_4"><strong>Examples</strong></h4>
+<ul>
+<li><strong>Successful Creation</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X POST http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/ -H &quot;Authorization: Token &lt;auth_token&gt;&quot; -H &quot;Content-Type: application/json&quot; -d '{&quot;text&quot;: &quot;New Post&quot;, &quot;visibility&quot;: &quot;PUBLIC&quot;}'
+</code></pre>
+<hr />
+<h3 id="6-get-a-specific-post-by-fqid">6. <strong>Get a Specific Post by FQID</strong></h3>
+<h4 id="endpoint-get-apipostspost_fqid"><strong>Endpoint</strong>: <code>GET /api/posts/{POST_FQID}/</code></h4>
+<h4 id="when-to-use_5"><strong>When to Use</strong></h4>
+<ul>
+<li>Use this endpoint to retrieve the details of a specific post by its FQID.</li>
+</ul>
+<h4 id="how-to-use_5"><strong>How to Use</strong></h4>
+<ul>
+<li>Send a <code>GET</code> request to the endpoint with the <code>POST_FQID</code> in the URL.</li>
+<li>If the post is friends-only, the user must be authenticated.</li>
+</ul>
+<h4 id="why-to-use_5"><strong>Why to Use</strong></h4>
+<ul>
+<li>To fetch a single post for display or editing.</li>
+<li>To verify the existence of a post.</li>
+<li>To display the post without needing to separately supply the author's identifier.</li>
+</ul>
+<h4 id="request_5"><strong>Request</strong></h4>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li><code>POST_FQID</code>: Fully Qualified ID (FQID) of the post (e.g., <code>http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001</code>).</li>
+</ul>
+<h4 id="response_5"><strong>Response</strong></h4>
+<ul>
+<li><strong>Status Code</strong>: <code>200 OK</code> (success), <code>403 Forbidden</code> (Authentication required.), <code>404 Not Found</code> (post not found).</li>
+<li><strong>Body</strong>:</li>
+</ul>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;PUBLIC&quot;
+  }
+</code></pre>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post for Friends!&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;FRIENDS&quot;
+  }
+</code></pre>
+<h4 id="examples_5"><strong>Examples</strong></h4>
+<ul>
+<li><strong>Public Post</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/posts/http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001/
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;PUBLIC&quot;
+  }
+</code></pre>
+<ul>
+<li><strong>Friends-Only Post (Unauthenticated)</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/posts/http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002/
+</code></pre>
+<ul>
+<li>If user is not logged in:
+  Response:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Authentication required.&quot;
+  }
+</code></pre>
+<ul>
+<li>If user is not a friend:
+  Response:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;You are not friends with the author.&quot;
+  }
+</code></pre>
+<ul>
+<li>If user is a friend:
+  Response:</li>
+</ul>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;PUBLIC&quot;
+  }
+</code></pre>
+<pre><code class="language-json">    {
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174002&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post for Friends!&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;Test User&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/123e4567-e89b-12d3-a456-426614174000&quot;,
+        &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+        &quot;profileImage&quot;: &quot;http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174010/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;FRIENDS&quot;
+  }
+</code></pre>
+<hr />
+<h3 id="7-get-image-post">7. <strong>Get Image Post</strong></h3>
+<h4 id="endpoint-get-apiauthorsauthor_idpostspost_idimage"><strong>Endpoint</strong>: <code>GET /api/authors/{AUTHOR_ID}/posts/{POST_ID}/image</code></h4>
+<h4 id="when-to-use_6"><strong>When to Use</strong></h4>
+<ul>
+<li>Use this endpoint to retrieve an image post converted to binary format.</li>
+<li>It supports both local and remote requests.</li>
+<li>Returns a 404 Not Found if the specified post is not an image.</li>
+</ul>
+<h4 id="how-to-use_6"><strong>How to Use</strong></h4>
+<ul>
+<li>Send a <code>GET</code> request to the endpoint with the <code>AUTHOR_ID</code> and <code>POST_ID</code> in the URL.</li>
+<li>The returned binary data is suitable for rendering in image tags, or for proxying/caching purposes.</li>
+</ul>
+<h4 id="why-to-use_6"><strong>Why to Use</strong></h4>
+<ul>
+<li>To fetch the actual image data of a post when the post represents an image.</li>
+<li>Useful for displaying images embedded in Markdown or in client applications.</li>
+</ul>
+<h4 id="request_6"><strong>Request</strong></h4>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li><code>AUTHOR_ID</code>: UUID of the author (e.g., <code>123e4567-e89b-12d3-a456-426614174000</code>).</li>
+<li><code>POST_ID</code>: UUID of the image post (e.g., <code>123e4567-e89b-12d3-a456-426614174004</code>).</li>
+</ul>
+<h4 id="response_6"><strong>Response</strong></h4>
+<ul>
+<li><strong>Status Code</strong>: <code>200 OK</code> (success), <code>403 Forbidden</code> (friends-only post without authentication), <code>404 Not Found</code> (post not found).</li>
+</ul>
+<h4 id="examples_6"><strong>Examples</strong></h4>
+<ul>
+<li><strong>Public Post</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174004/image/
+</code></pre>
+<p>Response:
+An HTTP response displaying the image from the image post with uuid = 123e4567-e89b-12d3-a456-426614174004</p>
+<ul>
+<li><strong>Friends-Only Post (Unauthenticated)</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174005/image/
+</code></pre>
+<ul>
+<li>If user is not logged in:
+  Response:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Authentication required.&quot;
+  }
+</code></pre>
+<ul>
+<li>If user is not a friend:
+  Response:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;You are not friends with the author.&quot;
+  }
+</code></pre>
+<ul>
+<li>If user is a friend:
+  Response:</li>
+</ul>
+<p>An HTTP response displaying the image from the image post with uuid = 123e4567-e89b-12d3-a456-426614174005</p>
+<hr />
+<h3 id="8-get-image-post-by-fqid">8. <strong>Get Image Post By FQID</strong></h3>
+<h4 id="endpoint-get-apipostspost_fqidimage"><strong>Endpoint</strong>: <code>GET /api/posts/{POST_FQID}/image</code></h4>
+<h4 id="when-to-use_7"><strong>When to Use</strong></h4>
+<ul>
+<li>Use this endpoint to retrieve an image post converted to binary format.</li>
+<li>It supports both local and remote requests.</li>
+<li>Returns a 404 Not Found if the specified post is not an image.</li>
+</ul>
+<h4 id="how-to-use_7"><strong>How to Use</strong></h4>
+<ul>
+<li>Send a <code>GET</code> request to the endpoint with the <code>POST_FQID</code> in the URL.</li>
+<li>The returned binary data is suitable for rendering in image tags, or for proxying/caching purposes.</li>
+</ul>
+<h4 id="why-to-use_7"><strong>Why to Use</strong></h4>
+<ul>
+<li>To fetch the actual image data of a post when the post represents an image.</li>
+<li>Useful for displaying images embedded in Markdown or in client applications.</li>
+</ul>
+<h4 id="request_7"><strong>Request</strong></h4>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li><code>POST_FQID</code>: Fully qualified ID (FQID) of the image post (e.g., <code>http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174004</code>).</li>
+</ul>
+<h4 id="response_7"><strong>Response</strong></h4>
+<ul>
+<li><strong>Status Code</strong>: <code>200 OK</code> (success), <code>403 Forbidden</code> (friends-only post without authentication), <code>404 Not Found</code> (post not found).</li>
+</ul>
+<h4 id="examples_7"><strong>Examples</strong></h4>
+<ul>
+<li><strong>Public Post</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/posts/http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174004/image/
+</code></pre>
+<p>Response:
+An HTTP response displaying the image from the image post with FQID = http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174004 </p>
+<ul>
+<li><strong>Friends-Only Post (Unauthenticated)</strong>:</li>
+</ul>
+<pre><code class="language-bash">  curl -X GET http://127.0.0.1:8000/api/posts/http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174005/image/
+</code></pre>
+<ul>
+<li>If user is not logged in:
+  Response:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Authentication required.&quot;
+  }
+</code></pre>
+<ul>
+<li>If user is not a friend:
+  Response:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;You are not friends with the author.&quot;
+  }
+</code></pre>
+<ul>
+<li>If user is a friend:
+  Response:</li>
+</ul>
+<p>An HTTP response displaying the image from the image post with FQID = http://127.0.0.1:8000/api/authors/123e4567-e89b-12d3-a456-426614174000/posts/123e4567-e89b-12d3-a456-426614174005</p>
+<hr />
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../following_friends_api/" class="btn btn-neutral float-left" title="Following/Friends"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../comments_api/" class="btn btn-neutral float-right" title="Comments">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../following_friends_api/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../comments_api/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Malicious Users - Social Distribution</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Malicious Users";
+        var mkdocs_page_input_path = "malicious_user.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Social Distribution
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">APIs</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../author_api/">Authors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../following_friends_api/">Following/Friends</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../post_api/">Posts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../comments_api/">Comments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../commented_api/">Commented</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../likes_api/">Likes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../liked_api/">Liked</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../inbox/">Inbox</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../node_management_api/">Node Management</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Malicious Users</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#api-endpoints-tested">API Endpoints Tested</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-get-authors">1. GET /authors/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-post-authorsauthor_idpostspost_id">2. POST /authors/{author_id}/posts/{post_id}/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-post-upload">3. POST /upload/</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#4-get-authors-system-overload-test">4. GET /authors/ (System Overload Test)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#5-get-authorsauthor_idpostspost_id-code-injection-test">5. GET /authors/{author_id}/posts/{post_id}/ (Code Injection Test)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#summary-table">Summary Table</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#conclusion">Conclusion</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Social Distribution</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">APIs</li>
+      <li class="breadcrumb-item active">Malicious Users</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="api-security-and-rate-limiting-test-documentation">API Security and Rate Limiting Test Documentation</h1>
+<h2 id="overview">Overview</h2>
+<p>These API security and rate-limiting tests are designed to validate the robustness of the system against various types of malicious activities. The tests cover:
+- Rate limiting enforcement
+- Non-standard and malicious input handling
+- Image upload validation
+- System overload attempts
+- Code injection prevention</p>
+<p>These tests <strong>should only be performed by the instructor or TAs</strong> to avoid disrupting other groups.</p>
+<hr />
+<h2 id="api-endpoints-tested">API Endpoints Tested</h2>
+<h3 id="1-get-authors">1. <code>GET /authors/</code></h3>
+<p><strong>Purpose:</strong> Retrieves all authors in the system.
+- <strong>When to use:</strong> To fetch a list of registered authors.
+- <strong>How to use:</strong> Send a <code>GET</code> request to <code>/authors/</code>.
+- <strong>Why this endpoint is tested:</strong> This endpoint is vulnerable to excessive requests that may overload the system.</p>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">{
+  &quot;method&quot;: &quot;GET&quot;,
+  &quot;url&quot;: &quot;/authors/&quot;
+}
+</code></pre>
+<p><strong>Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;status&quot;: 200,
+  &quot;data&quot;: [
+    {
+      &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440000&quot;,
+      &quot;username&quot;: &quot;testuser&quot;,
+      &quot;display_name&quot;: &quot;Test User&quot;,
+      &quot;github&quot;: &quot;https://github.com/testuser&quot;,
+      &quot;profile_image&quot;: null,
+      &quot;host&quot;: &quot;http://127.0.0.1:8000&quot;
+    }
+  ]
+}
+</code></pre>
+<ul>
+<li><strong>Interesting Notes:</strong> This endpoint enforces rate limiting (maximum 100 requests per minute per user). Exceeding this limit returns:
+  <code>json
+  {
+    "status": 429,
+    "error": "Rate limit exceeded. Try again later."
+  }</code></li>
+</ul>
+<hr />
+<h3 id="2-post-authorsauthor_idpostspost_id">2. <code>POST /authors/{author_id}/posts/{post_id}/</code></h3>
+<p><strong>Purpose:</strong> Allows users to submit content.
+- <strong>When to use:</strong> When submitting a new post.
+- <strong>How to use:</strong> Send a <code>POST</code> request with JSON data.
+- <strong>Why this endpoint is tested:</strong> To check for SQL injection, XSS, and unexpected MIME types.</p>
+<p><strong>Request:</strong></p>
+<pre><code class="language-json">{
+  &quot;content&quot;: &quot;&lt;script&gt;alert('XSS');&lt;/script&gt;&quot;,
+  &quot;visibility&quot;: &quot;'; DROP TABLE users; --&quot;,
+  &quot;content_type&quot;: &quot;application/x-httpd-php&quot;
+}
+</code></pre>
+<p><strong>Expected Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;status&quot;: 405,
+  &quot;error&quot;: &quot;Method Not Allowed&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Interesting Notes:</strong> This endpoint rejects malicious input and ensures that script execution or SQL injections are not processed.</li>
+</ul>
+<hr />
+<h3 id="3-post-upload">3. <code>POST /upload/</code></h3>
+<p><strong>Purpose:</strong> Uploads images to the system.
+- <strong>When to use:</strong> When uploading an image.
+- <strong>How to use:</strong> Send a <code>POST</code> request with an image file.
+- <strong>Why this endpoint is tested:</strong> To ensure that only valid image formats (JPG, JPEG, PNG) are accepted and other formats (GIF, BMP, TIFF, etc.) are rejected.</p>
+<p><strong>Valid Request:</strong></p>
+<pre><code class="language-json">{
+  &quot;image&quot;: &quot;data:image/jpeg;base64,/9j/4AAQSkZJRg...&quot;
+}
+</code></pre>
+<p><strong>Valid Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;status&quot;: 200,
+  &quot;message&quot;: &quot;Image uploaded successfully.&quot;
+}
+</code></pre>
+<p><strong>Invalid Request:</strong> (GIF file upload attempt)</p>
+<pre><code class="language-json">{
+  &quot;image&quot;: &quot;data:image/gif;base64,R0lGODlh...&quot;
+}
+</code></pre>
+<p><strong>Expected Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;status&quot;: 400,
+  &quot;error&quot;: &quot;Invalid image format. Only JPG, JPEG, and PNG are allowed.&quot;
+}
+</code></pre>
+<hr />
+<h3 id="4-get-authors-system-overload-test">4. <code>GET /authors/</code> (System Overload Test)</h3>
+<p><strong>Purpose:</strong> Simulates a DDoS attack by sending multiple concurrent requests.
+- <strong>When to use:</strong> To check the system’s resilience to high request loads.
+- <strong>How to use:</strong> Send multiple concurrent requests using threads.
+- <strong>Why this endpoint is tested:</strong> To ensure that the system enforces rate limiting and does not crash under excessive load.</p>
+<p><strong>Simulated Attack:</strong>
+- 10 parallel threads each sending 50 requests.</p>
+<p><strong>Expected Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;status&quot;: 429,
+  &quot;error&quot;: &quot;Rate limit exceeded. Try again later.&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Interesting Notes:</strong> The rate limiter prevents the system from being overwhelmed by excessive requests.</li>
+</ul>
+<hr />
+<h3 id="5-get-authorsauthor_idpostspost_id-code-injection-test">5. <code>GET /authors/{author_id}/posts/{post_id}/</code> (Code Injection Test)</h3>
+<p><strong>Purpose:</strong> Tests whether code payloads execute in the system.
+- <strong>When to use:</strong> When retrieving a specific post.
+- <strong>How to use:</strong> Send a <code>GET</code> request to retrieve post details.
+- <strong>Why this endpoint is tested:</strong> To ensure that malicious code payloads are treated as plain text and do not execute.</p>
+<p><strong>Malicious Request:</strong></p>
+<pre><code class="language-json">{
+  &quot;content&quot;: &quot;print('Hello, World!')&quot;
+}
+</code></pre>
+<p><strong>Expected Response:</strong></p>
+<pre><code class="language-json">{
+  &quot;status&quot;: 200,
+  &quot;content&quot;: &quot;print('Hello, World!')&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Interesting Notes:</strong> The system correctly treats the payload as text rather than executing it, preventing remote code execution vulnerabilities.</li>
+</ul>
+<hr />
+<h2 id="summary-table">Summary Table</h2>
+<table>
+<thead>
+<tr>
+<th>Test Case</th>
+<th>Endpoint</th>
+<th>Expected Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rate Limiting</td>
+<td><code>GET /authors/</code></td>
+<td>100 requests allowed per minute, 101st returns 429</td>
+</tr>
+<tr>
+<td>Non-standard Input</td>
+<td><code>POST /authors/{author_id}/posts/{post_id}/</code></td>
+<td>Rejects SQL/XSS injection payloads with 405</td>
+</tr>
+<tr>
+<td>Invalid Image Format</td>
+<td><code>POST /upload/</code></td>
+<td>Rejects non-JPG/JPEG/PNG uploads with 400</td>
+</tr>
+<tr>
+<td>System Overload</td>
+<td><code>GET /authors/</code></td>
+<td>Returns 429 when excessive requests detected</td>
+</tr>
+<tr>
+<td>Code Injection</td>
+<td><code>GET /authors/{author_id}/posts/{post_id}/</code></td>
+<td>Returns content as text, preventing execution</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p>These tests ensure the robustness of the system against malicious activities. The rate limiter prevents excessive requests, input validation blocks SQL and XSS attacks, and strict content-type handling ensures only valid data is processed. Only instructors and TAs should run these tests to maintain system stability.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../node_management_api/" class="btn btn-neutral float-left" title="Node Management"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../node_management_api/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

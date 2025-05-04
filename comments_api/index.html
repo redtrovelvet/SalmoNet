@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Comments - Social Distribution</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Comments";
+        var mkdocs_page_input_path = "comments_api.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Social Distribution
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">APIs</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../author_api/">Authors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../following_friends_api/">Following/Friends</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../post_api/">Posts</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Comments</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1get-comments-on-a-post-by-author-and-post-serial">1.Get comments on a post by author and post serial</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field">Explantion of JSON Field</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#interesting-features">Interesting Features</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2get-comments-on-a-post-by-post-fqid">2.Get comments on a post by post FQID</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used_1">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_1">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_1">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example_1">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example_1">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field_1">Explantion of JSON Field</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#interesting-features_1">Interesting Features</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3get-a-specific-comment">3.Get a specific comment</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used_2">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_2">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_2">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example_2">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example_2">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field_2">Explantion of JSON Field</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../commented_api/">Commented</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../likes_api/">Likes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../liked_api/">Liked</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../inbox/">Inbox</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../node_management_api/">Node Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../malicious_user/">Malicious Users</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Social Distribution</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">APIs</li>
+      <li class="breadcrumb-item active">Comments</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="comments">Comments</h1>
+<h3 id="1get-comments-on-a-post-by-author-and-post-serial">1.Get comments on a post by author and post serial</h3>
+<p><strong>Endpoint:</strong> 'GET /api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/comments/'</p>
+<h4 id="when-the-api-endpoint-should-be-used">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to retrieve all of the comments on the post in the form of a "comments" object</p>
+<h4 id="how-the-api-endpoint-should-be-used">How the API endpoint should be used</h4>
+<p>Send a GET request to '/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/comments/'.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to display all comments on a post</li>
+<li>Don't use if you have the post FQID, use the post FQID endpoint instead</li>
+</ul>
+<h4 id="1st-example">1st Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/</a>
+Response: A JSON "comments" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comments&quot;,
+    &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:2,
+    &quot;count&quot;: 2,
+    &quot;src&quot;:[
+        {
+            &quot;type&quot;:&quot;comment&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;comment&quot;:&quot;Hello World&quot;,
+            &quot;contentType&quot;:&quot;text/markdown&quot;,
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001&quot;,
+            &quot;post&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+            &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;
+            &quot;likes&quot;: {
+                &quot;type&quot;: &quot;likes&quot;,
+                &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;,
+                &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;
+                &quot;page_number&quot;: 1,
+                &quot;size&quot;: 50,
+                &quot;count&quot;: 0,
+                &quot;src&quot;: [],
+            },
+        },
+        {
+            &quot;type&quot;:&quot;comment&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;comment&quot;:&quot;Hello World2&quot;,
+            &quot;contentType&quot;:&quot;text/markdown&quot;,
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;,
+            &quot;post&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+            &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;
+            &quot;likes&quot;: {
+                &quot;type&quot;: &quot;likes&quot;,
+                &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;,
+                &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;
+                &quot;page_number&quot;: 1,
+                &quot;size&quot;: 50,
+                &quot;count&quot;: 0,
+                &quot;src&quot;: [],
+            },
+        }
+    ]
+}
+
+</code></pre>
+<h4 id="2nd-example">2nd Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/?page=1&amp;size=1">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/?page=1&amp;size=1</a>
+Response: A JSON "comments object"</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comments&quot;,
+    &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:1,
+    &quot;count&quot;: 2,
+    &quot;src&quot;:[
+        {
+            &quot;type&quot;:&quot;comment&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;comment&quot;:&quot;Hello World&quot;,
+            &quot;contentType&quot;:&quot;text/markdown&quot;,
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001&quot;,
+            &quot;post&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+            &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;
+            &quot;likes&quot;: {
+                &quot;type&quot;: &quot;likes&quot;,
+                &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;,
+                &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;
+                &quot;page_number&quot;: 1,
+                &quot;size&quot;: 50,
+                &quot;count&quot;: 0,
+                &quot;src&quot;: [],
+            },
+        }
+    ]
+}
+</code></pre>
+<h4 id="explantion-of-json-field">Explantion of JSON Field</h4>
+<p>type (string): always set to comments becuase it is a comments object.<br />
+page (string, URL): the URL of the page where the comments are displayed.<br />
+id (string, URL): the unique identifier of the post's comments.<br />
+page_number (int): the current page number of the comments.<br />
+size (int): the number of comments per page.<br />
+count (int): the total number of comments.<br />
+src (array): an array of comment objects.</p>
+<h4 id="interesting-features">Interesting Features</h4>
+<p>Pagination: The comments are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.</p>
+<h3 id="2get-comments-on-a-post-by-post-fqid">2.Get comments on a post by post FQID</h3>
+<p><strong>Endpoint:</strong> 'GET /api/posts/{POST_FQID}/comments'</p>
+<h4 id="when-the-api-endpoint-should-be-used_1">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to retrieve all of the comments on the post in the form of a "comments" object</p>
+<h4 id="how-the-api-endpoint-should-be-used_1">How the API endpoint should be used</h4>
+<p>Send a GET request to '/api/posts/{POST_FQID}/comments'.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_1">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to display all comments on a post</li>
+<li>Don't use if you have the author and post serial, use the author and post serial endpoint instead</li>
+</ul>
+<h4 id="1st-example_1">1st Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/">http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/</a>
+Response: A JSON "comments" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comments&quot;,
+    &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:2,
+    &quot;count&quot;: 2,
+    &quot;src&quot;:[
+        {
+            &quot;type&quot;:&quot;comment&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;comment&quot;:&quot;Hello World&quot;,
+            &quot;contentType&quot;:&quot;text/markdown&quot;,
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001&quot;,
+            &quot;post&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+            &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;
+            &quot;likes&quot;: {
+                &quot;type&quot;: &quot;likes&quot;,
+                &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;,
+                &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;
+                &quot;page_number&quot;: 1,
+                &quot;size&quot;: 50,
+                &quot;count&quot;: 0,
+                &quot;src&quot;: [],
+            },
+        },
+        {
+            &quot;type&quot;:&quot;comment&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;comment&quot;:&quot;Hello World2&quot;,
+            &quot;contentType&quot;:&quot;text/markdown&quot;,
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;,
+            &quot;post&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+            &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;
+            &quot;likes&quot;: {
+                &quot;type&quot;: &quot;likes&quot;,
+                &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;,
+                &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;
+                &quot;page_number&quot;: 1,
+                &quot;size&quot;: 50,
+                &quot;count&quot;: 0,
+                &quot;src&quot;: [],
+            },
+        }
+    ]
+}
+
+</code></pre>
+<h4 id="2nd-example_1">2nd Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/?page=1&amp;size=1">http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/?page=1&amp;size=1</a>
+Response: A JSON "comments object"</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comments&quot;,
+    &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001/comments/&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:1,
+    &quot;count&quot;: 2,
+    &quot;src&quot;:[
+        {
+            &quot;type&quot;:&quot;comment&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;comment&quot;:&quot;Hello World&quot;,
+            &quot;contentType&quot;:&quot;text/markdown&quot;,
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001&quot;,
+            &quot;post&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+            &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;
+            &quot;likes&quot;: {
+                &quot;type&quot;: &quot;likes&quot;,
+                &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;,
+                &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;
+                &quot;page_number&quot;: 1,
+                &quot;size&quot;: 50,
+                &quot;count&quot;: 0,
+                &quot;src&quot;: [],
+            },
+        }
+    ]
+}
+</code></pre>
+<h4 id="explantion-of-json-field_1">Explantion of JSON Field</h4>
+<p>type (string): always set to comments becuase it is a comments object.<br />
+page (string, URL): the URL of the page where the comments are displayed.<br />
+id (string, URL): the unique identifier of the post's comments.<br />
+page_number (int): the current page number of the comments.<br />
+size (int): the number of comments per page.<br />
+count (int): the total number of comments.<br />
+src (array): an array of comment objects.</p>
+<h4 id="interesting-features_1">Interesting Features</h4>
+<p>Pagination: The comments are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.</p>
+<h3 id="3get-a-specific-comment">3.Get a specific comment</h3>
+<p><strong>Endpoint:</strong> 'GET /api/authors/{AUTHOR_SERIAL}/post/{POST_SERIAL}/comment/{REMOTE_COMMENT_FQID}'</p>
+<h4 id="when-the-api-endpoint-should-be-used_2">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to retrieve a single comment</p>
+<h4 id="how-the-api-endpoint-should-be-used_2">How the API endpoint should be used</h4>
+<p>Send a GET request to '/api/authors/{AUTHOR_SERIAL}/post/{POST_SERIAL}/comment/{REMOTE_COMMENT_FQID}'.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_2">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to get a single comment</li>
+<li>Don't use if you want multiple comments from a post, use the get comments enpoints instead</li>
+</ul>
+<h4 id="1st-example_2">1st Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474001">http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474001</a>
+Response: A JSON "comment" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comment&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;John Doe&quot;,
+        &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+    },
+    &quot;comment&quot;:&quot;Hello World&quot;,
+    &quot;contentType&quot;:&quot;text/markdown&quot;,
+    &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001&quot;,
+    &quot;post&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;
+    &quot;likes&quot;: {
+        &quot;type&quot;: &quot;likes&quot;,
+        &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;,
+        &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;
+        &quot;page_number&quot;: 1,
+        &quot;size&quot;: 50,
+        &quot;count&quot;: 0,
+        &quot;src&quot;: [],
+    }
+}
+
+</code></pre>
+<h4 id="2nd-example_2">2nd Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474002">http://127.0.0.1:8000/api/posts/123e4567-e89b-12d3-a456-426614174001/comments/543e4897-e89b-12e3-a456-426685474002</a>
+Response: A JSON "comment" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comment&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;John Doe&quot;,
+        &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+    },
+    &quot;comment&quot;:&quot;Hello World2&quot;,
+    &quot;contentType&quot;:&quot;text/markdown&quot;,
+    &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+    &quot;id&quot;:&quot;http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;,
+    &quot;post&quot;: &quot;http://nodebbbb/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+    &quot;page&quot;: &quot;http://nodebbbb/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;
+    &quot;likes&quot;: {
+        &quot;type&quot;: &quot;likes&quot;,
+        &quot;id&quot;: &quot;http://nodeaaaa/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;,
+        &quot;page&quot;: &quot;http://nodeaaaa/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474001/likes&quot;
+        &quot;page_number&quot;: 1,
+        &quot;size&quot;: 50,
+        &quot;count&quot;: 0,
+        &quot;src&quot;: [],
+    }
+}
+</code></pre>
+<h4 id="explantion-of-json-field_2">Explantion of JSON Field</h4>
+<p>type (string): always set to comment becuase it is a comment object.<br />
+author (object): the author of the comment in the form of an author object.<br />
+comment (string): the text content of the comment.<br />
+contentType (string): the type of content in the comment.<br />
+published (string): the date and time the comment was published.<br />
+id (string, URL): the unique identifier of the comment.<br />
+post (string, URL): the URL of the post the comment is on.<br />
+page (string, URL): the URL of the page where the comment is displayed.<br />
+likes (object): the likes object of the comment listing all likes.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../post_api/" class="btn btn-neutral float-left" title="Posts"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../commented_api/" class="btn btn-neutral float-right" title="Commented">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../post_api/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../commented_api/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

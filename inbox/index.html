@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Inbox - Social Distribution</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Inbox";
+        var mkdocs_page_input_path = "inbox.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Social Distribution
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">APIs</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../author_api/">Authors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../following_friends_api/">Following/Friends</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../post_api/">Posts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../comments_api/">Comments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../commented_api/">Commented</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../likes_api/">Likes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../liked_api/">Liked</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Inbox</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-send-follow-request">1. Send Follow Request:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example">Example:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response">Response</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-send-a-post-like">2. Send a Post Like:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_1">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_1">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_1">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_1">Example:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_1">Response</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3-send-a-comment-like">3. Send a Comment Like:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_2">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_2">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_2">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_2">Example:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_2">Response</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-send-a-comment">4. Send a Comment:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_3">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_3">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_3">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_3">Example:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_3">Response</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5-send-a-post">5. Send a Post:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use_4">When to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-to-use_4">How to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-to-use_4">Why to Use</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_4">Example:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_4">Response</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../node_management_api/">Node Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../malicious_user/">Malicious Users</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Social Distribution</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">APIs</li>
+      <li class="breadcrumb-item active">Inbox</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="inbox">Inbox:</h1>
+<h3 id="1-send-follow-request">1. Send Follow Request:</h3>
+<p><strong>Endpoint:</strong> <code>POST /api/authors/{AUTHOR_ID}/inbox/</code></p>
+<h4 id="when-to-use"><strong>When to Use</strong></h4>
+<p>Use this endpoint when an author (actor) wants to send a follow request to another author (object). This is typically used for node-to-node communication.</p>
+<h4 id="how-to-use"><strong>How to Use</strong></h4>
+<p>Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the target author. The body should be a JSON object representing the follow request.</p>
+<h4 id="why-to-use"><strong>Why to Use</strong></h4>
+<ul>
+<li>Use this endpoint when implementing node to node follow functionality.</li>
+</ul>
+<p>#### <strong>Request</strong></p>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li>
+<p><code>AUTHOR_ID</code>: UUID of the target author (e.g., <code>222</code>).</p>
+</li>
+<li>
+<p><strong>Body</strong>:</p>
+<ul>
+<li>A follow request object</li>
+</ul>
+</li>
+</ul>
+<pre><code class="language-json">{
+    &quot;type&quot;: &quot;follow&quot;,
+    &quot;summary&quot;: &quot;Greg wants to follow Lara&quot;,
+    &quot;actor&quot;: {
+        &quot;type&quot;: &quot;author&quot;,
+        &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/111&quot;,
+        &quot;host&quot;: &quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;: &quot;Greg Johnson&quot;,
+        &quot;github&quot;: &quot;http://github.com/gjohnson&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;,
+        &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/greg&quot;
+    },
+    &quot;object&quot;: {
+        &quot;type&quot;: &quot;author&quot;,
+        &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/222&quot;,
+        &quot;host&quot;: &quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;: &quot;Lara Croft&quot;,
+        &quot;github&quot;: &quot;http://github.com/laracroft&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/abc123.jpg&quot;,
+        &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/lara&quot;
+    }
+}
+</code></pre>
+<ul>
+<li><strong>Status Code</strong>: <code>200 OK</code> (Already Exists), <code>201 Created</code> (Success), <code>400 Bad Request</code> (Missing actor data in POST body), <code>404 Not Found</code> (Target author (object) not found in database)</li>
+</ul>
+<h4 id="example">Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/api/authors/222/inbox/</p>
+<h4 id="response"><strong>Response</strong></h4>
+<ul>
+<li>If actor information is missing in POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing actor data.&quot;
+  }
+</code></pre>
+<ul>
+<li>If target author (object) does not exist in the local database:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Sender author not found in database.&quot;
+  }
+</code></pre>
+<ul>
+<li>If follow request already exists in our database and can be viewed by the target author:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;detail&quot;: &quot;Follow request already exists.&quot;
+  }
+</code></pre>
+<ul>
+<li>If follow request is successfully created in our database and can be viewed by the target author:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Follow request created.&quot;
+  }
+</code></pre>
+<hr />
+<h3 id="2-send-a-post-like">2. Send a Post Like:</h3>
+<p><strong>Endpoint:</strong> <code>POST /api/authors/{AUTHOR_ID}/inbox/</code></p>
+<h4 id="when-to-use_1"><strong>When to Use</strong></h4>
+<p>Use this endpoint when an an author wants to send a like on a post (object) created by author with author uuid = {AUTHOR_ID}. This endpoint is also used to unlike a post through the same method since it checks if the post like already exists in {AUTHOR_ID}'s database and then deletes it. This is typically used for node-to-node communication.</p>
+<h4 id="how-to-use_1"><strong>How to Use</strong></h4>
+<p>Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the author whose post is being liked. The body should be a JSON object representing the like.</p>
+<h4 id="why-to-use_1"><strong>Why to Use</strong></h4>
+<ul>
+<li>Use this endpoint when implementing node to node functionality for liking a post.</li>
+</ul>
+<p>#### <strong>Request</strong></p>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li>
+<p><code>AUTHOR_ID</code>: UUID of the target author whose post is being liked (e.g., <code>222</code>).</p>
+</li>
+<li>
+<p><strong>Body</strong>:</p>
+</li>
+</ul>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;like&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://nodeaaaa/api/authors/111&quot;,
+        &quot;page&quot;:&quot;http://nodeaaaa/authors/greg&quot;,
+        &quot;host&quot;:&quot;http://nodeaaaa/api/&quot;,
+        &quot;displayName&quot;:&quot;Greg Johnson&quot;,
+        &quot;github&quot;: &quot;http://github.com/gjohnson&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;id&quot;:&quot;http://nodeaaaa/api/authors/111/liked/166&quot;,
+    &quot;object&quot;: &quot;http://nodebbbb/api/authors/222/posts/249&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Status Code</strong>: <code>401 Unauthorized</code> (Request from an unauthorized node), <code>200 OK</code> (Post like removed since it already exists in our database), <code>201 Created</code> (Post like successfuly created), <code>400 Bad Request</code> (Missing author/object data in POST body and if object type for like is neither a post or comment), <code>404 Not Found</code> (Target post (object)/ author not found in database)</li>
+</ul>
+<h4 id="example_1">Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/api/authors/222/inbox/</p>
+<h4 id="response_1"><strong>Response</strong></h4>
+<ul>
+<li>If an unauthorized node sends the request:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Unauthorized&quot;
+  }
+</code></pre>
+<ul>
+<li>If author information is missing in the POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing author data.&quot;
+  }
+</code></pre>
+<ul>
+<li>If post (object) is missing in the POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing object field.&quot;
+  }
+</code></pre>
+<ul>
+<li>If post (object) is not found in the database:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Target post not found.&quot;
+  }
+</code></pre>
+<ul>
+<li>If author (sender of the request) is not found in the database:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Sender author not found in database.&quot;
+  }
+</code></pre>
+<ul>
+<li>If post like doesn't already exist in the database and is successfully created:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Post like stored.&quot;
+  }
+</code></pre>
+<ul>
+<li>If post like already exists in the database and is successfully removed (unliked):</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Post like removed.&quot;
+  }
+</code></pre>
+<ul>
+<li>If object is neither a post or a comment:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Unrecognized object type for like.&quot;
+  }
+</code></pre>
+<hr />
+<h3 id="3-send-a-comment-like">3. Send a Comment Like:</h3>
+<p><strong>Endpoint:</strong> <code>POST /api/authors/{AUTHOR_ID}/inbox/</code></p>
+<h4 id="when-to-use_2"><strong>When to Use</strong></h4>
+<p>Use this endpoint when an an author wants to send a like on a comment (object) created by author with author uuid = {AUTHOR_ID}. This endpoint is also used to unlike a comment through the same method since it checks if the comment like already exists in {AUTHOR_ID}'s database and then deletes it. This is typically used for node-to-node communication.</p>
+<h4 id="how-to-use_2"><strong>How to Use</strong></h4>
+<p>Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the author whose comment is being liked. The body should be a JSON object representing the like.</p>
+<h4 id="why-to-use_2"><strong>Why to Use</strong></h4>
+<ul>
+<li>Use this endpoint when implementing node to node functionality for liking a comment.</li>
+</ul>
+<p>#### <strong>Request</strong></p>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li>
+<p><code>AUTHOR_ID</code>: UUID of the target author whose comment is being liked (e.g., <code>111</code>).</p>
+</li>
+<li>
+<p><strong>Body</strong>:</p>
+</li>
+</ul>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;like&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://nodebbbb/api/authors/222&quot;,
+        &quot;host&quot;:&quot;http://nodebbbb/api/&quot;,
+        &quot;displayName&quot;:&quot;Lara Croft&quot;,
+        &quot;page&quot;:&quot;http://nodebbbb/authors/222&quot;,
+        &quot;github&quot;: &quot;http://github.com/laracroft&quot;,
+        &quot;profileImage&quot;: &quot;http://nodebbbb/api/authors/222/posts/217/image&quot;
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;id&quot;: &quot;http://nodeaaaa/api/authors/222/liked/255&quot;,
+    &quot;object&quot;: &quot;http://nodeaaaa/api/authors/111/commented/130&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Status Code</strong>: <code>401 Unauthorized</code> (Request from an unauthorized node), <code>200 OK</code> (Comment like removed since it already exists in our database), <code>201 Created</code> (Comment like successfuly created), <code>400 Bad Request</code> (Missing author/object data in POST body and if object type for like is neither a post or comment), <code>404 Not Found</code> (Target comment (object)/ author not found in database)</li>
+</ul>
+<h4 id="example_2">Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/api/authors/111/inbox/</p>
+<h4 id="response_2"><strong>Response</strong></h4>
+<ul>
+<li>If an unauthorized node sends the request:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Unauthorized&quot;
+  }
+</code></pre>
+<ul>
+<li>If author information is missing in the POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing author data.&quot;
+  }
+</code></pre>
+<ul>
+<li>If comment (object) is missing in the POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing object field.&quot;
+  }
+</code></pre>
+<ul>
+<li>If comment (object) is not found in the database:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Target comment not found.&quot;
+  }
+</code></pre>
+<ul>
+<li>If author (sender of the request) is not found in the database:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Sender author not found in database.&quot;
+  }
+</code></pre>
+<ul>
+<li>If comment like doesn't already exist in the database and is successfully created:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Comment like stored.&quot;
+  }
+</code></pre>
+<ul>
+<li>If comment like already exists in the database and is successfully removed (unliked):</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Comment like removed.&quot;
+  }
+</code></pre>
+<ul>
+<li>If object is neither a post or a comment:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Unrecognized object type for like.&quot;
+  }
+</code></pre>
+<hr />
+<h3 id="4-send-a-comment">4. Send a Comment:</h3>
+<p><strong>Endpoint:</strong> <code>POST /api/authors/{AUTHOR_ID}/inbox/</code></p>
+<h4 id="when-to-use_3"><strong>When to Use</strong></h4>
+<p>Use this endpoint when an an author wants to send a comment to a post created by author with author uuid = {AUTHOR_ID}. This is typically used for node-to-node communication.</p>
+<h4 id="how-to-use_3"><strong>How to Use</strong></h4>
+<p>Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the author whose post the comment is being made on. The body should be a JSON object representing the comment.</p>
+<h4 id="why-to-use_3"><strong>Why to Use</strong></h4>
+<ul>
+<li>Use this endpoint when implementing node to node functionality for sending a comment to a post.</li>
+</ul>
+<p>#### <strong>Request</strong></p>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li>
+<p><code>AUTHOR_ID</code>: UUID of the target author whose post is being commented on (e.g., <code>222</code>).</p>
+</li>
+<li>
+<p><strong>Body</strong>:</p>
+</li>
+</ul>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comment&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://nodeaaaa/api/authors/111&quot;,
+        &quot;page&quot;:&quot;http://nodeaaaa/authors/greg&quot;,
+        &quot;host&quot;:&quot;http://nodeaaaa/api/&quot;,
+        &quot;displayName&quot;:&quot;Greg Johnson&quot;,
+        &quot;github&quot;: &quot;http://github.com/gjohnson&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+    },
+    &quot;comment&quot;:&quot;Sick Olde English&quot;,
+    &quot;contentType&quot;:&quot;text/markdown&quot;,
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;id&quot;: &quot;http://nodeaaaa/api/authors/111/commented/130&quot;,
+    &quot;post&quot;: &quot;http://nodebbbb/api/authors/222/posts/249&quot;,
+    &quot;likes&quot;:{
+        &quot;type&quot;:&quot;likes&quot;,
+        &quot;page&quot;:&quot;http://nodeaaaa/authors/222/posts/249&quot;,
+        &quot;id&quot;:&quot;http://nodeaaaa/api/authors/111/commented/130/likes&quot;,
+        &quot;page_number&quot;:1,
+        &quot;size&quot;:50,
+        &quot;count&quot;: 9001,
+        &quot;src&quot;:[
+            {
+                &quot;type&quot;:&quot;like&quot;,
+                &quot;author&quot;:{
+                    &quot;type&quot;:&quot;author&quot;,
+                    &quot;id&quot;:&quot;http://nodebbbb/api/authors/222&quot;,
+                    &quot;host&quot;:&quot;http://nodebbbb/api/&quot;,
+                    &quot;displayName&quot;:&quot;Lara Croft&quot;,
+                    &quot;page&quot;:&quot;http://nodebbbb/authors/222&quot;,
+                    &quot;github&quot;: &quot;http://github.com/laracroft&quot;,
+                    &quot;profileImage&quot;: &quot;http://nodebbbb/api/authors/222/posts/217/image&quot;
+                },
+                &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+                &quot;id&quot;: &quot;http://nodeaaaa/api/authors/222/liked/255&quot;,
+                &quot;object&quot;: &quot;http://nodeaaaa/api/authors/111/commented/130&quot;
+            }
+        ]
+    },
+}
+</code></pre>
+<ul>
+<li><strong>Status Code</strong>: <code>401 Unauthorized</code> (Request from an unauthorized node), <code>201 Created</code> (Comment &amp; likes successfully created), <code>400 Bad Request</code> (Missing author/post/comment text/comment fqid data in POST body), <code>404 Not Found</code> (Target post/ sender not found in database)</li>
+</ul>
+<h4 id="example_3">Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/api/authors/222/inbox/</p>
+<h4 id="response_3"><strong>Response</strong></h4>
+<ul>
+<li>If an unauthorized node sends the request:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Unauthorized&quot;
+  }
+</code></pre>
+<ul>
+<li>If author information is missing in the POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing author data.&quot;
+  }
+</code></pre>
+<ul>
+<li>If comment text/ comment fqid is missing in the POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing comment text or comment fqid.&quot;
+  }
+</code></pre>
+<ul>
+<li>If post information is missing in the POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing post field.&quot;
+  }
+</code></pre>
+<ul>
+<li>If target post is not found in the database:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Target post not found.&quot;
+  }
+</code></pre>
+<ul>
+<li>If author (sender of the request) is not found in the database:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Sender author not found in database.&quot;
+  }
+</code></pre>
+<ul>
+<li>If comment and its associated comment likes are not in the database and are successfully created:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Comment and embedded likes stored.&quot;
+  }
+</code></pre>
+<hr />
+<h3 id="5-send-a-post">5. Send a Post:</h3>
+<p><strong>Endpoint:</strong> <code>POST /api/authors/{AUTHOR_ID}/inbox/</code></p>
+<h4 id="when-to-use_4"><strong>When to Use</strong></h4>
+<p>Use this endpoint when an an author wants to send a post to an author with author uuid = {AUTHOR_ID}. This is typically used for node-to-node communication for sending posts to remote followers/friends.</p>
+<h4 id="how-to-use_4"><strong>How to Use</strong></h4>
+<p>Send a POST request to /api/authors/{AUTHOR_ID}/inbox/, replacing {AUTHOR_ID} with the UUID of the author to who the post is being sent to. The body should be a JSON object representing the post.</p>
+<h4 id="why-to-use_4"><strong>Why to Use</strong></h4>
+<ul>
+<li>Use this endpoint when implementing node to node functionality for sending a post to remote followes/friends.</li>
+<li>Also used to send a post to remote followers/friends after the post has been edited or deleted.</li>
+</ul>
+<p>#### <strong>Request</strong></p>
+<ul>
+<li><strong>URL Parameters</strong>:</li>
+<li>
+<p><code>AUTHOR_ID</code>: UUID of the target author who the post is being sent to (e.g., <code>222</code>).</p>
+</li>
+<li>
+<p><strong>Body</strong>:</p>
+</li>
+</ul>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;post&quot;,
+    &quot;title&quot;:&quot;plain text post&quot;,
+    &quot;id&quot;:&quot;http://nodebbbb/api/authors/222/posts/249&quot;,
+    &quot;page&quot;: &quot;http://nodebbbb/authors/222/posts/293&quot;,
+    &quot;description&quot;:&quot;plain text post&quot;,
+
+    &quot;contentType&quot;:&quot;text/plain&quot;,
+    &quot;content&quot;:&quot;Test Post&quot;
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://nodebbbb/api/authors/222&quot;,
+        &quot;host&quot;:&quot;http://nodebbbb/api/&quot;,
+        &quot;displayName&quot;:&quot;Lara Croft&quot;,
+        &quot;page&quot;:&quot;http://nodebbbb/authors/222&quot;,
+        &quot;github&quot;: &quot;http://github.com/laracroft&quot;,
+        &quot;profileImage&quot;: &quot;http://nodebbbb/api/authors/222/posts/217/image&quot;
+    },
+    &quot;comments&quot;:{
+        &quot;type&quot;:&quot;comments&quot;,
+        &quot;page&quot;:&quot;http://nodebbbb/authors/222/posts/249&quot;,
+        &quot;id&quot;:&quot;http://nodebbbb/api/authors/222/posts/249/comments&quot;
+        &quot;page_number&quot;:1,
+        &quot;size&quot;:5,
+        &quot;count&quot;: 1023,
+        &quot;src&quot;:[
+            {
+                &quot;type&quot;:&quot;comment&quot;,
+                &quot;author&quot;:{
+                    &quot;type&quot;:&quot;author&quot;,
+                    &quot;id&quot;:&quot;http://nodeaaaa/api/authors/111&quot;,
+                    &quot;page&quot;:&quot;http://nodeaaaa/authors/greg&quot;,
+                    &quot;host&quot;:&quot;http://nodeaaaa/api/&quot;,
+                    &quot;displayName&quot;:&quot;Greg Johnson&quot;,
+                    &quot;github&quot;: &quot;http://github.com/gjohnson&quot;,
+                    &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+                },
+                &quot;comment&quot;:&quot;Sick Olde English&quot;,
+                &quot;contentType&quot;:&quot;text/markdown&quot;,
+                &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+                &quot;id&quot;:&quot;http://nodeaaaa/api/authors/111/commented/130&quot;,
+                &quot;post&quot;: &quot;http://nodebbbb/api/authors/222/posts/249&quot;,
+                &quot;page&quot;: &quot;http://nodebbbb/authors/222/posts/249&quot;
+                &quot;likes&quot;: {
+                    &quot;type&quot;: &quot;likes&quot;,
+                    &quot;id&quot;: &quot;http://nodeaaaa/api/authors/111/commented/130/likes&quot;,
+                    &quot;page&quot;: &quot;http://nodeaaaa/authors/greg/comments/130/likes&quot;,
+                    &quot;page_number&quot;: 1,
+                    &quot;size&quot;: 50,
+                    &quot;count&quot;: 0,
+                    &quot;src&quot;: [],
+                },
+            }
+        ]
+    },
+    &quot;likes&quot;:{
+        &quot;type&quot;:&quot;likes&quot;,
+        &quot;page&quot;:&quot;http://nodeaaaa/authors/222/posts/249&quot;,
+        &quot;id&quot;:&quot;http://nodeaaaa/api/authors/222/posts/249/likes&quot;,
+        &quot;page_number&quot;:1,
+        &quot;size&quot;:50,
+        &quot;count&quot;: 9001,
+        &quot;src&quot;:[
+            {
+                &quot;type&quot;:&quot;like&quot;,
+                &quot;author&quot;:{
+                    &quot;type&quot;:&quot;author&quot;,
+                    &quot;id&quot;:&quot;http://nodeaaaa/api/authors/111&quot;,
+                    &quot;page&quot;:&quot;http://nodeaaaa/authors/greg&quot;,
+                    &quot;host&quot;:&quot;http://nodeaaaa/api/&quot;,
+                    &quot;displayName&quot;:&quot;Greg Johnson&quot;,
+                    &quot;github&quot;: &quot;http://github.com/gjohnson&quot;,
+                    &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+                },
+                &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+                &quot;id&quot;:&quot;http://nodeaaaa/api/authors/111/liked/166&quot;,
+                &quot;object&quot;: &quot;http://nodebbbb/authors/222/posts/249&quot;
+            }
+        ]
+    },
+    &quot;published&quot;:&quot;2015-03-09T13:07:04+00:00&quot;,
+    &quot;visibility&quot;:&quot;PUBLIC&quot;
+}
+</code></pre>
+<ul>
+<li><strong>Status Code</strong>: <code>401 Unauthorized</code> (Request from an unauthorized node), <code>201 Created</code> (Post and associated objects created/updated/deleted), <code>400 Bad Request</code> (Missing author data/post id in POST body and unsupported request/type for inbox)</li>
+</ul>
+<h4 id="example_4">Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/api/authors/111/inbox/</p>
+<h4 id="response_4"><strong>Response</strong></h4>
+<ul>
+<li>If an unauthorized node sends the request:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Unauthorized&quot;
+  }
+</code></pre>
+<ul>
+<li>If author information/post id is missing in the POST body:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Missing post ID or author data.&quot;
+  }
+</code></pre>
+<ul>
+<li>If POST body does not contain an object of type Like, Comment, Post, Follow Request:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Unsupported type for inbox.&quot;
+  }
+</code></pre>
+<p>If request is neither remote or local:</p>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Unsupported request.&quot;
+  }
+</code></pre>
+<ul>
+<li>If the Post is created along with its associated objects - Comments, Post Likes, Comment Likes:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Post and associated objects processed.&quot;
+  }
+</code></pre>
+<ul>
+<li>If the Post and its associated objects are updated:</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Post and associated objects processed.&quot;
+  }
+</code></pre>
+<ul>
+<li>If the Post and its associated objects are deleted (soft delete by changing visibility of post and deleting likes, comments):</li>
+</ul>
+<pre><code class="language-json">  {
+    &quot;detail&quot;: &quot;Post and associated objects processed.&quot;
+  }
+</code></pre>
+<hr />
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../liked_api/" class="btn btn-neutral float-left" title="Liked"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../node_management_api/" class="btn btn-neutral float-right" title="Node Management">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../liked_api/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../node_management_api/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

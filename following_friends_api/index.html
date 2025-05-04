@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Following/Friends - Social Distribution</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Following/Friends";
+        var mkdocs_page_input_path = "following_friends_api.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Social Distribution
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">APIs</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../author_api/">Authors</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Following/Friends</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1send-follow-request">1.Send Follow Request:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response">Response:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example">1st Example:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-approve-follow-request">2. Approve Follow Request:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_1">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_1">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_1">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_1">Response:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example">Example:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3-deny-follow-request">3. Deny Follow Request:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_2">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_2">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_2">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_2">Response:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_1">Example:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-unfollow-an-author">4. Unfollow an Author:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_3">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_3">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_3">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_3">Response:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_2">Example:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5-view-followers-following-and-friends">5. View Followers, Following, and Friends:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_4">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_4">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_4">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_3">Example:</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#6-get-followers-list">6. Get Followers List:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_5">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_5">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_5">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_4">Example:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_4">Response</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#7-check-a-specific-follower">7. Check a Specific Follower:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_6">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_6">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_6">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_5">Response</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_5">Example:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response-if-follower-exists">Response (if follower exists)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#8-add-a-follower">8. Add a Follower:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_7">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_7">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_7">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_6">Response</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#9-remove-a-follower">9. Remove a Follower:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_8">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_8">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_8">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response_7">Response</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#10-send-follow-request">10. Send Follow Request:</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-to-use-this-endpoint_9">When to use this endpoint:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_9">How the API endpoint should be used:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_9">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#example_6">Example:</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#response-if-follower-exists_1">Response (if follower exists)</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../post_api/">Posts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../comments_api/">Comments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../commented_api/">Commented</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../likes_api/">Likes</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../liked_api/">Liked</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../inbox/">Inbox</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../node_management_api/">Node Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../malicious_user/">Malicious Users</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Social Distribution</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">APIs</li>
+      <li class="breadcrumb-item active">Following/Friends</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="followingfriends">Following/Friends:</h1>
+<h3 id="1send-follow-request">1.Send Follow Request:</h3>
+<p><strong>Endpoint:</strong> 'POST /authors/<uuid:author_id>/follow/'</p>
+<h4 id="when-to-use-this-endpoint">When to use this endpoint:</h4>
+<p>Use this endpoint when an authenticated author wants to follow another author. This sends a follow request from the current user to the target author.</p>
+<h4 id="how-the-api-endpoint-should-be-used">How the API endpoint should be used:</h4>
+<p>Send a POST request to /authors/<uuid:author_id>/follow/, replacing <uuid:author_id> with the UUID of the target author.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint when you want to send a follow request.</li>
+<li>Do not use this endpoint when you are building node-to-node communication. In that case, use the inbox endpoint.</li>
+</ul>
+<h4 id="response">Response:</h4>
+<p>On success, the endpoint redirects (HTTP 302) to the target author’s profile page, indicating that the follow request was sent.</p>
+<h4 id="1st-example">1st Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/follow/</p>
+<p>Response: HTTP 302 redirect to the profile page with a success message.</p>
+<h3 id="2-approve-follow-request">2. Approve Follow Request:</h3>
+<p><strong>Endpoint:</strong> 'POST /follow_requests/<int:request_id>/approve/'</p>
+<h4 id="when-to-use-this-endpoint_1">When to use this endpoint:</h4>
+<p>Use this endpoint when an authenticated author (the receiver) wants to approve a follow request.</p>
+<h4 id="how-the-api-endpoint-should-be-used_1">How the API endpoint should be used:</h4>
+<p>Send a POST request to /follow_requests/<int:request_id>/approve/ replacing <int:request_id> with the follow request's numeric ID.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_1">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint to approve follow requests.</li>
+<li>Do not use this endpoint if you are not the recipient of the follow request.</li>
+</ul>
+<h4 id="response_1">Response:</h4>
+<p>On success, the follow request's status is updated to "ACCEPTED", the sender is added as a follower, and the endpoint redirects (HTTP 302) with a confirmation message.</p>
+<h4 id="example">Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/follow_requests/10/approve/</p>
+<p>Response: HTTP 302 redirect with a message that the follow request was approved.</p>
+<h3 id="3-deny-follow-request">3. Deny Follow Request:</h3>
+<p><strong>Endpoint:</strong> 'POST /follow_requests/<int:request_id>/deny/'</p>
+<h4 id="when-to-use-this-endpoint_2">When to use this endpoint:</h4>
+<p>Use this endpoint when an authenticated author (the receiver) wants to deny a follow request.</p>
+<h4 id="how-the-api-endpoint-should-be-used_2">How the API endpoint should be used:</h4>
+<p>Send a POST request to /follow_requests/<int:request_id>/deny/, replacing <int:request_id> with the numeric identifier of the follow request.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_2">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint to decline follow requests.</li>
+<li>Do not use this endpoint if you are not the recipient of the follow request.</li>
+</ul>
+<h4 id="response_2">Response:</h4>
+<p>On success, the follow request's status is updated to "DENIED", and the endpoint redirects (HTTP 302) with a message indicating the request was denied.</p>
+<h4 id="example_1">Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/follow_requests/10/deny/</p>
+<p>Response: HTTP 302 redirect with a message that the follow request was denied.</p>
+<h3 id="4-unfollow-an-author">4. Unfollow an Author:</h3>
+<p><strong>Endpoint:</strong> 'GET /authors/<uuid:author_id>/unfollow/'</p>
+<h4 id="when-to-use-this-endpoint_3">When to use this endpoint:</h4>
+<p>Use this endpoint when an authenticated author wants to unfollow another author.</p>
+<h4 id="how-the-api-endpoint-should-be-used_3">How the API endpoint should be used:</h4>
+<p>Send a GET request to /authors/<uuid:author_id>/unfollow/, where <uuid:author_id> is the UUID of the author to unfollow.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_3">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint to remove an author from your following list.</li>
+<li>Do not use this endpoint if you are not currently following the target author.</li>
+</ul>
+<h4 id="response_3">Response:</h4>
+<p>On success, the specified author is removed from the current user's following list (and posts from that author are blocked from the feed). The endpoint then redirects (HTTP 302) to the unfollowed author's profile page..</p>
+<h4 id="example_2">Example:</h4>
+<p>Request: GET http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/unfollow/</p>
+<p>Response: HTTP 302 redirect with a message confirming the unfollow action.</p>
+<h3 id="5-view-followers-following-and-friends">5. View Followers, Following, and Friends:</h3>
+<p><strong>Endpoint:</strong>
+- View Followers: GET /profile/followers/
+- View Following: GET /profile/following/
+- View Friends: GET /profile/friends/</p>
+<h4 id="when-to-use-this-endpoint_4">When to use this endpoint:</h4>
+<p>Use these endpoints to view the lists of:
+    - Authors following the current user (followers),
+    - Authors the current user is following (following),
+    - Authors who are mutual followers (friends).</p>
+<h4 id="how-the-api-endpoint-should-be-used_4">How the API endpoint should be used:</h4>
+<p>Send a GET request to each endpoint. These endpoints render HTML pages listing the respective authors.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_4">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use these endpoints when you need a to see details of all followers.</li>
+<li>Do not use these endpoints if you need raw JSON data.</li>
+</ul>
+<h4 id="example_3">Example:</h4>
+<p>Request: GET http://127.0.0.1:8000/profile/followers/</p>
+<p>Response: An HTML page is returned listing all followers of the current user.</p>
+<h3 id="6-get-followers-list">6. Get Followers List:</h3>
+<p><strong>Endpoint:</strong> 'GET /api/authors/<uuid:author_id>/followers/'</p>
+<h4 id="when-to-use-this-endpoint_5">When to use this endpoint:</h4>
+<p>Retrieve a JSON list of all authors who follow the specified author.</p>
+<h4 id="how-the-api-endpoint-should-be-used_5">How the API endpoint should be used:</h4>
+<p>Send a GET request to /api/authors/<uuid:author_id>/followers/, replacing <uuid:author_id> with the target author's UUID.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_5">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint you want to see who follows a specific author.</li>
+<li>Do not use this endpoint if you only need to display the list in a web browser.</li>
+</ul>
+<h4 id="example_4">Example:</h4>
+<p>Request: GET http://127.0.0.1:8000/api/authors/27540e3a-fe47-4da1-8d75-c7a9a33cd324/followers/</p>
+<h4 id="response_4"><strong>Response</strong></h4>
+<pre><code class="language-json">{
+    &quot;type&quot;: &quot;followers&quot;,
+    &quot;followers&quot;: [
+        {
+            &quot;type&quot;: &quot;author&quot;,
+            &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/a4e29eba-f840-425c-99ef-b1f6ae44ccd8&quot;,
+            &quot;host&quot;: &quot;http://127.0.0.1:8000/api/&quot;,
+            &quot;displayName&quot;: &quot;Bruce Wayne&quot;,
+            &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/a4e29eba-f840-425c-99ef-b1f6ae44ccd8&quot;,
+            &quot;github&quot;: &quot;https://github.com/brucewayne&quot;,
+            &quot;profileImage&quot;: &quot;path/to/bruce_profile.jpg&quot;
+        }
+        // ... additional follower objects
+    ]
+}
+</code></pre>
+<h3 id="7-check-a-specific-follower">7. Check a Specific Follower:</h3>
+<p><strong>Endpoint:</strong> 'GET /api/authors/<uuid:author_id>/followers/<path:foreign_author_fqid>/'</p>
+<h4 id="when-to-use-this-endpoint_6">When to use this endpoint:</h4>
+<p>Check if a specific foreign author (provided as a percent‐encoded URL) is a follower of the given author.</p>
+<h4 id="how-the-api-endpoint-should-be-used_6">How the API endpoint should be used:</h4>
+<p>Send a GET request to /api/authors/<uuid:author_id>/followers/<path:foreign_author_fqid>/, replacing <path:foreign_author_fqid> with the percent-encoded URL of the foreign author.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_6">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint to check if a particular foreign author is in the followers list.</li>
+<li>Do not use this endpoint if you want a complete list of all followers; use the GET followers list endpoint instead.</li>
+</ul>
+<h4 id="response_5"><strong>Response</strong></h4>
+<p>If the foreign author is a follower, returns their author object as JSON.
+Otherwise, returns a 404 error.</p>
+<h4 id="example_5">Example:</h4>
+<p>Request: GET http://127.0.0.1:8000/api/authors/27540e3a-fe47-4da1-8d75-c7a9a33cd324/followers/http%3A%2F%2F127.0.0.1%3A8000%2Fapi%2Fauthors%2Fa4e29eba-f840-425c-99ef-b1f6ae44ccd8</p>
+<h4 id="response-if-follower-exists"><strong>Response</strong> (if follower exists)</h4>
+<pre><code class="language-json">{
+    &quot;type&quot;: &quot;author&quot;,
+    &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/a4e29eba-f840-425c-99ef-b1f6ae44ccd8&quot;,
+    &quot;host&quot;: &quot;http://127.0.0.1:8000/api/&quot;,
+    &quot;displayName&quot;: &quot;Bruce Wayne&quot;,
+    &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/a4e29eba-f840-425c-99ef-b1f6ae44ccd8&quot;,
+    &quot;github&quot;: &quot;https://github.com/brucewayne&quot;,
+    &quot;profileImage&quot;: &quot;path/to/bruce_profile.jpg&quot;
+}
+</code></pre>
+<h3 id="8-add-a-follower">8. Add a Follower:</h3>
+<p><strong>Endpoint:</strong> 'PUT /api/authors/<uuid:author_id>/followers/<path:foreign_author_fqid>/'</p>
+<h4 id="when-to-use-this-endpoint_7">When to use this endpoint:</h4>
+<p>Manually add a foreign author as a follower.</p>
+<h4 id="how-the-api-endpoint-should-be-used_7">How the API endpoint should be used:</h4>
+<p>Send a PUT request to /api/authors/<uuid:author_id>/followers/<path:foreign_author_fqid>/.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_7">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint when you need to add a follower .</li>
+<li>Do not use this endpoint if you are using the web interface for follow requests.</li>
+</ul>
+<h4 id="response_6"><strong>Response</strong></h4>
+<p>On success, returns the added follower’s author object as JSON with a 200 status code.</p>
+<h3 id="9-remove-a-follower">9. Remove a Follower:</h3>
+<p><strong>Endpoint:</strong> 'DELETE /api/authors/<uuid:author_id>/followers/<path:foreign_author_fqid>/'</p>
+<h4 id="when-to-use-this-endpoint_8">When to use this endpoint:</h4>
+<p>Remove a foreign author from the followers list of the specified author.</p>
+<h4 id="how-the-api-endpoint-should-be-used_8">How the API endpoint should be used:</h4>
+<p>Send a DELETE request to /api/authors/<uuid:author_id>/followers/<path:foreign_author_fqid>/.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_8">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint to  remove a follower.</li>
+<li>Do not use this endpoint for bulk operations; it is designed for single removal.</li>
+</ul>
+<h4 id="response_7"><strong>Response</strong></h4>
+<p>On success, returns a 204 No Content status code.</p>
+<h3 id="10-send-follow-request">10. Send Follow Request:</h3>
+<p><strong>Endpoint:</strong> 'POST /api/authors/<uuid:author_id>/inbox/'</p>
+<h4 id="when-to-use-this-endpoint_9">When to use this endpoint:</h4>
+<p>Use this endpoint when an author (actor) wants to send a follow request to another author (object) via their inbox. This is typically used for node-to-node communication.</p>
+<h4 id="how-the-api-endpoint-should-be-used_9">How the API endpoint should be used:</h4>
+<p>Send a POST request to /api/authors/<uuid:author_id>/inbox/, replacing <uuid:author_id> with the UUID of the target author. The request body should be a JSON object representing the follow request.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_9">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use this endpoint when implementing node to node follow functionality.</li>
+<li>Do not use this endpoint when the follow request is local; in that case, use the regular follow endpoint.</li>
+</ul>
+<h4 id="example_6">Example:</h4>
+<p>Request: POST http://127.0.0.1:8000/api/authors/222/inbox/</p>
+<h4 id="response-if-follower-exists_1"><strong>Response</strong> (if follower exists)</h4>
+<pre><code class="language-json">{
+    &quot;type&quot;: &quot;follow&quot;,
+    &quot;summary&quot;: &quot;Greg wants to follow Lara&quot;,
+    &quot;actor&quot;: {
+        &quot;type&quot;: &quot;author&quot;,
+        &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/111&quot;,
+        &quot;host&quot;: &quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;: &quot;Greg Johnson&quot;,
+        &quot;github&quot;: &quot;http://github.com/gjohnson&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;,
+        &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/greg&quot;
+    },
+    &quot;object&quot;: {
+        &quot;type&quot;: &quot;author&quot;,
+        &quot;id&quot;: &quot;http://127.0.0.1:8000/api/authors/222&quot;,
+        &quot;host&quot;: &quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;: &quot;Lara Croft&quot;,
+        &quot;github&quot;: &quot;http://github.com/laracroft&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/abc123.jpg&quot;,
+        &quot;page&quot;: &quot;http://127.0.0.1:8000/authors/lara&quot;
+    }
+}
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../author_api/" class="btn btn-neutral float-left" title="Authors"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../post_api/" class="btn btn-neutral float-right" title="Posts">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../author_api/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../post_api/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

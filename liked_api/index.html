@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Liked - Social Distribution</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Liked";
+        var mkdocs_page_input_path = "liked_api.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> Social Distribution
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">APIs</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../author_api/">Authors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../following_friends_api/">Following/Friends</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../post_api/">Posts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../comments_api/">Comments</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../commented_api/">Commented</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../likes_api/">Likes</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Liked</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1get-authors-likes">1.Get author's likes</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field">Explantion of JSON Field</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#interesting-features">Interesting Features</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2get-a-single-like">2.Get a single like</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used_1">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_1">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_1">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example_1">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example_1">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field_1">Explantion of JSON Field</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3get-authors-likes-by-fqid">3.Get author's likes by FQID</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used_2">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_2">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_2">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example_2">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example_2">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field_2">Explantion of JSON Field</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#interesting-features_1">Interesting Features</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4get-a-single-like-by-fqid">4.Get a single like by FQID</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used_3">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_3">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_3">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example_3">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example_3">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field_3">Explantion of JSON Field</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5like-a-post">5.Like a post</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used_4">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_4">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_4">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example_4">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example_4">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field_4">Explantion of JSON Field</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#6like-a-comment">6.Like a comment</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#when-the-api-endpoint-should-be-used_5">When the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-the-api-endpoint-should-be-used_5">How the API endpoint should be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#why-the-api-endpoint-should-or-should-not-be-used_5">Why the API endpoint should or should not be used</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#1st-example_5">1st Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2nd-example_5">2nd Example</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#explantion-of-json-field_5">Explantion of JSON Field</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../inbox/">Inbox</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../node_management_api/">Node Management</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../malicious_user/">Malicious Users</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">Social Distribution</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">APIs</li>
+      <li class="breadcrumb-item active">Liked</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="liked">Liked</h2>
+<h3 id="1get-authors-likes">1.Get author's likes</h3>
+<p><strong>Endpoint:</strong> 'GET /api/authors/{AUTHOR_SERIAL}/liked'</p>
+<h4 id="when-the-api-endpoint-should-be-used">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to retrieve all likes by an author</p>
+<h4 id="how-the-api-endpoint-should-be-used">How the API endpoint should be used</h4>
+<p>Send a GET request to '/api/authors/{AUTHOR_SERIAL}/liked'.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to get a all likes by an author</li>
+<li>Don't use if you want to get a single like</li>
+<li>Don't use if you want to get all likes on a post or comment, use the get likes on post or comment endpoint instead</li>
+</ul>
+<h4 id="1st-example">1st Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/?page=1&amp;size=1">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/?page=1&amp;size=1</a>
+Response: A JSON "likes" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;likes&quot;,
+    &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/likes&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:1,
+    &quot;count&quot;: 2,
+    &quot;src&quot;:[
+        {
+            &quot;type&quot;:&quot;like&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384&quot;,
+            &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;
+        },
+    ]
+}
+
+
+</code></pre>
+<h4 id="2nd-example">2nd Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/</a>
+Response: A JSON "comment" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;likes&quot;,
+    &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/likes&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:2,
+    &quot;count&quot;: 2,
+    &quot;src&quot;:[
+        {
+            &quot;type&quot;:&quot;like&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384&quot;,
+            &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;
+        },
+        {
+            &quot;type&quot;:&quot;like&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384&quot;,
+            &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002&quot;
+        }
+    ]
+}
+</code></pre>
+<h4 id="explantion-of-json-field">Explantion of JSON Field</h4>
+<p>type (string): always set to likes becuase it is a likes object.<br />
+page (string, URL): the URL of the page where the likes are displayed.<br />
+id (string, URL): the unique identifier of the likes.<br />
+page_number (int): the current page number of the likes.<br />
+size (int): the number of likes per page.<br />
+count (int): the total number of likes.<br />
+src (list): a list of "like" objects.</p>
+<h4 id="interesting-features">Interesting Features</h4>
+<p>Pagination: The likes are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.</p>
+<h3 id="2get-a-single-like">2.Get a single like</h3>
+<p><strong>Endpoint:</strong> 'GET /api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}'</p>
+<h4 id="when-the-api-endpoint-should-be-used_1">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to retrieve a single like by an author</p>
+<h4 id="how-the-api-endpoint-should-be-used_1">How the API endpoint should be used</h4>
+<p>Send a GET request to '/api/authors/{AUTHOR_SERIAL}/liked/{LIKE_SERIAL}'.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_1">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to get a single like by an author</li>
+<li>Don't use if you want to get multiple likes, use the get likes endpoint instead</li>
+<li>Don't use if you have the like FQID, use the get like by FQID endpoint instead</li>
+</ul>
+<h4 id="1st-example_1">1st Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384</a>
+Response: A JSON "like" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;like&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;John Doe&quot;,
+        &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+    },
+    &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384&quot;,
+    &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;
+}
+
+
+</code></pre>
+<h4 id="2nd-example_1">2nd Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7385">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7385</a>
+Response: A JSON "comment" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;like&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;John Doe&quot;,
+        &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+    },
+    &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7385&quot;,
+    &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002&quot;
+}
+</code></pre>
+<h4 id="explantion-of-json-field_1">Explantion of JSON Field</h4>
+<p>type (string): always set to like becuase it is a like object.<br />
+author (object): the author who liked the object in the form of an author object.<br />
+published (string): the date and time the like was published.<br />
+id (string, URL): the unique identifier of the like.<br />
+object (string, URL): the URL of the object that was liked (either a post or a comment).</p>
+<h3 id="3get-authors-likes-by-fqid">3.Get author's likes by FQID</h3>
+<p><strong>Endpoint:</strong> 'GET /api/authors/{AUTHOR_FQID}/liked'</p>
+<h4 id="when-the-api-endpoint-should-be-used_2">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to retrieve all likes by an author</p>
+<h4 id="how-the-api-endpoint-should-be-used_2">How the API endpoint should be used</h4>
+<p>Send a GET request to '/api/authors/{AUTHOR_FQID}/liked'.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_2">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to get a all likes by an author</li>
+<li>Don't use if you want to get a single like</li>
+<li>Don't use if you want to get all likes on a post or comment, use the get likes on post or comment endpoint instead</li>
+<li>Don't use for remote authors</li>
+</ul>
+<h4 id="1st-example_2">1st Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/?page=1&amp;size=1">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/?page=1&amp;size=1</a>
+Response: A JSON "likes" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;likes&quot;,
+    &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/likes&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:1,
+    &quot;count&quot;: 2,
+    &quot;src&quot;:[
+        {
+            &quot;type&quot;:&quot;like&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384&quot;,
+            &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;
+        },
+    ]
+}
+
+
+</code></pre>
+<h4 id="2nd-example_2">2nd Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/</a>
+Response: A JSON "comment" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;likes&quot;,
+    &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/likes&quot;,
+    &quot;page_number&quot;:1,
+    &quot;size&quot;:2,
+    &quot;count&quot;: 2,
+    &quot;src&quot;:[
+        {
+            &quot;type&quot;:&quot;like&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384&quot;,
+            &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;
+        },
+        {
+            &quot;type&quot;:&quot;like&quot;,
+            &quot;author&quot;:{
+                &quot;type&quot;:&quot;author&quot;,
+                &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+                &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+                &quot;displayName&quot;:&quot;John Doe&quot;,
+                &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+                &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+            },
+            &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+            &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384&quot;,
+            &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002&quot;
+        }
+    ]
+}
+</code></pre>
+<h4 id="explantion-of-json-field_2">Explantion of JSON Field</h4>
+<p>type (string): always set to likes becuase it is a likes object.<br />
+page (string, URL): the URL of the page where the likes are displayed.<br />
+id (string, URL): the unique identifier of the likes.<br />
+page_number (int): the current page number of the likes.<br />
+size (int): the number of likes per page.<br />
+count (int): the total number of likes.<br />
+src (list): a list of "like" objects.</p>
+<h4 id="interesting-features_1">Interesting Features</h4>
+<p>Pagination: The likes are paginated, with the page number and size specified in the response.
+- To use pagination, the client can use the "page" and "size" query parameters in the request URL.</p>
+<h3 id="4get-a-single-like-by-fqid">4.Get a single like by FQID</h3>
+<p><strong>Endpoint:</strong> 'GET /api/liked/{LIKE_FQID}'</p>
+<h4 id="when-the-api-endpoint-should-be-used_3">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to retrieve a single like</p>
+<h4 id="how-the-api-endpoint-should-be-used_3">How the API endpoint should be used</h4>
+<p>Send a GET request to '/api/liked/{LIKE_FQID}'.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_3">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to get a single like </li>
+<li>Don't use if you want to get multiple likes, use the get likes endpoint instead</li>
+<li>Don't use if you have the like author and like serial, use the get like endpoint instead</li>
+</ul>
+<h4 id="1st-example_3">1st Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/liked/12123457-e89b-12d3-a456-42661ead7384">http://127.0.0.1:8000/api/liked/12123457-e89b-12d3-a456-42661ead7384</a>
+Response: A JSON "like" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;like&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;John Doe&quot;,
+        &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+    },
+    &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7384&quot;,
+    &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/commented/543e4897-e89b-12e3-a456-426685474002&quot;
+}
+
+
+</code></pre>
+<h4 id="2nd-example_3">2nd Example</h4>
+<p>Request: GET <a href="http://127.0.0.1:8000/api/liked/12123457-e89b-12d3-a456-42661ead7385">http://127.0.0.1:8000/api/liked/12123457-e89b-12d3-a456-42661ead7385</a>
+Response: A JSON "comment" object</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;like&quot;,
+    &quot;author&quot;:{
+        &quot;type&quot;:&quot;author&quot;,
+        &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;page&quot;:&quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/123e4567-e89b-12d3-a456-426614174001&quot;,
+        &quot;host&quot;:&quot;http://127.0.0.1:8000/api/&quot;,
+        &quot;displayName&quot;:&quot;John Doe&quot;,
+        &quot;github&quot;: &quot;http://github.com/jdoe&quot;,
+        &quot;profileImage&quot;: &quot;https://i.imgur.com/k7XVwpB.jpeg&quot;
+    },
+    &quot;published&quot;:&quot;2025-02-20T13:07:04+00:00&quot;,
+    &quot;id&quot;:&quot;http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/liked/12123457-e89b-12d3-a456-42661ead7385&quot;,
+    &quot;object&quot;: &quot;http://127.0.0.1:8000/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002&quot;
+}
+</code></pre>
+<h4 id="explantion-of-json-field_3">Explantion of JSON Field</h4>
+<p>type (string): always set to like becuase it is a like object.<br />
+author (object): the author who liked the object in the form of an author object.<br />
+published (string): the date and time the like was published.<br />
+id (string, URL): the unique identifier of the like.<br />
+object (string, URL): the URL of the object that was liked (either a post or a comment).</p>
+<h3 id="5like-a-post">5.Like a post</h3>
+<p><strong>Endpoint:</strong> 'POST /api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/liked'</p>
+<h4 id="when-the-api-endpoint-should-be-used_4">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to like a post</p>
+<h4 id="how-the-api-endpoint-should-be-used_4">How the API endpoint should be used</h4>
+<p>Send a POST request to '/api/authors/{AUTHOR_SERIAL}/posts/{POST_SERIAL}/liked'.
+AUTHOR_SERIAL is the serial of the author who liked the post.
+POST_SERIAL is the serial of the post that was liked.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_4">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to like a post</li>
+<li>Don't use it to like a comment, use the like comment endpoint instead</li>
+</ul>
+<h4 id="1st-example_4">1st Example</h4>
+<p>Request: POST <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002/liked">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002/liked</a>
+BODY:</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;like&quot;
+}
+</code></pre>
+<p>Response: HTTP 302 Found</p>
+<h4 id="2nd-example_4">2nd Example</h4>
+<p>Request: POST <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002/liked">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/posts/543e4897-e89b-12e3-a456-426685474002/liked</a>
+BODY:</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comment&quot;
+}
+</code></pre>
+<p>Response: HTTP 405 Method Not Allowed</p>
+<h4 id="explantion-of-json-field_4">Explantion of JSON Field</h4>
+<p>type (string): always set to like becuase it is a like object.</p>
+<h3 id="6like-a-comment">6.Like a comment</h3>
+<p><strong>Endpoint:</strong> 'POST /api/authors/{AUTHOR_SERIAL}/comments/{COMMENT_SERIAL}/liked'</p>
+<h4 id="when-the-api-endpoint-should-be-used_5">When the API endpoint should be used</h4>
+<p>Use this endpoint when you want to like a comment</p>
+<h4 id="how-the-api-endpoint-should-be-used_5">How the API endpoint should be used</h4>
+<p>Send a POST request to '/api/authors/{AUTHOR_SERIAL}/comments/{comment_SERIAL}/liked'.
+AUTHOR_SERIAL is the serial of the author who liked the comment.
+POST_SERIAL is the serial of the comment that was liked.</p>
+<h4 id="why-the-api-endpoint-should-or-should-not-be-used_5">Why the API endpoint should or should not be used</h4>
+<ul>
+<li>Use it to like a comment</li>
+<li>Don't use it to like a post, use the like post endpoint instead</li>
+</ul>
+<h4 id="1st-example_5">1st Example</h4>
+<p>Request: POST <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/comments/543e4897-e89b-12e3-a456-426685474002/liked">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/comments/543e4897-e89b-12e3-a456-426685474002/liked</a>
+BODY:</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;like&quot;
+}
+</code></pre>
+<p>Response: HTTP 302 Found</p>
+<h4 id="2nd-example_5">2nd Example</h4>
+<p>Request: POST <a href="http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/comments/543e4897-e89b-12e3-a456-426685474002/liked">http://127.0.0.1:8000/api/authors/3ed7f38d-86f6-45cc-8f29-e498163f1d4c/comments/543e4897-e89b-12e3-a456-426685474002/liked</a>
+BODY:</p>
+<pre><code class="language-json">{
+    &quot;type&quot;:&quot;comment&quot;
+}
+</code></pre>
+<p>Response: HTTP 405 Method Not Allowed</p>
+<h4 id="explantion-of-json-field_5">Explantion of JSON Field</h4>
+<p>type (string): always set to like becuase it is a like object.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../likes_api/" class="btn btn-neutral float-left" title="Likes"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../inbox/" class="btn btn-neutral float-right" title="Inbox">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../likes_api/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../inbox/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
