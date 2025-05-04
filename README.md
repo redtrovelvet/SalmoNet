@@ -8,7 +8,7 @@ See this [web page](https://uofa-cmput404.github.io/general/project.html) for a 
 
 Docs: https://uofa-cmput404.github.io/w25-project-mod-salmon/
 
-##Team Members:
+## Team Members:
 - Carlin Boyles
 - Ethan Chung
 - Ryan Edwards
