@@ -4,7 +4,7 @@ A distributed social networking platform inspired by the ActivityPub protocol. I
 
 Originally developed as a group project for CMPUT404 at the University of Alberta.
 
-## Team Members:
+Team Members:
 - Carlin Boyles
 - Ethan Chung
 - Ryan Edwards
